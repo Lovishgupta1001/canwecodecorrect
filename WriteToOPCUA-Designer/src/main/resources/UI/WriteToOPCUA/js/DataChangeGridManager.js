@@ -150,7 +150,9 @@ define([
                 sortable: true,
                 filterable: true,
                 scrollable: true,
-                height: "100%",
+                // Height = toolbar(3rem) + header(~2.2rem) + 3 rows(~6.6rem) + border(~0.2rem)
+                // uilayer handles scrollable body sizing internally when height is set.
+                height: "13rem",
                 columns: this._getDataChangeWriteColumns(view),
                 dataSource: this._getDataChangeWriteDataSource(data)
             });

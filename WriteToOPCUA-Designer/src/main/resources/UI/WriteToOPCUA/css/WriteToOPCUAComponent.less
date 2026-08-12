@@ -1,61 +1,51 @@
 .writetoopcua-div {
     overflow: auto;
 
-    .cvt-grid-div.k-grid {
+    /*
+     * .cvt-grid-div is the uilayer grid container element.
+     * Styles the outer border and shape of every grid in this activity.
+     * TODO: Replace .k-* nested selectors below with uilayer equivalents
+     *       once the uilayer grid toolbar / header class names are confirmed.
+     */
+    .cvt-grid-div {
         border: 1px solid #d9d9d9;
         border-radius: 4px;
         overflow: hidden;
 
-        .k-grid-toolbar {
+        /*
+         * .writetoopcua-grid-toolbar is our own class placed on the toolbar
+         * content div rendered inside the uilayer grid toolbar region.
+         * Layout (flex, search + actions) is controlled entirely here.
+         */
+        .writetoopcua-grid-toolbar {
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            width: 100%;
             min-height: 3rem;
             padding: 0.5rem 0.75rem;
-            margin: 0;
             background: #f8f9fa;
             border-bottom: 1px solid #d9d9d9;
             box-sizing: border-box;
-            float: none;
-            clear: both;
-            position: relative;
-            z-index: 1;
 
-            &::before,
-            &::after {
-                display: none;
-            }
-
-            .writetoopcua-grid-toolbar {
+            .writetoopcua-grid-search {
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
-                width: 100%;
+                flex: 1;
+                max-width: 18rem;
 
-                .writetoopcua-grid-search {
-                    display: flex;
-                    align-items: center;
-                    flex: 1;
-                    max-width: 18rem;
-
-                    .ul-compact-search-bar,
-                    .ul-search-bar {
-                        width: 100%;
-                    }
-                }
-
-                .writetoopcua-grid-actions {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    margin-left: auto;
+                .ul-compact-search-bar,
+                .ul-search-bar {
+                    width: 100%;
                 }
             }
-        }
 
-        .k-grid-header {
-            border-top: none;
-            position: relative;
-            z-index: 0;
+            .writetoopcua-grid-actions {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-left: auto;
+            }
         }
     }
 }
@@ -126,34 +116,14 @@
     line-height: 1;
 }
 
+/*
+ * Dropdown column cells (.data-change-name-dropdown / .method-name-dropdown)
+ * are our own wrapper divs rendered inside each grid row.
+ * The dropdown widget inside fills the full cell width.
+ * Width is set on the container; the uilayer dropdown widget inherits it.
+ */
 .data-change-name-dropdown,
 .method-name-dropdown {
     width: 100%;
     min-width: 0;
-
-    .k-dropdown,
-    .k-dropdownlist {
-        width: 100%;
-    }
-}
-
-/*
- * Grid container — fixed height so the grid shows:
- *   toolbar    : 3rem  (min-height set in .k-grid-toolbar)
- *   header row : ~2.2rem
- *   3 data rows: 3 × ~2.2rem = ~6.6rem
- *   border     : ~0.2rem
- *   total      ≈ 13rem
- *
- * Kendo grid uses height: "100%" which fills this container.
- * scrollable: true causes the tbody to scroll when rows exceed the visible area.
- */
-.writetoopcua-grid-container {
-    height: 13rem;
-    box-sizing: border-box;
-}
-
-.writetoopcua-grid-container .cvt-grid-div.k-grid {
-    height: 100%;
-    box-sizing: border-box;
 }
