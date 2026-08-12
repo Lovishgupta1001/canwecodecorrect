@@ -57,6 +57,7 @@ define([
                     title: view.nls.MethodName,
                     template: methodNameTemplate,
                     editor: methodNameEditor,
+                    editable: isDynamic,
                     filterable: false
                 },
                 {

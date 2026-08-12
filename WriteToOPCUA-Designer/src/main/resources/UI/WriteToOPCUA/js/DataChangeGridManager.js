@@ -46,6 +46,7 @@ define([
                     title: view.nls.DataChangeName,
                     template: dataChangeNameTemplate,
                     editor: dataChangeNameEditor,
+                    editable: isDynamic,
                     filterable: false
                 },
                 {
