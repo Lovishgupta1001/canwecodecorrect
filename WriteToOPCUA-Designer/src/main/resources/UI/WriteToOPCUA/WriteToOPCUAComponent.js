@@ -285,8 +285,8 @@ define(function (require) {
             this.model.setKey("dynamicTransport", isDynamicTransport);
 
             TransportManager.updateTransportUI(this);
-            DataChangeGridManager.refreshGridMode(this, isDynamicTransport);
-            CallMethodGridManager.refreshGridMode(this, isDynamicTransport);
+            DataChangeGridManager.refreshGridMode(this);
+            CallMethodGridManager.refreshGridMode(this);
         },
 
 

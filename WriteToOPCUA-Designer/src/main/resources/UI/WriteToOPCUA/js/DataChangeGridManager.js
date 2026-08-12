@@ -206,18 +206,20 @@ define([
                         dataChangeName: view.nls.SelectDataChange
                     },
                     change: function () {
-                        var selectedItem = this.dataItem();
-                        var selectedData;
-
-                        if (!selectedItem) {
-                            dataItem.set("dataChangeName", "");
-                            dataItem.set("nodeId", "");
-                            dataItem.set("sampleValue", "");
-                            grid.refresh();
+                        // If user opens the dropdown and clicks outside without
+                        // selecting anything, this.value() is empty string (the
+                        // optionLabel). Do NOT write back or refresh in that case.
+                        var selectedValue = this.value();
+                        if (!selectedValue) {
                             return;
                         }
 
-                        selectedData = selectedItem.toJSON
+                        var selectedItem = this.dataItem();
+                        if (!selectedItem) {
+                            return;
+                        }
+
+                        var selectedData = selectedItem.toJSON
                             ? selectedItem.toJSON()
                             : selectedItem;
 

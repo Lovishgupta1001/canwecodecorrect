@@ -214,7 +214,7 @@ define([
                 var dropdown = uilayer.dropDownList({
                     elem: element,
                     dataSource: new uilayer.data.DataSource({
-                        data: view.methodOptions
+                        data: view.callMethodOptions
                     }),
                     dataTextField: "methodName",
                     dataValueField: "methodName",
@@ -222,18 +222,20 @@ define([
                         methodName: view.nls.SelectMethod
                     },
                     change: function () {
-                        var selectedItem = this.dataItem();
-                        var selectedData;
-
-                        if (!selectedItem) {
-                            dataItem.set("methodName", "");
-                            dataItem.set("nodeId", "");
-                            dataItem.set("inputParameters", []);
-                            grid.refresh();
+                        // If user opens the dropdown and clicks outside without
+                        // selecting anything, this.value() is empty string (the
+                        // optionLabel). Do NOT write back or refresh in that case.
+                        var selectedValue = this.value();
+                        if (!selectedValue) {
                             return;
                         }
 
-                        selectedData = selectedItem.toJSON
+                        var selectedItem = this.dataItem();
+                        if (!selectedItem) {
+                            return;
+                        }
+
+                        var selectedData = selectedItem.toJSON
                             ? selectedItem.toJSON()
                             : selectedItem;
 
