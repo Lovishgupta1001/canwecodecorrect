@@ -363,21 +363,17 @@ define(function (require) {
                     {
                         field: "value",
                         title: view.nls.Value,
-                        template: isDynamic
-                            ? GridUtils.getEditableValueTemplate(
-                                "value",
-                                "parameter-value-edit-icon"
-                            )
-                            : null,
-                        editor: isDynamic
-                            ? function (container, options) {
-                                ExpressionBuilderManager.parameterValueEditor(
-                                    container,
-                                    options,
-                                    view
-                                );
-                            }
-                            : null
+                        template: GridUtils.getEditableValueTemplate(
+                            "value",
+                            "parameter-value-edit-icon"
+                        ),
+                        editor: function (container, options) {
+                            ExpressionBuilderManager.parameterValueEditor(
+                                container,
+                                options,
+                                view
+                            );
+                        }
                     }
                 ],
                 dataSource: {
