@@ -68,6 +68,7 @@ define(function (require) {
                 }
 
                 var nodeId = dataItem.nodeId || "";
+                var nodeIdHelpText = dataItem.nodeIdHelpText || dataItem.nodeIdDetails || (nodeId ? "Node ID: " + nodeId : "");
                 var hasSelection = !!dataItem[selectionField];
 
                 return "<div class='writetoopcua-info-cell'>" +
@@ -77,7 +78,9 @@ define(function (require) {
                     "</span>" +
                     (hasSelection
                         ? "<span class='eQ-icon eQ-fonts-getInformation " +
-                          "writetoopcua-info-icon node-id-help-icon'></span>"
+                          "writetoopcua-info-icon node-id-help-icon' " +
+                          "title='" + _.escape(nodeIdHelpText) + "' " +
+                          "data-help='" + _.escape(nodeIdHelpText) + "'></span>"
                         : "") +
                     "</div>";
             };
@@ -92,6 +95,7 @@ define(function (require) {
                 }
 
                 var sampleValue = dataItem.sampleValue || "";
+                var sampleValueHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails || (sampleValue ? "Sample Value: " + sampleValue : "");
                 var hasSelection = !!dataItem.dataChangeName;
 
                 return "<div class='writetoopcua-info-cell'>" +
@@ -101,7 +105,9 @@ define(function (require) {
                     "</span>" +
                     (hasSelection
                         ? "<span class='eQ-icon eQ-fonts-getInformation " +
-                          "writetoopcua-info-icon sample-value-help-icon'></span>"
+                          "writetoopcua-info-icon sample-value-help-icon' " +
+                          "title='" + _.escape(sampleValueHelpText) + "' " +
+                          "data-help='" + _.escape(sampleValueHelpText) + "'></span>"
                         : "") +
                     "</div>";
             };

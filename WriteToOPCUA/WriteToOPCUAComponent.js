@@ -297,9 +297,9 @@ define(function (require) {
                 if (!this.model.getKey("dataChangeWrite") ||
                     this.model.getKey("dataChangeWrite").length === 0) {
                     this.model.setKey("dataChangeWrite", [
-                        { dataChangeName: "Temperature Sensor", nodeId: "ns=2;i=1001", sampleValue: "25.6", newValue: "" },
-                        { dataChangeName: "Pressure Gauge",     nodeId: "ns=2;i=1002", sampleValue: "101.3", newValue: "" },
-                        { dataChangeName: "Flow Rate",          nodeId: "ns=2;i=1003", sampleValue: "15.0", newValue: "" }
+                        { dataChangeName: "Temperature Sensor", nodeId: "ns=2;i=1001", sampleValue: "25.6", newValue: "", nodeIdHelpText: "Node ns=2;i=1001: Temperature Sensor (Range: -40 to 125 °C)", sampleValueHelpText: "Live reading: 25.6 °C" },
+                        { dataChangeName: "Pressure Gauge",     nodeId: "ns=2;i=1002", sampleValue: "101.3", newValue: "", nodeIdHelpText: "Node ns=2;i=1002: Pressure Gauge (Unit: kPa)", sampleValueHelpText: "Live reading: 101.3 kPa" },
+                        { dataChangeName: "Flow Rate",          nodeId: "ns=2;i=1003", sampleValue: "15.0", newValue: "", nodeIdHelpText: "Node ns=2;i=1003: Flow Rate (Unit: L/min)", sampleValueHelpText: "Live reading: 15.0 L/min" }
                     ]);
                 }
                 // ─── END SAMPLE DATA FALLBACK ─────────────────────────────────────
@@ -319,18 +319,20 @@ define(function (require) {
                                 { name: "Speed", dataType: "Int32", value: "" },
                                 { name: "Direction", dataType: "String", value: "" }
                             ],
-                            outputValue: ""
+                            outputValue: "", nodeIdHelpText: "Method Node ns=2;i=2001: StartProcess execution handler"
                         },
                         {
                             methodName: "StopProcess", nodeId: "ns=2;i=2002",
                             inputParameters: [
                                 { name: "EmergencyStop", dataType: "Boolean", value: "" }
                             ],
-                            outputValue: ""
+                            outputValue: "", nodeIdHelpText: "Method Node ns=2;i=2002: StopProcess execution handler"
                         },
                         {
-                            methodName: "ResetCounter", nodeId: "ns=2;i=2003",
-                            inputParameters: [], outputValue: ""
+                            methodName: "ResetAlarm", nodeId: "ns=2;i=2003",
+                            inputParameters: [
+                                { name: "AlarmId", dataType: "Int32", value: "" }
+                            ], outputValue: "", nodeIdHelpText: "Method Node ns=2;i=2003: ResetAlarm execution handler"
                         }
                     ]);
                 }
