@@ -5,7 +5,7 @@ define(function (require) {
     "use strict";
 
     var uilayer = require("uilayer"),
-        Constants = require("./Constants"),
+        Constants = require("./constants"),
         ExpressionBuilderManager = require("./ExpressionBuilderManager");
 
     var TransportManager = {

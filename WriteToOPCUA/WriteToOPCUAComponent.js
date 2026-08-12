@@ -7,7 +7,7 @@ define(function (require) {
         template = require("tpl!./template/WriteToOPCUAComponentTemplate"),
         model = require("./model/WriteToOPCUAComponentModel"),
         nls = require("i18n!./nls/WriteToOPCUAComponentNLS"),
-        Constants = require("./js/Constants"),
+        Constants = require("./js/constants"),
         TransportManager = require("./js/TransportManager"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
         CallMethodGridManager = require("./js/CallMethodGridManager"),
