@@ -21,7 +21,7 @@ define(function (require) {
                         "<button type='button' class='k-button k-button-icontext k-grid-add' title='" + (nls.Add || "Add") + "'>" +
                         "<span class='eQ-icon eQ-fonts-addRow'></span>" +
                         "</button>" +
-                        "<button type='button' class='k-button k-button-icontext writetoopcua-grid-delete-btn' title='" + (nls.Delete || "Delete") + "'>" +
+                        "<button type='button' class='k-button k-button-icontext k-grid-delete writetoopcua-grid-delete-btn' title='" + (nls.Delete || "Delete") + "'>" +
                         "<span class='eQ-icon eQ-fonts-removeRow'></span>" +
                         "</button>" +
                         "</div>" +
