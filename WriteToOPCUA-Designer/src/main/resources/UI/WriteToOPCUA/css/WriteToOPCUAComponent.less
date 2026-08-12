@@ -1,52 +1,52 @@
+/*
+ * Toolbar: .writetoopcua-grid-toolbar is a standalone div rendered directly
+ * in the template ABOVE each grid element. It is completely outside the
+ * uilayer/grid structure, so all styles are under full CSS control here.
+ */
+.writetoopcua-grid-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8f9fa;
+    border: 1px solid #d9d9d9;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    box-sizing: border-box;
+
+    .writetoopcua-grid-search {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        max-width: 18rem;
+
+        .ul-compact-search-bar,
+        .ul-search-bar {
+            width: 100%;
+        }
+    }
+
+    .writetoopcua-grid-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+    }
+}
+
 .writetoopcua-div {
     overflow: auto;
 
     /*
      * .cvt-grid-div is the uilayer grid container element.
-     * Styles the outer border and shape of every grid in this activity.
-     * TODO: Replace .k-* nested selectors below with uilayer equivalents
-     *       once the uilayer grid toolbar / header class names are confirmed.
+     * Top border-radius removed so it sits flush under the external toolbar.
      */
     .cvt-grid-div {
         border: 1px solid #d9d9d9;
-        border-radius: 4px;
+        border-radius: 0 0 4px 4px;
         overflow: hidden;
-
-        /*
-         * .writetoopcua-grid-toolbar is our own class placed on the toolbar
-         * content div rendered inside the uilayer grid toolbar region.
-         * Layout (flex, search + actions) is controlled entirely here.
-         */
-        .writetoopcua-grid-toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            min-height: 3rem;
-            padding: 0.5rem 0.75rem;
-            background: #f8f9fa;
-            border-bottom: 1px solid #d9d9d9;
-            box-sizing: border-box;
-
-            .writetoopcua-grid-search {
-                display: flex;
-                align-items: center;
-                flex: 1;
-                max-width: 18rem;
-
-                .ul-compact-search-bar,
-                .ul-search-bar {
-                    width: 100%;
-                }
-            }
-
-            .writetoopcua-grid-actions {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                margin-left: auto;
-            }
-        }
     }
 }
 
