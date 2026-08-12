@@ -115,12 +115,28 @@ define(function (require) {
              * call view._fetchOptions(selectedTransportId) to reload
              * dataChangeOptions and callMethodOptions for the new transport.
              */
-            // TODO [API]: Populate dataSource from GET /api/transports
-            // Expected response shape: [ { transportId: number, transportName: string }, ... ]
-            // Replace the empty DataSource below with a transport-backed one once the API is ready.
+            // ─── SAMPLE DATA — comment this block out when API is ready ──────────
             var dataSource = new uilayer.data.DataSource({
-                data: []
+                data: [
+                    { transportId: 1, transportName: "Test OPCUA Transport" },
+                    { transportId: 2, transportName: "Production OPCUA Server" }
+                ]
             });
+            // ─── END SAMPLE DATA ─────────────────────────────────────────────────
+
+            // ─── API DATA SOURCE — uncomment this block when API is ready ────────
+            // var dataSource = new uilayer.data.DataSource({
+            //     transport: {
+            //         read: {
+            //             url: "/api/transports",
+            //             dataType: "json"
+            //         }
+            //     },
+            //     schema: {
+            //         data: "data"   // adjust to match actual response envelope
+            //     }
+            // });
+            // ─── END API DATA SOURCE ─────────────────────────────────────────────
 
             view.transportDropdown = uilayer.dropDownList({
                 elem: view.$(".transport-selector-dropdown"),
