@@ -1,0 +1,141 @@
+<div class="writetoopcua-div ul-label-large">
+    <div class="ul-form-container">
+        <div class="ul-form-small ul-col-lg-8 ul-pad-0x">
+
+            <div class="ul-form-row ul-flex-gap-3x ul-pad-2x-b">
+                <div class="ul-label-container">
+                    <label class="ul-body-m-b"><%-nls.TransportNameVariable%></label>
+                </div>
+
+                <div class="ul-input-container">
+                    <input type="checkbox" class="transport-name-variable-checkbox"/>
+                </div>
+            </div>
+
+            <div class="ul-form-row ul-flex-gap-3x ul-pad-2x-b">
+                <div class="ul-label-container">
+                    <label class="ul-body-m-b ul-required"><%-nls.TransportName%></label>
+                </div>
+
+                <div class="ul-input-container">
+                    <div id="transport-name-expression-region"></div>
+                    <div id="transport-name-dropdown-region">
+                        <div class="transport-dropdown-wrapper">
+                            <div class="transport-selector-dropdown"></div>
+
+                            <div class="transport-selector-button transports-refresh-button"
+                                 title="<%-nls.Refresh%>">
+                                <span class="eQ-icon eQ-fonts-refresh"></span>
+                            </div>
+
+                            <div class="create-open-wrapper">
+                                <div class="transport-selector-button transports-create-button"
+                                     title="<%-nls.Create%>">
+                                    <span class="eQ-icon eQ-fonts-plus"></span>
+                                </div>
+
+                                <div class="transport-selector-button transports-open-button"
+                                     title="<%-nls.Open%>">
+                                    <span class="eQ-icon eQ-fonts-open-existing-project"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ul-form-row ul-flex-gap-3x ul-pad-2x-b">
+                <div class="ul-label-container">
+                    <label class="ul-body-m-b ul-required"><%-nls.Operation%></label>
+                </div>
+
+                <div class="ul-input-container">
+
+                    <input type="radio" id="data-change-write-radio" class="data-change-write-radio" name="operation" value="DataChangeWrite"/>
+                    <label for="data-change-write-radio" class="writetoopcua-radio-label ul-pad-3x-r"><%-nls.DataChangeWrite%></label>
+
+                    <input type="radio" id="call-method-radio" class="call-method-radio" name="operation" value="CallMethod"/>
+                    <label for="call-method-radio" class="writetoopcua-radio-label"><%-nls.CallMethod%></label>
+
+                </div>
+            </div>
+
+            <div class="ul-form-row ul-flex-gap-3x ul-pad-2x-b">
+                <div class="ul-label-container">
+                    <label class="ul-body-m-b ul-required"><%-nls.ExecutionMode%></label>
+                </div>
+
+                <div class="ul-input-container">
+                    <div class="ul-form-row ul-flex-gap-1x">
+
+                        <input type="radio" id="parallel-mode-radio" class="parallel-mode-radio" name="execution-mode" value="Parallel"/>
+                        <label for="parallel-mode-radio" class="writetoopcua-radio-label"><%-nls.Parallel%></label>
+                        <div class="parallel-mode-icon-region"></div>
+
+                        <input type="radio" id="sequential-mode-radio" class="sequential-mode-radio" name="execution-mode" value="Sequential"/>
+                        <label for="sequential-mode-radio" class="writetoopcua-radio-label"><%-nls.Sequential%></label>
+                        <div class="sequential-mode-icon-region"></div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="data-change-write-container">
+            <div class="ul-form-row ul-flex-gap-3x ul-pad-2x-b">
+                <div class="ul-label-container">
+                    <label class="ul-body-m-b ul-required"><%-nls.DataChangeWrite%></label>
+                </div>
+
+                <div class="ul-input-container">
+                    <div id="data-change-write-region">
+                        <div class="cvt-grid-div cvt-grid-div-data-change-write data-change-write-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="call-method-container">
+            <div class="ul-form-row ul-flex-gap-3x ul-pad-2x-b">
+                <div class="ul-label-container">
+                    <label class="ul-body-m-b ul-required"><%-nls.CallMethod%></label>
+                </div>
+
+                <div class="ul-input-container">
+                    <div id="call-method-region">
+                        <div class="cvt-grid-div cvt-grid-div-call-method call-method-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="add-method-call-section">
+
+            <div class="add-method-call-btn k-button ul-tertiary-button ul-body-m-b">
+                <%-nls.AddMethodCall%>
+            </div>
+
+            <div class="add-method-call-container">
+
+                <div class="ul-pad-2x-b">
+                    <div id="add-method-call-header-region"></div>
+                    <div id="add-method-call-content-region"></div>
+                </div>
+
+                <div class="ul-form-row ul-flex-gap-3x">
+
+                    <div class="add-method-call-cancel-btn k-button ul-tertiary-button ul-body-m-b">
+                        <%-nls.Cancel%>
+                    </div>
+
+                    <div class="add-method-call-save-btn k-button ul-primary-button ul-body-m-b">
+                        <%-nls.Save%>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-parameters-modal" style="display:none;">
+            <div class="input-parameters-modal-grid"></div>
+        </div>
+    </div>
+</div>
