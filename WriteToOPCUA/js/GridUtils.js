@@ -59,6 +59,20 @@ define(function (require) {
             });
         },
 
+        _formatHelpText: function (val, fallbackPrefix, fallbackVal) {
+            if (val === null || val === undefined) {
+                return fallbackVal ? (fallbackPrefix + fallbackVal) : "";
+            }
+            if (typeof val === "object") {
+                try {
+                    return JSON.stringify(val, null, 2);
+                } catch (e) {
+                    return String(val);
+                }
+            }
+            return String(val);
+        },
+
         getNodeIdTemplate: function (selectionField, view) {
             return function (dataItem) {
                 var isDynamicTransport = view.model.getKey("dynamicTransport");
@@ -68,7 +82,8 @@ define(function (require) {
                 }
 
                 var nodeId = dataItem.nodeId || "";
-                var nodeIdHelpText = dataItem.nodeIdHelpText || dataItem.nodeIdDetails || (nodeId ? "Node ID: " + nodeId : "");
+                var rawHelpText = dataItem.nodeIdHelpText || dataItem.nodeIdDetails || dataItem.nodeDetails;
+                var nodeIdHelpText = GridUtils._formatHelpText(rawHelpText, "Node ID: ", nodeId);
                 var hasSelection = !!dataItem[selectionField];
 
                 return "<div class='writetoopcua-info-cell'>" +
@@ -95,7 +110,8 @@ define(function (require) {
                 }
 
                 var sampleValue = dataItem.sampleValue || "";
-                var sampleValueHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails || (sampleValue ? "Sample Value: " + sampleValue : "");
+                var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
+                var sampleValueHelpText = GridUtils._formatHelpText(rawHelpText, "Sample Value: ", sampleValue);
                 var hasSelection = !!dataItem.dataChangeName;
 
                 return "<div class='writetoopcua-info-cell'>" +
