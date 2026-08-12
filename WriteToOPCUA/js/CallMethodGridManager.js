@@ -459,11 +459,11 @@ define(function (require) {
              */
             if (view.inputParametersModal &&
                 typeof view.inputParametersModal.open === "function") {
-                view.inputParametersModal.open();
+                view.inputParametersModal.center().open();
             } else if (view.inputParametersModal &&
                 view.inputParametersModal.widget &&
                 typeof view.inputParametersModal.widget.open === "function") {
-                view.inputParametersModal.widget.open();
+                view.inputParametersModal.widget.center().open();
             }
         },
 
