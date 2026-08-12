@@ -137,61 +137,6 @@ define(function (require) {
             }, container, options);
         },
 
-        renderParameterValueExpressionBuilders: function (view, modalGrid) {
-            var self = this;
-
-            if (!modalGrid || !modalGrid.widget) {
-                return;
-            }
-
-            view.parameterValueExpressionBuilders = view.parameterValueExpressionBuilders || [];
-
-            var configData = {
-                processModel: view.processModel,
-                activityID: view.activityId,
-                tabName: "CONFIGURATION"
-            };
-
-            // Search inside the actual Kendo Grid element — view.$() may miss it
-            // if uilayer moved the grid element outside view.$el during init.
-            $(modalGrid.widget.element)
-                .find(".param-value-expr-region")
-                .each(function () {
-                    var element = $(this);
-
-                    if (element.data("param-expr-initialized")) {
-                        return;
-                    }
-                    element.data("param-expr-initialized", true);
-
-                    var row = element.closest("tr");
-                    var dataItem = modalGrid.widget.dataItem(row);
-
-                    if (!dataItem) {
-                        return;
-                    }
-
-                    var eb = self.renderExpressionBuilder(
-                        element,
-                        ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
-                        configData,
-                        dataItem.get("value") || "",
-                        function (event) {
-                            var expression = ExpressionBuilderUtility.getExpression(event);
-                            dataItem.set("value", expression || "");
-                            if (event.sender && event.sender.widget) {
-                                event.sender.widget.close();
-                            }
-                        }
-                    );
-
-                    if (eb) {
-                        view.parameterValueExpressionBuilders.push(eb);
-                    }
-                });
-        },
-
-
         destroy: function (expressionBuilder) {
             if (expressionBuilder) {
                 ExpressionBuilderUtility.destroy(expressionBuilder);
