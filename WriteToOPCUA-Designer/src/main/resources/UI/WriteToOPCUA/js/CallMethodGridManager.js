@@ -213,6 +213,13 @@ define([
 
                 element.data("method-dropdown-initialized", true);
 
+                // Prevent Kendo's incell edit handler from seeing clicks on this
+                // cell. Without this, Kendo replaces the cell content with a default
+                // text editor, destroying the DropDownList widget.
+                element.on("click.prevent-incell-edit", function (e) {
+                    e.stopPropagation();
+                });
+
                 var dropdown = uilayer.dropDownList({
                     elem: element,
                     dataSource: new uilayer.data.DataSource({
@@ -241,14 +248,23 @@ define([
                             ? selectedItem.toJSON()
                             : selectedItem;
 
-                        dataItem.set("methodName", selectedData.methodName || "");
-                        dataItem.set("nodeId", selectedData.nodeId || "");
-                        dataItem.set(
-                            "inputParameters",
-                            manager._copyInputParameters(selectedData.inputParameters)
-                        );
+                        // Use direct property assignment instead of dataItem.set().
+                        // dataItem.set() triggers Kendo change-tracking which causes
+                        // a full row re-render, destroying the DropDownList widget.
+                        dataItem["methodName"] = selectedData.methodName || "";
+                        dataItem["nodeId"]     = selectedData.nodeId     || "";
+                        dataItem["inputParameters"] = manager._copyInputParameters(selectedData.inputParameters);
 
-                        grid.refresh();
+                        // Refresh only the adjacent read-only cells (nodeId, inputParameters)
+                        // so their template output updates without touching the dropdown cell.
+                        var nodeIdCell = row.find("td:eq(2)");
+                        var inputParamsCell = row.find("td:eq(3)");
+                        if (nodeIdCell.length) {
+                            nodeIdCell.html(grid.columns[2].template(dataItem));
+                        }
+                        if (inputParamsCell.length) {
+                            inputParamsCell.html(grid.columns[3].template(dataItem));
+                        }
                     }
                 });
 
