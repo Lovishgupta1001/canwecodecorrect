@@ -11,6 +11,8 @@ package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
 
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
 import com.eqtechnologic.eqube.mi.businessobjects.process.ActivityConfigBean;
+import com.eqtechnologic.eqube.mi.component.annotations.ComponentData;
+import com.eqtechnologic.eqube.mi.componentservices.exprbuilder.constants.ExpressionBuilderConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +25,17 @@ import java.util.List;
 public class WriteToOPCUAConfigBean extends ActivityConfigBean {
 
     private Boolean dynamicTransport = Boolean.FALSE;
+
+    @ComponentData(componentName = ExpressionBuilderConstants.EXPRESSION_BUILDER_SERVICE, mandatory = false)
     private String transportName;
+
     private String operation = WriteToOPCUAConstants.DATA_CHANGE_WRITE;
     private String executionMode = WriteToOPCUAConstants.PARALLEL;
+
+    @ComponentData(componentName = ExpressionBuilderConstants.EXPRESSION_BUILDER_SERVICE, allKeys = true, mandatory = false)
     private List<DataChangeWriteItem> dataChangeWrite = new ArrayList<>();
+
+    @ComponentData(componentName = ExpressionBuilderConstants.EXPRESSION_BUILDER_SERVICE, allKeys = true, mandatory = false)
     private List<CallMethodItem> callMethod = new ArrayList<>();
 
     @Override
