@@ -57,13 +57,17 @@ define([
                     title: view.nls.MethodName,
                     template: methodNameTemplate,
                     editor: methodNameEditor,
-                    editable: isDynamic,
+                    editable: function () {
+                        return isDynamic;
+                    },
                     filterable: false
                 },
                 {
                     field: "nodeId",
                     title: view.nls.NodeId,
-                    editable: false,
+                    editable: function () {
+                        return false;
+                    },
                     template: GridUtils.getNodeIdTemplate("methodName", isDynamic),
                     filterable: true
                 },
@@ -83,6 +87,9 @@ define([
                     title: view.nls.OutputValue,
                     template: GridUtils.getOutputValueTemplate,
                     editor: this._outputValueEditor,
+                    editable: function () {
+                        return true;
+                    },
                     filterable: false
                 },
                 {
@@ -91,7 +98,9 @@ define([
                     template: GridUtils.getDeleteActionTemplate(view.nls),
                     filterable: false,
                     sortable: false,
-                    editable: false,
+                    editable: function () {
+                        return false;
+                    },
                     width: "6rem"
                 }
             ];

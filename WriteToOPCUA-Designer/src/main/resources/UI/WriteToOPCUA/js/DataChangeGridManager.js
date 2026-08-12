@@ -46,20 +46,26 @@ define([
                     title: view.nls.DataChangeName,
                     template: dataChangeNameTemplate,
                     editor: dataChangeNameEditor,
-                    editable: isDynamic,
+                    editable: function () {
+                        return isDynamic;
+                    },
                     filterable: false
                 },
                 {
                     field: "nodeId",
                     title: view.nls.NodeId,
-                    editable: false,
+                    editable: function () {
+                        return false;
+                    },
                     template: GridUtils.getNodeIdTemplate("dataChangeName", isDynamic),
                     filterable: true
                 },
                 {
                     field: "sampleValue",
                     title: view.nls.SampleValue,
-                    editable: false,
+                    editable: function () {
+                        return false;
+                    },
                     template: GridUtils.getSampleValueTemplate(isDynamic),
                     filterable: false
                 },
@@ -70,6 +76,9 @@ define([
                     editor: function (container, options) {
                         ExpressionBuilderManager.newValueEditor(container, options, view);
                     },
+                    editable: function () {
+                        return true;
+                    },
                     filterable: false
                 },
                 {
@@ -78,7 +87,9 @@ define([
                     template: GridUtils.getDeleteActionTemplate(view.nls),
                     filterable: false,
                     sortable: false,
-                    editable: false,
+                    editable: function () {
+                        return false;
+                    },
                     width: "6rem"
                 }
             ];
