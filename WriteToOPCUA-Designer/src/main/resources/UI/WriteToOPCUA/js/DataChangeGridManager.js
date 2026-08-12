@@ -1,42 +1,17 @@
-/**
- * Created by Lovish.
- */
-define(function (require) {
+define([
+    "uilayer",
+    "./GridUtils",
+    "./ExpressionBuilderManager"
+], function (uilayer, GridUtils, ExpressionBuilderManager) {
     "use strict";
 
-    var uilayer = require("uilayer"),
-        GridUtils = require("./GridUtils"),
-        ExpressionBuilderManager = require("./ExpressionBuilderManager");
-
     var DataChangeGridManager = {
-
-        refreshGridMode: function (view, isDynamicTransport) {
-            if (!view.dataChangeWriteGrid) {
+        refreshGridMode: function (view) {
+            if (!view || !view.dataChangeWriteGrid) {
                 return;
             }
 
-            var data = [];
-
-            if (view.dataChangeWriteGrid.widget &&
-                view.dataChangeWriteGrid.widget.dataSource) {
-                data = view.dataChangeWriteGrid.widget.dataSource.data().toJSON();
-            }
-
-            if (isDynamicTransport) {
-                data.forEach(function (item) {
-                    item.nodeId = "";
-                    item.sampleValue = "";
-                });
-            }
-
-            view.model.setKey("dataChangeWrite", data);
-
-            if (view.dataChangeWriteSearchBar) {
-                view.dataChangeWriteSearchBar.destroy();
-                view.dataChangeWriteSearchBar = null;
-            }
-
-            view.dataChangeWriteGrid.destroy();
+            view._destroyComponent(view.dataChangeWriteGrid);
             view.dataChangeWriteGrid = null;
 
             view.$(".cvt-grid-div-data-change-write").empty();
@@ -46,11 +21,115 @@ define(function (require) {
             }
         },
 
-        renderDataChangeWriteComponent: function (view) {
-            if (view.dataChangeWriteGrid) {
-                if (view.dataChangeWriteGrid.widget) {
-                    view.dataChangeWriteGrid.widget.resize();
+        _getDataChangeWriteColumns: function (view) {
+            var isDynamic = !!view.model.getKey("dynamicTransport");
+
+            var dataChangeNameTemplate = isDynamic
+                ? GridUtils.getEditableValueTemplate("dataChangeName", "data-change-name-edit-icon")
+                : function (dataItem) {
+                    return "<div class='data-change-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
+                };
+
+            var dataChangeNameEditor = isDynamic
+                ? function (container, options) {
+                    ExpressionBuilderManager.dataChangeNameEditor(container, options, view);
                 }
+                : null;
+
+            return [
+                {
+                    selectable: true,
+                    width: 50
+                },
+                {
+                    field: "dataChangeName",
+                    title: view.nls.DataChangeName,
+                    template: dataChangeNameTemplate,
+                    editor: dataChangeNameEditor,
+                    filterable: false
+                },
+                {
+                    field: "nodeId",
+                    title: view.nls.NodeId,
+                    editable: false,
+                    template: GridUtils.getNodeIdTemplate("dataChangeName", view),
+                    filterable: true
+                },
+                {
+                    field: "sampleValue",
+                    title: view.nls.SampleValue,
+                    editable: false,
+                    template: GridUtils.getSampleValueTemplate(view),
+                    filterable: false
+                },
+                {
+                    field: "newValue",
+                    title: view.nls.NewValue,
+                    template: GridUtils.getNewValueTemplate,
+                    editor: function (container, options) {
+                        ExpressionBuilderManager.newValueEditor(container, options, view);
+                    },
+                    filterable: false
+                },
+                {
+                    field: "action",
+                    title: view.nls.Action,
+                    template: GridUtils.getDeleteActionTemplate(view.nls),
+                    filterable: false,
+                    sortable: false,
+                    editable: false,
+                    width: "6rem"
+                }
+            ];
+        },
+
+        _getDataChangeWriteDataSource: function (data) {
+            return {
+                data: data,
+                pageSize: 50,
+                schema: {
+                    model: {
+                        id: "rowId",
+                        fields: {
+                            rowId: {
+                                type: "number",
+                                editable: false,
+                                nullable: true
+                            },
+                            dataChangeName: {
+                                type: "string"
+                            },
+                            nodeId: {
+                                type: "string",
+                                editable: false
+                            },
+                            sampleValue: {
+                                type: "string",
+                                editable: false
+                            },
+                            newValue: {
+                                type: "string"
+                            },
+                            action: {
+                                type: "string",
+                                editable: false
+                            }
+                        }
+                    }
+                }
+            };
+        },
+
+        _resizeGridIfExists: function (grid) {
+            if (grid && grid.widget) {
+                grid.widget.resize();
+                return true;
+            }
+            return false;
+        },
+
+        renderDataChangeWriteComponent: function (view) {
+            if (this._resizeGridIfExists(view.dataChangeWriteGrid)) {
                 return;
             }
 
@@ -71,126 +150,32 @@ define(function (require) {
                 filterable: true,
                 scrollable: true,
                 height: "100%",
-                columns: [
-                    {
-                        selectable: true,
-                        width: 50
-                    },
-                    {
-                        field: "dataChangeName",
-                        title: view.nls.DataChangeName,
-                        template: view.model.getKey("dynamicTransport")
-                            ? GridUtils.getEditableValueTemplate(
-                                "dataChangeName",
-                                "data-change-name-edit-icon"
-                            )
-                            : function (dataItem) {
-                                return "<div class='data-change-name-dropdown' " +
-                                    "data-row-uid='" + dataItem.uid + "'></div>";
-                            },
-                        editor: view.model.getKey("dynamicTransport")
-                            ? function (container, options) {
-                                ExpressionBuilderManager.dataChangeNameEditor(
-                                    container,
-                                    options,
-                                    view
-                                );
-                            }
-                            : null,
-                        filterable: false
-                    },
-                    {
-                        field: "nodeId",
-                        title: view.nls.NodeId,
-                        editable: false,
-                        template: GridUtils.getNodeIdTemplate("dataChangeName", view),
-                        filterable: true
-                    },
-                    {
-                        field: "sampleValue",
-                        title: view.nls.SampleValue,
-                        editable: false,
-                        template: GridUtils.getSampleValueTemplate(view),
-                        filterable: false
-                    },
-                    {
-                        field: "newValue",
-                        title: view.nls.NewValue,
-                        template: GridUtils.getNewValueTemplate,
-                        editor: function (container, options) {
-                            ExpressionBuilderManager.newValueEditor(container, options, view);
-                        },
-                        filterable: false
-                    },
-                    {
-                        field: "action",
-                        title: view.nls.Action,
-                        template: GridUtils.getDeleteActionTemplate(view.nls),
-                        filterable: false,
-                        sortable: false,
-                        editable: false,
-                        width: "6rem"
-                    }
-                ],
-                dataSource: {
-                    data: data,
-                    pageSize: 50,
-                    schema: {
-                        model: {
-                            id: "rowId",
-                            fields: {
-                                rowId: {
-                                    type: "number",
-                                    editable: false,
-                                    nullable: true
-                                },
-                                dataChangeName: {
-                                    type: "string"
-                                },
-                                nodeId: {
-                                    type: "string",
-                                    editable: false
-                                },
-                                sampleValue: {
-                                    type: "string",
-                                    editable: false
-                                },
-                                newValue: {
-                                    type: "string"
-                                },
-                                action: {
-                                    type: "string",
-                                    editable: false
-                                }
-                            }
-                        }
-                    }
-                }
+                columns: this._getDataChangeWriteColumns(view),
+                dataSource: this._getDataChangeWriteDataSource(data)
             });
 
-            if (view.dataChangeWriteGrid.widget) {
-                view.dataChangeWriteGrid.widget.bind(
-                    "dataBound",
-                    this._initializeDataChangeDropdowns.bind(this, view)
+            this._bindGridEvents(view);
+        },
+
+        _bindGridEvents: function (view) {
+            var manager = this;
+
+            if (!view.dataChangeWriteGrid || !view.dataChangeWriteGrid.widget) {
+                return;
+            }
+
+            view.dataChangeWriteGrid.widget.bind("dataBound", function () {
+                manager._initializeDataChangeDropdowns(view);
+                GridUtils.bindHelpTooltips(
+                    view.dataChangeWriteGrid,
+                    "nodeId",
+                    view,
+                    view.nls
                 );
-            }
-
-            if (!view.model.getKey("dynamicTransport")) {
-                this._initializeDataChangeDropdowns(view);
-            }
-
-            view.dataChangeWriteSearchBar = GridUtils.renderGridSearchBar(
-                "data-change-write-search",
-                view.dataChangeWriteGrid,
-                "nodeId",
-                view,
-                view.nls
-            );
+            });
         },
 
         _initializeDataChangeDropdowns: function (view) {
-            var manager = this;
-
             view.$(".data-change-name-dropdown").each(function () {
                 var element = $(this);
 
@@ -210,10 +195,6 @@ define(function (require) {
 
                 var dropdown = uilayer.dropDownList({
                     elem: element,
-                    // TODO [API]: view.dataChangeOptions is currently [] (empty).
-                    // It will be populated by view._fetchOptions(transportId) once
-                    // the transport dropdown selection triggers an API call.
-                    // Expected shape: [ { dataChangeName, nodeId, sampleValue }, ... ]
                     dataSource: new uilayer.data.DataSource({
                         data: view.dataChangeOptions
                     }),

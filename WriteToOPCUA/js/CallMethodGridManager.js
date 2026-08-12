@@ -1,41 +1,22 @@
-/**
- * Created by Lovish.
- */
-define(function (require) {
+define([
+    "uilayer",
+    "./GridUtils",
+    "./ExpressionBuilderManager"
+], function (uilayer, GridUtils, ExpressionBuilderManager) {
     "use strict";
 
-    var uilayer = require("uilayer"),
-        GridUtils = require("./GridUtils"),
-        ExpressionBuilderManager = require("./ExpressionBuilderManager");
-
     var CallMethodGridManager = {
+        _outputValueEditor: function (container, options) {
+            var input = $("<input type='text' class='ul-textbox' name='" + options.field + "'/>");
+            container.append(input);
+        },
 
-        refreshGridMode: function (view, isDynamicTransport) {
-            if (!view.callMethodGrid) {
+        refreshGridMode: function (view) {
+            if (!view || !view.callMethodGrid) {
                 return;
             }
 
-            var data = [];
-
-            if (view.callMethodGrid.widget &&
-                view.callMethodGrid.widget.dataSource) {
-                data = view.callMethodGrid.widget.dataSource.data().toJSON();
-            }
-
-            if (isDynamicTransport) {
-                data.forEach(function (item) {
-                    item.nodeId = "";
-                });
-            }
-
-            view.model.setKey("callMethod", data);
-
-            if (view.callMethodSearchBar) {
-                view.callMethodSearchBar.destroy();
-                view.callMethodSearchBar = null;
-            }
-
-            view.callMethodGrid.destroy();
+            view._destroyComponent(view.callMethodGrid);
             view.callMethodGrid = null;
 
             view.$(".cvt-grid-div-call-method").empty();
@@ -45,11 +26,123 @@ define(function (require) {
             }
         },
 
-        renderCallMethodComponent: function (view) {
-            if (view.callMethodGrid) {
-                if (view.callMethodGrid.widget) {
-                    view.callMethodGrid.widget.resize();
+        _getCallMethodColumns: function (view) {
+            var isDynamic = !!view.model.getKey("dynamicTransport");
+
+            var methodNameTemplate = isDynamic
+                ? GridUtils.getEditableValueTemplate("methodName", "method-name-edit-icon")
+                : function (dataItem) {
+                    return "<div class='method-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
+                };
+
+            var methodNameEditor = isDynamic
+                ? function (container, options) {
+                    ExpressionBuilderManager.methodNameEditor(container, options, view);
                 }
+                : null;
+
+            var inputParametersEditor = isDynamic
+                ? function (container, options) {
+                    ExpressionBuilderManager.inputParametersEditor(container, options, view);
+                }
+                : null;
+
+            return [
+                {
+                    selectable: true,
+                    width: 50
+                },
+                {
+                    field: "methodName",
+                    title: view.nls.MethodName,
+                    template: methodNameTemplate,
+                    editor: methodNameEditor,
+                    filterable: false
+                },
+                {
+                    field: "nodeId",
+                    title: view.nls.NodeId,
+                    editable: false,
+                    template: GridUtils.getNodeIdTemplate("methodName", view),
+                    filterable: true
+                },
+                {
+                    field: "inputParameters",
+                    title: view.nls.InputParameters,
+                    editable: function () {
+                        return isDynamic;
+                    },
+                    template: GridUtils.getInputParametersTemplate(view),
+                    editor: inputParametersEditor,
+                    filterable: false,
+                    sortable: false
+                },
+                {
+                    field: "outputValue",
+                    title: view.nls.OutputValue,
+                    template: GridUtils.getOutputValueTemplate,
+                    editor: this._outputValueEditor,
+                    filterable: false
+                },
+                {
+                    field: "action",
+                    title: view.nls.Action,
+                    template: GridUtils.getDeleteActionTemplate(view.nls),
+                    filterable: false,
+                    sortable: false,
+                    editable: false,
+                    width: "6rem"
+                }
+            ];
+        },
+
+        _getCallMethodDataSource: function (data) {
+            return {
+                data: data,
+                pageSize: 50,
+                schema: {
+                    model: {
+                        id: "rowId",
+                        fields: {
+                            rowId: {
+                                type: "number",
+                                editable: false,
+                                nullable: true
+                            },
+                            methodName: {
+                                type: "string"
+                            },
+                            nodeId: {
+                                type: "string",
+                                editable: false
+                            },
+                            inputParameters: {
+                                defaultValue: [],
+                                editable: true
+                            },
+                            outputValue: {
+                                type: "string"
+                            },
+                            action: {
+                                type: "string",
+                                editable: false
+                            }
+                        }
+                    }
+                }
+            };
+        },
+
+        _resizeGridIfExists: function (grid) {
+            if (grid && grid.widget) {
+                grid.widget.resize();
+                return true;
+            }
+            return false;
+        },
+
+        renderCallMethodComponent: function (view) {
+            if (this._resizeGridIfExists(view.callMethodGrid)) {
                 return;
             }
 
@@ -70,142 +163,28 @@ define(function (require) {
                 filterable: true,
                 scrollable: true,
                 height: "100%",
-                columns: [
-                    {
-                        selectable: true,
-                        width: 50
-                    },
-                    {
-                        field: "methodName",
-                        title: view.nls.MethodName,
-                        template: view.model.getKey("dynamicTransport")
-                            ? GridUtils.getEditableValueTemplate(
-                                "methodName",
-                                "method-name-edit-icon"
-                            )
-                            : function (dataItem) {
-                                return "<div class='method-name-dropdown' " +
-                                    "data-row-uid='" + dataItem.uid + "'></div>";
-                            },
-                        editor: view.model.getKey("dynamicTransport")
-                            ? function (container, options) {
-                                ExpressionBuilderManager.methodNameEditor(
-                                    container,
-                                    options,
-                                    view
-                                );
-                            }
-                            : null,
-                        filterable: false
-                    },
-                    {
-                        field: "nodeId",
-                        title: view.nls.NodeId,
-                        editable: false,
-                        template: GridUtils.getNodeIdTemplate("methodName", view),
-                        filterable: true
-                    },
-                    {
-                        field: "inputParameters",
-                        title: view.nls.InputParameters,
-                        editable: function () {
-                            return !!view.model.getKey("dynamicTransport");
-                        },
-                        template: GridUtils.getInputParametersTemplate(view),
-                        editor: view.model.getKey("dynamicTransport")
-                            ? function (container, options) {
-                                ExpressionBuilderManager.inputParametersEditor(
-                                    container,
-                                    options,
-                                    view
-                                );
-                            }
-                            : null,
-                        filterable: false,
-                        sortable: false
-                    },
-                    {
-                        field: "outputValue",
-                        title: view.nls.OutputValue,
-                        template: GridUtils.getOutputValueTemplate,
-                        editor: this._outputValueEditor,
-                        filterable: false
-                    },
-                    {
-                        field: "action",
-                        title: view.nls.Action,
-                        template: GridUtils.getDeleteActionTemplate(view.nls),
-                        filterable: false,
-                        sortable: false,
-                        editable: false,
-                        width: "6rem"
-                    }
-                ],
-                dataSource: {
-                    data: data,
-                    pageSize: 50,
-                    schema: {
-                        model: {
-                            id: "rowId",
-                            fields: {
-                                rowId: {
-                                    type: "number",
-                                    editable: false,
-                                    nullable: true
-                                },
-                                methodName: {
-                                    type: "string"
-                                },
-                                nodeId: {
-                                    type: "string",
-                                    editable: false
-                                },
-                                inputParameters: {
-                                    defaultValue: [],
-                                    editable: true
-                                },
-                                outputValue: {
-                                    type: "string"
-                                },
-                                action: {
-                                    type: "string",
-                                    editable: false
-                                }
-                            }
-                        }
-                    }
-                }
+                columns: this._getCallMethodColumns(view),
+                dataSource: this._getCallMethodDataSource(data)
             });
 
-            if (view.callMethodGrid.widget) {
-                view.callMethodGrid.widget.bind(
-                    "dataBound",
-                    this._initializeMethodDropdowns.bind(this, view)
-                );
-            }
-
-            if (!view.model.getKey("dynamicTransport")) {
-                this._initializeMethodDropdowns(view);
-            }
-
-            view.callMethodSearchBar = GridUtils.renderGridSearchBar(
-                "call-method-search",
-                view.callMethodGrid,
-                "nodeId",
-                view,
-                view.nls
-            );
+            this._bindGridEvents(view);
         },
 
-        _outputValueEditor: function (container, options) {
-            var input = $("<input type='text' class='ul-textbox output-value-editor'/>");
+        _bindGridEvents: function (view) {
+            var manager = this;
 
-            input.attr("name", options.field);
-            input.val(options.model.get(options.field) || "");
-            input.appendTo(container);
+            if (!view.callMethodGrid || !view.callMethodGrid.widget) {
+                return;
+            }
 
-            input.on("change blur", function () {
-                options.model.set(options.field, $(this).val());
+            view.callMethodGrid.widget.bind("dataBound", function () {
+                manager._initializeMethodDropdowns(view);
+                GridUtils.bindHelpTooltips(
+                    view.callMethodGrid,
+                    "nodeId",
+                    view,
+                    view.nls
+                );
             });
         },
 
@@ -231,12 +210,8 @@ define(function (require) {
 
                 var dropdown = uilayer.dropDownList({
                     elem: element,
-                    // TODO [API]: view.callMethodOptions is currently [] (empty).
-                    // It will be populated by view._fetchOptions(transportId) once
-                    // the transport dropdown selection triggers an API call.
-                    // Expected shape: [ { methodName, nodeId, inputParameters: [ { name, dataType, value } ] }, ... ]
                     dataSource: new uilayer.data.DataSource({
-                        data: view.callMethodOptions
+                        data: view.methodOptions
                     }),
                     dataTextField: "methodName",
                     dataValueField: "methodName",
@@ -297,15 +272,13 @@ define(function (require) {
 
             var badge = $(event.currentTarget);
             var row = badge.closest("tr");
+            var grid = view.callMethodGrid ? view.callMethodGrid.widget : null;
 
-            if (!view.callMethodGrid || !view.callMethodGrid.widget || !row.length) {
+            if (!grid) {
                 return;
             }
 
-            var grid = view.callMethodGrid.widget;
-
             var dataItem = grid.dataItem(row);
-
             if (!dataItem) {
                 return;
             }
@@ -314,38 +287,8 @@ define(function (require) {
             this.openInputParametersModal(view, dataItem);
         },
 
-        openInputParametersModal: function (view, dataItem) {
-            var manager = this;
-            var methodName = dataItem.get
-                ? dataItem.get("methodName")
-                : dataItem.methodName;
-
-            var inputParameters = dataItem.get
-                ? dataItem.get("inputParameters")
-                : dataItem.inputParameters;
-
-            inputParameters = this._copyInputParameters(inputParameters || []);
-
-            this._destroyInputParametersModal(view);
-
-            // Create a fresh container each time — modal.destroy() removes DOM elements,
-            // so a static template div would disappear after the first close.
-            var $modalWrapper = $(
-                "<div class='input-parameters-modal-wrapper'>" +
-                    "<div class='ul-pad-2x-b'>" +
-                        "<label class='ul-body-m-b'>" + (view.nls.InputParameters || "Input Parameters") + "</label>" +
-                    "</div>" +
-                    "<div class='input-parameters-modal-grid'></div>" +
-                "</div>"
-            );
-            view.$el.append($modalWrapper);
-            view._inputParametersModalWrapper = $modalWrapper;
-
-            var gridElement = $modalWrapper.find(".input-parameters-modal-grid");
-
-            var isDynamic = view.model.getKey("dynamicTransport");
-
-            view.inputParametersModalGrid = uilayer.grid({
+        _createInputParametersModalGrid: function (gridElement, inputParameters, view) {
+            return uilayer.grid({
                 elem: gridElement,
                 editable: {
                     mode: "incell"
@@ -404,6 +347,36 @@ define(function (require) {
                     }
                 }
             });
+        },
+
+        openInputParametersModal: function (view, dataItem) {
+            var manager = this;
+
+            var methodName = dataItem.get
+                ? dataItem.get("methodName")
+                : dataItem.methodName;
+
+            var inputParameters = dataItem.get
+                ? dataItem.get("inputParameters")
+                : dataItem.inputParameters;
+
+            inputParameters = this._copyInputParameters(inputParameters || []);
+
+            this._destroyInputParametersModal(view);
+
+            var $modalWrapper = $(
+                "<div class='input-parameters-modal-wrapper'>" +
+                    "<div class='ul-pad-2x-b'>" +
+                        "<label class='ul-body-m-b'>" + (view.nls.InputParameters || "Input Parameters") + "</label>" +
+                    "</div>" +
+                    "<div class='input-parameters-modal-grid'></div>" +
+                "</div>"
+            );
+            view.$el.append($modalWrapper);
+            view._inputParametersModalWrapper = $modalWrapper;
+
+            var gridElement = $modalWrapper.find(".input-parameters-modal-grid");
+            view.inputParametersModalGrid = this._createInputParametersModalGrid(gridElement, inputParameters, view);
 
             view.inputParametersModal = uilayer.modal({
                 elem: $modalWrapper,
@@ -452,41 +425,25 @@ define(function (require) {
                 }
             });
 
-            /*
-             * Some uilayer versions open during initialization.
-             * Others expose open() directly or through widget.
-             */
-            if (view.inputParametersModal &&
-                typeof view.inputParametersModal.open === "function") {
-                view.inputParametersModal.center().open();
-            } else if (view.inputParametersModal &&
-                view.inputParametersModal.widget &&
-                typeof view.inputParametersModal.widget.open === "function") {
+            if (view.inputParametersModal && view.inputParametersModal.widget) {
                 view.inputParametersModal.widget.center().open();
             }
         },
 
         _destroyInputParametersModal: function (view) {
-            // Null first to prevent re-entrant destroy if callbacks fire
-            var grid = view.inputParametersModalGrid;
-            var modal = view.inputParametersModal;
-            var wrapper = view._inputParametersModalWrapper;
-
-            view.inputParametersModalGrid = null;
-            view.inputParametersModal = null;
-            view._inputParametersModalWrapper = null;
-
-            if (grid && grid.destroy) {
-                grid.destroy();
+            if (view.inputParametersModalGrid) {
+                view._destroyComponent(view.inputParametersModalGrid);
+                view.inputParametersModalGrid = null;
             }
 
-            if (modal && modal.destroy) {
-                modal.destroy();
+            if (view.inputParametersModal) {
+                view._destroyComponent(view.inputParametersModal);
+                view.inputParametersModal = null;
             }
 
-            // Remove the dynamically created wrapper entirely so next open starts fresh
-            if (wrapper && wrapper.length) {
-                wrapper.remove();
+            if (view._inputParametersModalWrapper) {
+                view._inputParametersModalWrapper.remove();
+                view._inputParametersModalWrapper = null;
             }
         }
     };
