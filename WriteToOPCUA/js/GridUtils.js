@@ -133,7 +133,44 @@ define(function (require) {
                 "</div>";
         },
 
-        getInputParametersTemplate: function (dataItem) {
+        getInputParametersTemplate: function (viewOrDataItem) {
+            if (viewOrDataItem && viewOrDataItem.model) {
+                var view = viewOrDataItem;
+                return function (dataItem) {
+                    var isDynamicTransport = view.model.getKey("dynamicTransport");
+
+                    if (isDynamicTransport) {
+                        return "";
+                    }
+
+                    var parameters = dataItem.inputParameters || [];
+                    var count = parameters.length;
+                    var displayValue = "";
+
+                    if (count > 0) {
+                        displayValue = parameters[0].name ||
+                            parameters[0].parameterName ||
+                            parameters[0].displayName ||
+                            "";
+                    }
+
+                    return "<div class='input-parameters-cell'>" +
+                        "<span class='input-parameter-value' title='" +
+                        _.escape(displayValue) + "'>" +
+                        _.escape(displayValue) +
+                        "</span>" +
+                        (count > 0
+                            ? "<button type='button' " +
+                              "class='input-parameter-badge' " +
+                              "title='View input parameters'>" +
+                              count +
+                              "</button>"
+                            : "") +
+                        "</div>";
+                };
+            }
+
+            var dataItem = viewOrDataItem || {};
             var parameters = dataItem.inputParameters || [];
             var count = parameters.length;
             var displayValue = "";

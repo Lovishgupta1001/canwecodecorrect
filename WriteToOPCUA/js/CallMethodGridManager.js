@@ -105,7 +105,7 @@ define(function (require) {
                         field: "inputParameters",
                         title: view.nls.InputParameters,
                         editable: false,
-                        template: GridUtils.getInputParametersTemplate,
+                        template: GridUtils.getInputParametersTemplate(view),
                         filterable: false,
                         sortable: false
                     },
