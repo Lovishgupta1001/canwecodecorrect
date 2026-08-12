@@ -73,14 +73,12 @@ define(function (require) {
             return String(val);
         },
 
-        getNodeIdTemplate: function (selectionField, view) {
+        getNodeIdTemplate: function (selectionField, isDynamic) {
+            if (isDynamic) {
+                return function () { return ""; };
+            }
+
             return function (dataItem) {
-                var isDynamicTransport = view.model.getKey("dynamicTransport");
-
-                if (isDynamicTransport) {
-                    return "";
-                }
-
                 var nodeId = dataItem.nodeId || "";
                 var rawHelpText = dataItem.nodeIdHelpText || dataItem.nodeIdDetails || dataItem.nodeDetails;
                 var nodeIdHelpText = GridUtils._formatHelpText(rawHelpText, "Node ID: ", nodeId);
@@ -101,14 +99,12 @@ define(function (require) {
             };
         },
 
-        getSampleValueTemplate: function (view) {
+        getSampleValueTemplate: function (isDynamic) {
+            if (isDynamic) {
+                return function () { return ""; };
+            }
+
             return function (dataItem) {
-                var isDynamicTransport = view.model.getKey("dynamicTransport");
-
-                if (isDynamicTransport) {
-                    return "";
-                }
-
                 var sampleValue = dataItem.sampleValue || "";
                 var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
                 var sampleValueHelpText = GridUtils._formatHelpText(rawHelpText, "Sample Value: ", sampleValue);

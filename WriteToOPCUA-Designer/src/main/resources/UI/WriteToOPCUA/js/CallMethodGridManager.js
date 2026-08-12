@@ -64,7 +64,7 @@ define([
                     field: "nodeId",
                     title: view.nls.NodeId,
                     editable: false,
-                    template: GridUtils.getNodeIdTemplate("methodName", view),
+                    template: GridUtils.getNodeIdTemplate("methodName", isDynamic),
                     filterable: true
                 },
                 {
@@ -184,7 +184,7 @@ define([
             view.callMethodSearchBar = GridUtils.renderGridSearchBar(
                 "call-method-search",
                 view.callMethodGrid,
-                "nodeId",
+                "methodName",
                 view,
                 view.nls
             );

@@ -25,7 +25,17 @@ define(function (require) {
                 changeHandler: function (event) {
                     var expression = ExpressionBuilderUtility.getExpression(event);
 
-                    options.model.set(field, expression || "");
+                    // Do not write back if the expression is empty or just a
+                    // bare protocol prefix produced by clicking outside without
+                    // making a selection (e.g. "eQParser:").
+                    if (!expression || /^[a-zA-Z][a-zA-Z0-9+\-.]*:$/.test(expression)) {
+                        if (event.sender && event.sender.widget) {
+                            event.sender.widget.close();
+                        }
+                        return;
+                    }
+
+                    options.model.set(field, expression);
                     options.model.set("nodeId", "");
 
                     if (field === "dataChangeName") {
@@ -97,7 +107,14 @@ define(function (require) {
                 changeHandler: function (event) {
                     var expression = ExpressionBuilderUtility.getExpression(event);
 
-                    options.model.set("newValue", expression || "");
+                    if (!expression || /^[a-zA-Z][a-zA-Z0-9+\-.]*:$/.test(expression)) {
+                        if (event.sender && event.sender.widget) {
+                            event.sender.widget.close();
+                        }
+                        return;
+                    }
+
+                    options.model.set("newValue", expression);
 
                     if (event.sender && event.sender.widget) {
                         event.sender.widget.close();
@@ -122,7 +139,14 @@ define(function (require) {
                 changeHandler: function (event) {
                     var expression = ExpressionBuilderUtility.getExpression(event);
 
-                    options.model.set("value", expression || "");
+                    if (!expression || /^[a-zA-Z][a-zA-Z0-9+\-.]*:$/.test(expression)) {
+                        if (event.sender && event.sender.widget) {
+                            event.sender.widget.close();
+                        }
+                        return;
+                    }
+
+                    options.model.set("value", expression);
 
                     if (event.sender && event.sender.widget) {
                         event.sender.widget.close();

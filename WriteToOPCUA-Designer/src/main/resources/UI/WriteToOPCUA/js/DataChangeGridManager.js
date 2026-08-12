@@ -53,14 +53,14 @@ define([
                     field: "nodeId",
                     title: view.nls.NodeId,
                     editable: false,
-                    template: GridUtils.getNodeIdTemplate("dataChangeName", view),
+                    template: GridUtils.getNodeIdTemplate("dataChangeName", isDynamic),
                     filterable: true
                 },
                 {
                     field: "sampleValue",
                     title: view.nls.SampleValue,
                     editable: false,
-                    template: GridUtils.getSampleValueTemplate(view),
+                    template: GridUtils.getSampleValueTemplate(isDynamic),
                     filterable: false
                 },
                 {
@@ -171,7 +171,7 @@ define([
             view.dataChangeWriteSearchBar = GridUtils.renderGridSearchBar(
                 "data-change-write-search",
                 view.dataChangeWriteGrid,
-                "nodeId",
+                "dataChangeName",
                 view,
                 view.nls
             );
