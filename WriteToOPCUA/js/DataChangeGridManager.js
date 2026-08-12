@@ -70,7 +70,7 @@ define(function (require) {
                 sortable: true,
                 filterable: true,
                 scrollable: true,
-                height: "10rem",
+                height: "100%",
                 columns: [
                     {
                         field: "dataChangeName",
