@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OUTPUTS>
     <OUTPUT>
-        <NAME>Status</NAME>
-        <TYPE>Boolean</TYPE>
-        <DESCRIPTION>Execution status of Write To OPC UA operation</DESCRIPTION>
+        <ID>successfulWriteItems</ID>
+        <LABEL>writetoopcua.outputSuccessfulWriteItems</LABEL>
+        <DATATYPE>LIST</DATATYPE>
+        <DESCRIPTION>Successful Write items</DESCRIPTION>
     </OUTPUT>
     <OUTPUT>
-        <NAME>Message</NAME>
-        <TYPE>String</TYPE>
-        <DESCRIPTION>Execution output message or status details</DESCRIPTION>
+        <ID>failedWriteItems</ID>
+        <LABEL>writetoopcua.outputFailedWriteItems</LABEL>
+        <DATATYPE>LIST</DATATYPE>
+        <DESCRIPTION>Failed Write items</DESCRIPTION>
+    </OUTPUT>
+    <OUTPUT>
+        <ID>skippedWriteItems</ID>
+        <LABEL>writetoopcua.outputSkippedWriteItems</LABEL>
+        <DATATYPE>LIST</DATATYPE>
+        <DESCRIPTION>Skipped Write items</DESCRIPTION>
     </OUTPUT>
 </OUTPUTS>

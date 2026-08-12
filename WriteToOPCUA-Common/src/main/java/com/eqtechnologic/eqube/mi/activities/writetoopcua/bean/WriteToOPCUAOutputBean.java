@@ -9,8 +9,8 @@
  */
 package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Output bean for Write To OPC UA Activity
@@ -19,31 +19,31 @@ import java.util.Map;
  */
 public class WriteToOPCUAOutputBean {
 
-    private Boolean status = Boolean.TRUE;
-    private String message;
-    private Map<String, Object> outputResults = new HashMap<>();
+    private List<Object> successfulWriteItems = new ArrayList<>();
+    private List<Object> failedWriteItems = new ArrayList<>();
+    private List<Object> skippedWriteItems = new ArrayList<>();
 
-    public Boolean getStatus() {
-        return status;
+    public List<Object> getSuccessfulWriteItems() {
+        return successfulWriteItems;
     }
 
-    public void setStatus(Boolean status) {
-        this.status = status;
+    public void setSuccessfulWriteItems(List<Object> successfulWriteItems) {
+        this.successfulWriteItems = successfulWriteItems;
     }
 
-    public String getMessage() {
-        return message;
+    public List<Object> getFailedWriteItems() {
+        return failedWriteItems;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setFailedWriteItems(List<Object> failedWriteItems) {
+        this.failedWriteItems = failedWriteItems;
     }
 
-    public Map<String, Object> getOutputResults() {
-        return outputResults;
+    public List<Object> getSkippedWriteItems() {
+        return skippedWriteItems;
     }
 
-    public void setOutputResults(Map<String, Object> outputResults) {
-        this.outputResults = outputResults;
+    public void setSkippedWriteItems(List<Object> skippedWriteItems) {
+        this.skippedWriteItems = skippedWriteItems;
     }
 }

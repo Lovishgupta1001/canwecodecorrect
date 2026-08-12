@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<COMPARISON_FORMAT>
-    <COMPONENT name="WriteToOPCUA">
-        <FIELD name="transportName" displayName="Transport Name"/>
-        <FIELD name="operation" displayName="Operation"/>
-        <FIELD name="executionMode" displayName="Execution Mode"/>
-    </COMPONENT>
-</COMPARISON_FORMAT>
+<activity xmlns="http://www.w3.org/activitycomparison/activitycapabilitiescomparison">
+    <capability name="Configuration">
+        <component name="i18n:writetoopcua.transport" id="transportName"/>
+        <component name="i18n:writetoopcua.operation" id="operation"/>
+        <component name="i18n:writetoopcua.executionMode" id="executionMode"/>
+    </capability>
+    <capability name="Output">
+        <component name="i18n:writetoopcua.outputSuccessfulWriteItems" id="successfulWriteItems"/>
+        <component name="i18n:writetoopcua.outputFailedWriteItems" id="failedWriteItems"/>
+        <component name="i18n:writetoopcua.outputSkippedWriteItems" id="skippedWriteItems"/>
+    </capability>
+</activity>
