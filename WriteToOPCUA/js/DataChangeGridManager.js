@@ -154,26 +154,28 @@ define([
                 dataSource: this._getDataChangeWriteDataSource(data)
             });
 
-            this._bindGridEvents(view);
-        },
-
-        _bindGridEvents: function (view) {
-            var manager = this;
-
-            if (!view.dataChangeWriteGrid || !view.dataChangeWriteGrid.widget) {
-                return;
+            if (view.dataChangeWriteGrid && view.dataChangeWriteGrid.widget) {
+                view.dataChangeWriteGrid.widget.bind(
+                    "dataBound",
+                    this._initializeDataChangeDropdowns.bind(this, view)
+                );
             }
 
-            view.dataChangeWriteGrid.widget.bind("dataBound", function () {
-                manager._initializeDataChangeDropdowns(view);
-                GridUtils.bindHelpTooltips(
-                    view.dataChangeWriteGrid,
-                    "nodeId",
-                    view,
-                    view.nls
-                );
-            });
+            // For static mode the dropdowns are in the template HTML already,
+            // initialize them immediately after the first render.
+            if (!view.model.getKey("dynamicTransport")) {
+                this._initializeDataChangeDropdowns(view);
+            }
+
+            view.dataChangeWriteSearchBar = GridUtils.renderGridSearchBar(
+                "data-change-write-search",
+                view.dataChangeWriteGrid,
+                "nodeId",
+                view,
+                view.nls
+            );
         },
+
 
         _initializeDataChangeDropdowns: function (view) {
             view.$(".data-change-name-dropdown").each(function () {

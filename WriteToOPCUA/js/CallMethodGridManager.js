@@ -167,26 +167,29 @@ define([
                 dataSource: this._getCallMethodDataSource(data)
             });
 
-            this._bindGridEvents(view);
-        },
-
-        _bindGridEvents: function (view) {
-            var manager = this;
-
-            if (!view.callMethodGrid || !view.callMethodGrid.widget) {
-                return;
+            if (view.callMethodGrid && view.callMethodGrid.widget) {
+                view.callMethodGrid.widget.bind(
+                    "dataBound",
+                    this._initializeMethodDropdowns.bind(this, view)
+                );
             }
 
-            view.callMethodGrid.widget.bind("dataBound", function () {
-                manager._initializeMethodDropdowns(view);
-                GridUtils.bindHelpTooltips(
-                    view.callMethodGrid,
-                    "nodeId",
-                    view,
-                    view.nls
-                );
-            });
+            // For static mode the dropdowns are in the template HTML already,
+            // initialize them immediately after the first render.
+            if (!view.model.getKey("dynamicTransport")) {
+                this._initializeMethodDropdowns(view);
+            }
+
+            view.callMethodSearchBar = GridUtils.renderGridSearchBar(
+                "call-method-search",
+                view.callMethodGrid,
+                "nodeId",
+                view,
+                view.nls
+            );
         },
+
+
 
         _initializeMethodDropdowns: function (view) {
             var manager = this;
