@@ -356,7 +356,19 @@ define(function (require) {
                     },
                     {
                         field: "value",
-                        title: view.nls.Value
+                        title: view.nls.Value,
+                        template: view.model.getKey("dynamicTransport")
+                            ? GridUtils.getEditableValueTemplate("value", "value-edit-icon")
+                            : null,
+                        editor: view.model.getKey("dynamicTransport")
+                            ? function (container, options) {
+                                ExpressionBuilderManager.parameterValueEditor(
+                                    container,
+                                    options,
+                                    view
+                                );
+                            }
+                            : null
                     }
                 ],
                 dataSource: {

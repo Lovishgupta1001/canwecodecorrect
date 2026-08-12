@@ -112,6 +112,31 @@ define(function (require) {
             }, container, options);
         },
 
+        parameterValueEditor: function (container, options, view) {
+            var editorElement = $("<div class='parameter-value-expression-editor'></div>");
+            editorElement.appendTo(container);
+
+            var configData = {
+                processModel: view.processModel,
+                activityID: view.activityId,
+                tabName: "CONFIGURATION"
+            };
+
+            ExpressionBuilderUtility.getExpressionBuilderEditor({
+                launcherType: ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
+                configData: configData,
+                changeHandler: function (event) {
+                    var expression = ExpressionBuilderUtility.getExpression(event);
+
+                    options.model.set("value", expression || "");
+
+                    if (event.sender && event.sender.widget) {
+                        event.sender.widget.close();
+                    }
+                }
+            }, container, options);
+        },
+
         destroy: function (expressionBuilder) {
             if (expressionBuilder) {
                 ExpressionBuilderUtility.destroy(expressionBuilder);
