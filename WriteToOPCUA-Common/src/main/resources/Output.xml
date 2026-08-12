@@ -2,20 +2,20 @@
 <OUTPUTS>
     <OUTPUT>
         <ID>successfulWriteItems</ID>
-        <LABEL>writetoopcua.outputSuccessfulWriteItems</LABEL>
-        <DATATYPE>LIST</DATATYPE>
+        <LABEL>writeToOPCUA.outputSuccessfulWriteItems</LABEL>
+        <DATATYPE>List</DATATYPE>
         <DESCRIPTION>Successful Write items</DESCRIPTION>
     </OUTPUT>
     <OUTPUT>
         <ID>failedWriteItems</ID>
-        <LABEL>writetoopcua.outputFailedWriteItems</LABEL>
-        <DATATYPE>LIST</DATATYPE>
+        <LABEL>writeToOPCUA.outputFailedWriteItems</LABEL>
+        <DATATYPE>List</DATATYPE>
         <DESCRIPTION>Failed Write items</DESCRIPTION>
     </OUTPUT>
     <OUTPUT>
         <ID>skippedWriteItems</ID>
-        <LABEL>writetoopcua.outputSkippedWriteItems</LABEL>
-        <DATATYPE>LIST</DATATYPE>
+        <LABEL>writeToOPCUA.outputSkippedWriteItems</LABEL>
+        <DATATYPE>List</DATATYPE>
         <DESCRIPTION>Skipped Write items</DESCRIPTION>
     </OUTPUT>
 </OUTPUTS>
