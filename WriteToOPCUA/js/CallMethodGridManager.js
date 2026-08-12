@@ -104,6 +104,7 @@ define(function (require) {
                     {
                         field: "inputParameters",
                         title: view.nls.InputParameters,
+                        editable: !view.model.getKey("dynamicTransport") ? false : true,
                         template: GridUtils.getInputParametersTemplate(view),
                         editor: view.model.getKey("dynamicTransport")
                             ? function (container, options) {
