@@ -10,22 +10,26 @@ define(function (require) {
     var GridUtils = {
 
         getOperationGridToolbar: function (searchClass, nls) {
+            var addTitle = (nls && nls.Add) ? nls.Add : "Add";
+            var deleteTitle = (nls && nls.Delete) ? nls.Delete : "Delete";
+
             return [
                 {
-                    template:
-                        "<div class='writetoopcua-grid-toolbar' style='display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box;'>" +
-                        "<div class='writetoopcua-grid-search' style='flex: 1; max-width: 250px;'>" +
-                        "<input type='text' class='" + searchClass + "' style='width: 100%;'/>" +
-                        "</div>" +
-                        "<div class='writetoopcua-grid-actions' style='display: flex; gap: 0.5rem; align-items: center;'>" +
-                        "<button type='button' class='k-button k-button-icontext k-grid-add' title='" + (nls.Add || "Add") + "'>" +
-                        "<span class='eQ-icon eQ-fonts-addRow'></span>" +
-                        "</button>" +
-                        "<button type='button' class='k-button k-button-icontext k-grid-delete writetoopcua-grid-delete-btn' title='" + (nls.Delete || "Delete") + "'>" +
-                        "<span class='eQ-icon eQ-fonts-removeRow'></span>" +
-                        "</button>" +
-                        "</div>" +
-                        "</div>"
+                    template: function () {
+                        return "<div class='writetoopcua-grid-toolbar'>" +
+                            "<div class='writetoopcua-grid-search'>" +
+                            "<input type='text' class='" + searchClass + "'/>" +
+                            "</div>" +
+                            "<div class='writetoopcua-grid-actions'>" +
+                            "<button type='button' class='k-button k-button-icontext k-grid-add' title='" + addTitle + "'>" +
+                            "<span class='eQ-icon eQ-fonts-addRow'></span>" +
+                            "</button>" +
+                            "<button type='button' class='k-button k-button-icontext k-grid-delete writetoopcua-grid-delete-btn' title='" + deleteTitle + "'>" +
+                            "<span class='eQ-icon eQ-fonts-removeRow'></span>" +
+                            "</button>" +
+                            "</div>" +
+                            "</div>";
+                    }
                 }
             ];
         },
