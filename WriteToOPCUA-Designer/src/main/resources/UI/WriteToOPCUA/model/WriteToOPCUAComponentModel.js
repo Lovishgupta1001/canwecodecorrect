@@ -3,7 +3,7 @@
  */
 define(function (require) {
 
-    let ModelStore = require("ModelStore");
+    var ModelStore = require("ModelStore");
 
     ModelStore.WriteToOPCUAComponentModel = eQUI.Model.extend({
         defaults: {},

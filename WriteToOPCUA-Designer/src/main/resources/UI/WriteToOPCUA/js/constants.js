@@ -4,9 +4,6 @@
 define(function () {
 
     var CONSTANTS = {
-        STATIC: "Static",
-        DYNAMIC: "Dynamic",
-
         TRANSPORT_NAME: "transportName",
         TRANSPORT_ID: "transportId",
 

@@ -9,16 +9,6 @@ define(function (require) {
 
     var ExpressionBuilderManager = {
 
-        renderExpressionBuilder: function (element, launcherType, configData, selectedValue, changeHandler) {
-            return ExpressionBuilderUtility.render(
-                element,
-                launcherType,
-                configData,
-                selectedValue,
-                changeHandler
-            );
-        },
-
         renderGridExpressionEditor: function (container, options, view, field) {
             var editorElement = $("<div class='grid-expression-editor'></div>");
             editorElement.appendTo(container);

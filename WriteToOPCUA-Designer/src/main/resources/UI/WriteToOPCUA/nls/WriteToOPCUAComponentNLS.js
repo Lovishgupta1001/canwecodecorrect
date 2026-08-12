@@ -5,8 +5,6 @@ define({
     "root": {
         "writetoopcua.displayName": "Write To OPC UA",
         "writetoopcua.description": "Write To OPC UA activity.",
-        "writeToOPCUA.displayName": "Write To OPC UA",
-        "writeToOPCUA.description": "Write To OPC UA activity.",
         "TransportNameVariable": "Transport Name as Variable",
         "TransportName": "Transport Name",
         "SelectTransport": "Select Transport",
@@ -23,10 +21,6 @@ define({
         "SampleValue": "Sample Value",
         "NewValue": "New Value",
         "Action": "Action",
-        "NodeDetails": "Node Details",
-        "NodeName": "Node Name",
-        "DisplayName": "Display Name",
-        "BrowseName": "Browse Name",
         "MethodName": "Method Name",
         "InputParameters": "Input Parameters",
         "OutputValue": "Output Value",
@@ -44,17 +38,8 @@ define({
         "Open": "Open",
         "Save": "Save",
         "Cancel": "Cancel",
-        "writeToOPCUA.outputSuccessfulWriteItems": "Successful Write items",
-        "writeToOPCUA.outputFailedWriteItems": "Failed Write items",
-        "writeToOPCUA.outputSkippedWriteItems": "Skipped Write items",
         "writetoopcua.outputSuccessfulWriteItems": "Successful Write items",
         "writetoopcua.outputFailedWriteItems": "Failed Write items",
-        "writetoopcua.outputSkippedWriteItems": "Skipped Write items",
-        "outputSuccessfulWriteItems": "Successful Write items",
-        "outputFailedWriteItems": "Failed Write items",
-        "outputSkippedWriteItems": "Skipped Write items",
-        "successfulWriteItems": "Successful Write items",
-        "failedWriteItems": "Failed Write items",
-        "skippedWriteItems": "Skipped Write items"
+        "writetoopcua.outputSkippedWriteItems": "Skipped Write items"
     }
 });
