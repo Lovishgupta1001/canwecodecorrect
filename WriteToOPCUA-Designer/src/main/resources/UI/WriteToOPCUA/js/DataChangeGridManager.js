@@ -73,6 +73,10 @@ define(function (require) {
                 height: "100%",
                 columns: [
                     {
+                        selectable: true,
+                        width: 50
+                    },
+                    {
                         field: "dataChangeName",
                         title: view.nls.DataChangeName,
                         template: view.model.getKey("dynamicTransport")
@@ -247,14 +251,7 @@ define(function (require) {
                 } else if (dropdown && dropdown.widget && dropdown.widget.value) {
                     dropdown.widget.value(dataItem.get("dataChangeName") || "");
                 }
-
-                manager._storeRowDropdown(view, dropdown);
             });
-        },
-
-        _storeRowDropdown: function (view, dropdown) {
-            view.dataChangeNameDropdowns = view.dataChangeNameDropdowns || [];
-            view.dataChangeNameDropdowns.push(dropdown);
         }
     };
 

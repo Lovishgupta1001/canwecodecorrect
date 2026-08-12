@@ -72,6 +72,10 @@ define(function (require) {
                 height: "100%",
                 columns: [
                     {
+                        selectable: true,
+                        width: 50
+                    },
+                    {
                         field: "methodName",
                         title: view.nls.MethodName,
                         template: view.model.getKey("dynamicTransport")
@@ -271,8 +275,6 @@ define(function (require) {
                 } else if (dropdown && dropdown.widget && dropdown.widget.value) {
                     dropdown.widget.value(dataItem.get("methodName") || "");
                 }
-
-                manager._storeMethodDropdown(view, dropdown);
             });
         },
 
@@ -287,11 +289,6 @@ define(function (require) {
                     value: parameter.value || ""
                 };
             });
-        },
-
-        _storeMethodDropdown: function (view, dropdown) {
-            view.methodNameDropdowns = view.methodNameDropdowns || [];
-            view.methodNameDropdowns.push(dropdown);
         },
 
         onInputParameterBadgeClick: function (event, view) {

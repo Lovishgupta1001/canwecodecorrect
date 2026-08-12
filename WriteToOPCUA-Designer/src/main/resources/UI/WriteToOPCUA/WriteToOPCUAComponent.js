@@ -476,56 +476,63 @@ define(function (require) {
         },
 
         _destroyComponent: function (component) {
-            if (component && component.destroy) {
+            if (!component || typeof component.destroy !== "function") {
+                return;
+            }
+
+            try {
                 component.destroy();
+            } catch (error) {
+                console.warn("WriteToOPCUA component cleanup failed:", error);
             }
         },
 
         onBeforeDestroy: function () {
-            var globalSelf = this;
-
             ExpressionBuilderManager.destroy(this.transportExpressionBuilder);
+            this.transportExpressionBuilder = null;
 
             CallMethodGridManager._destroyInputParametersModal(this);
 
-            if (this.methodNameDropdowns) {
-                this.methodNameDropdowns.forEach(function (dropdown) {
-                    globalSelf._destroyComponent(dropdown);
-                });
-                this.methodNameDropdowns = null;
-            }
-
-            if (this.dataChangeNameDropdowns) {
-                this.dataChangeNameDropdowns.forEach(function (dropdown) {
-                    globalSelf._destroyComponent(dropdown);
-                });
-                this.dataChangeNameDropdowns = null;
-            }
-
             this._destroyComponent(this.transportNameAsVariable);
-            this._destroyComponent(this.parallelHelpIcon);
-            this._destroyComponent(this.sequentialHelpIcon);
-            this._destroyComponent(this.dataChangeWriteSearchBar);
-            this._destroyComponent(this.callMethodSearchBar);
-            this._destroyComponent(this.dataChangeWriteGrid);
-            this._destroyComponent(this.callMethodGrid);
-            this._destroyComponent(this.transportDropdown);
-            this._destroyComponent(this.refreshButton);
-            this._destroyComponent(this.createButton);
-            this._destroyComponent(this.openButton);
-
             this.transportNameAsVariable = null;
+
+            this._destroyComponent(this.parallelHelpIcon);
             this.parallelHelpIcon = null;
+
+            this._destroyComponent(this.sequentialHelpIcon);
             this.sequentialHelpIcon = null;
+
+            this._destroyComponent(this.dataChangeWriteSearchBar);
             this.dataChangeWriteSearchBar = null;
+
+            this._destroyComponent(this.callMethodSearchBar);
             this.callMethodSearchBar = null;
-            this.refreshButton = null;
-            this.createButton = null;
-            this.openButton = null;
-            this.transportDropdown = null;
-            this.transportExpressionBuilder = null;
+
+            this._destroyComponent(this.dataChangeWriteGrid);
             this.dataChangeWriteGrid = null;
+
+            this._destroyComponent(this.callMethodGrid);
             this.callMethodGrid = null;
+
+            this._destroyComponent(this.transportDropdown);
+            this.transportDropdown = null;
+
+            this._destroyComponent(this.refreshButton);
+            this.refreshButton = null;
+
+            this._destroyComponent(this.createButton);
+            this.createButton = null;
+
+            this._destroyComponent(this.openButton);
+            this.openButton = null;
+
+            /*
+             * Row dropdowns are children of their respective grids.
+             * Grid destruction already destroys these Kendo widgets.
+             */
+            this.methodNameDropdowns = null;
+            this.dataChangeNameDropdowns = null;
+
             this.selectedCallMethodRow = null;
         }
     });
