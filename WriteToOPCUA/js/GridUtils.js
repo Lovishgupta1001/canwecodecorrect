@@ -13,15 +13,15 @@ define(function (require) {
             return [
                 {
                     template:
-                        "<div class='writetoopcua-grid-toolbar'>" +
+                        "<div class='writetoopcua-grid-toolbar' style='display: flex; justify-content: space-between; align-items: center; width: 100%;'>" +
                         "<div class='writetoopcua-grid-search'>" +
                         "<input type='text' class='" + searchClass + "'/>" +
                         "</div>" +
-                        "<div class='writetoopcua-grid-actions'>" +
+                        "<div class='writetoopcua-grid-actions' style='display: flex; gap: 0.5rem;'>" +
                         "<button type='button' class='k-button k-button-icontext k-grid-add' title='" + nls.Add + "'>" +
                         "<span class='eQ-fonts-addRow eQ-icon ul-tertiary-button'></span>" +
                         "</button>" +
-                        "<button type='button' class='k-button k-button-icontext k-grid-delete' title='" + nls.Delete + "'>" +
+                        "<button type='button' class='k-button k-button-icontext writetoopcua-grid-delete-btn' title='" + nls.Delete + "'>" +
                         "<span class='eQ-fonts-removeRow eQ-icon ul-tertiary-button'></span>" +
                         "</button>" +
                         "</div>" +

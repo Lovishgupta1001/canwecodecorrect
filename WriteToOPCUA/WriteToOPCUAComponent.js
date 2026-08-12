@@ -21,6 +21,7 @@ define(function (require) {
 
         events: {
             "click .writetoopcua-delete-row": "_onDeleteGridRow",
+            "click .writetoopcua-grid-delete-btn": "_onDeleteToolbarRow",
             "click .input-parameter-badge": "_onInputParameterBadgeClick",
             "click .data-change-write-add-btn": "_onAddDataChangeRow",
             "click .call-method-add-btn": "_onAddCallMethodRow",
@@ -223,6 +224,23 @@ define(function (require) {
 
             if (grid && row.length) {
                 grid.removeRow(row);
+            }
+        },
+
+        _onDeleteToolbarRow: function (event) {
+            var gridElement = $(event.currentTarget).closest(".k-grid");
+            var grid = gridElement.data("kendoGrid");
+
+            if (grid) {
+                var selectedRow = grid.select();
+                if (selectedRow && selectedRow.length) {
+                    grid.removeRow(selectedRow);
+                } else {
+                    var lastRow = grid.tbody.find("tr:last");
+                    if (lastRow.length) {
+                        grid.removeRow(lastRow);
+                    }
+                }
             }
         },
 

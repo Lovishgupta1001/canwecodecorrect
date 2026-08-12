@@ -71,7 +71,7 @@ define(function (require) {
                 scrollable: {
                     virtual: true
                 },
-                height: "20rem",
+                height: "11.5rem",
                 columns: [
                     {
                         field: "methodName",
