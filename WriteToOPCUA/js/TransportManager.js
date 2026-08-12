@@ -115,16 +115,11 @@ define(function (require) {
              * call view._fetchOptions(selectedTransportId) to reload
              * dataChangeOptions and callMethodOptions for the new transport.
              */
-            // TODO [API]: Remove sample data below once API is wired
-            var data = [
-                {
-                    transportId: 1,
-                    transportName: "Test OPCUA Transport"
-                }
-            ];
-
+            // TODO [API]: Populate dataSource from GET /api/transports
+            // Expected response shape: [ { transportId: number, transportName: string }, ... ]
+            // Replace the empty DataSource below with a transport-backed one once the API is ready.
             var dataSource = new uilayer.data.DataSource({
-                data: data
+                data: []
             });
 
             view.transportDropdown = uilayer.dropDownList({
