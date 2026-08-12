@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<COMPARISON_FORMAT>
+    <COMPONENT name="WriteToOPCUA">
+        <FIELD name="transportName" displayName="Transport Name"/>
+        <FIELD name="operation" displayName="Operation"/>
+        <FIELD name="executionMode" displayName="Execution Mode"/>
+    </COMPONENT>
+</COMPARISON_FORMAT>

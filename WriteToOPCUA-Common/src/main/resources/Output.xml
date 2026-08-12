@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OUTPUTS>
+    <OUTPUT>
+        <NAME>Status</NAME>
+        <TYPE>Boolean</TYPE>
+        <DESCRIPTION>Execution status of Write To OPC UA operation</DESCRIPTION>
+    </OUTPUT>
+    <OUTPUT>
+        <NAME>Message</NAME>
+        <TYPE>String</TYPE>
+        <DESCRIPTION>Execution output message or status details</DESCRIPTION>
+    </OUTPUT>
+</OUTPUTS>
