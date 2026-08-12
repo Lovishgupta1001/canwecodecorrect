@@ -144,11 +144,13 @@ define(function (require) {
 
             this.parallelHelpIcon = uilayer.help({
                 elem: this.$(".parallel-mode-icon-region"),
+                content: this.nls.ParallelHelp,
                 position: "right"
             });
 
             this.sequentialHelpIcon = uilayer.help({
                 elem: this.$(".sequential-mode-icon-region"),
+                content: this.nls.SequentialHelp,
                 position: "right"
             });
 
