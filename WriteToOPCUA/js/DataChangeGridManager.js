@@ -69,10 +69,8 @@ define(function (require) {
                 resizable: true,
                 sortable: true,
                 filterable: true,
-                scrollable: {
-                    virtual: true
-                },
-                height: "11.5rem",
+                scrollable: true,
+                height: "10rem",
                 columns: [
                     {
                         field: "dataChangeName",

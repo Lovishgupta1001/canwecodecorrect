@@ -13,16 +13,16 @@ define(function (require) {
             return [
                 {
                     template:
-                        "<div class='writetoopcua-grid-toolbar' style='display: flex; justify-content: space-between; align-items: center; width: 100%;'>" +
-                        "<div class='writetoopcua-grid-search'>" +
-                        "<input type='text' class='" + searchClass + "'/>" +
+                        "<div class='writetoopcua-grid-toolbar' style='display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box;'>" +
+                        "<div class='writetoopcua-grid-search' style='flex: 1; max-width: 250px;'>" +
+                        "<input type='text' class='" + searchClass + "' style='width: 100%;'/>" +
                         "</div>" +
-                        "<div class='writetoopcua-grid-actions' style='display: flex; gap: 0.5rem;'>" +
-                        "<button type='button' class='k-button k-button-icontext k-grid-add' title='" + nls.Add + "'>" +
-                        "<span class='eQ-fonts-addRow eQ-icon ul-tertiary-button'></span>" +
+                        "<div class='writetoopcua-grid-actions' style='display: flex; gap: 0.5rem; align-items: center;'>" +
+                        "<button type='button' class='k-button k-button-icontext k-grid-add' title='" + (nls.Add || "Add") + "'>" +
+                        "<span class='eQ-icon eQ-fonts-addRow'></span>" +
                         "</button>" +
-                        "<button type='button' class='k-button k-button-icontext writetoopcua-grid-delete-btn' title='" + nls.Delete + "'>" +
-                        "<span class='eQ-fonts-removeRow eQ-icon ul-tertiary-button'></span>" +
+                        "<button type='button' class='k-button k-button-icontext writetoopcua-grid-delete-btn' title='" + (nls.Delete || "Delete") + "'>" +
+                        "<span class='eQ-icon eQ-fonts-removeRow'></span>" +
                         "</button>" +
                         "</div>" +
                         "</div>"
