@@ -331,6 +331,8 @@ define(function (require) {
             modalElement.show();
             gridElement.empty();
 
+            var isDynamic = view.model.getKey("dynamicTransport");
+
             view.inputParametersModalGrid = uilayer.grid({
                 elem: gridElement,
                 editable: {
@@ -356,16 +358,13 @@ define(function (require) {
                     {
                         field: "value",
                         title: view.nls.Value,
-                        template: view.model.getKey("dynamicTransport")
-                            ? GridUtils.getEditableValueTemplate("value", "value-edit-icon")
-                            : null,
-                        editor: view.model.getKey("dynamicTransport")
-                            ? function (container, options) {
-                                ExpressionBuilderManager.parameterValueEditor(
-                                    container,
-                                    options,
-                                    view
-                                );
+                        // When dynamic: expression builder is rendered inline (always visible).
+                        // When static: plain incell text input.
+                        editable: !isDynamic,
+                        template: isDynamic
+                            ? function (dataItem) {
+                                return "<div class='param-value-expr-region' " +
+                                    "data-row-uid='" + (dataItem.uid || "") + "'></div>";
                             }
                             : null
                     }
@@ -391,6 +390,22 @@ define(function (require) {
                     }
                 }
             });
+
+            // When dynamic transport: render ExpressionBuilder inline in each Value cell.
+            // This makes the EB visible immediately (not just on click).
+            if (isDynamic) {
+                if (view.inputParametersModalGrid.widget) {
+                    view.inputParametersModalGrid.widget.bind("dataBound", function () {
+                        ExpressionBuilderManager.renderParameterValueExpressionBuilders(
+                            view, view.inputParametersModalGrid
+                        );
+                    });
+                }
+                ExpressionBuilderManager.renderParameterValueExpressionBuilders(
+                    view, view.inputParametersModalGrid
+                );
+            }
+
 
             view.inputParametersModal = uilayer.modal({
                 elem: modalElement,
@@ -457,9 +472,18 @@ define(function (require) {
             // Null first to prevent re-entrant destroy if callbacks fire
             var grid = view.inputParametersModalGrid;
             var modal = view.inputParametersModal;
+            var paramEBs = view.parameterValueExpressionBuilders;
 
             view.inputParametersModalGrid = null;
             view.inputParametersModal = null;
+            view.parameterValueExpressionBuilders = null;
+
+            // Destroy inline expression builders rendered in Value cells
+            if (paramEBs && paramEBs.length) {
+                paramEBs.forEach(function (eb) {
+                    ExpressionBuilderManager.destroy(eb);
+                });
+            }
 
             if (grid && grid.destroy) {
                 grid.destroy();
