@@ -157,16 +157,23 @@ define(function (require) {
                             "</div>";
                     }
 
-                    var parameters = Array.isArray(dataItem.inputParameters) ? dataItem.inputParameters : [];
-                    var count = parameters.length;
-                    var displayValue = "";
+                    var params = dataItem.inputParameters;
+                    var parameters = [];
 
-                    if (count > 0) {
-                        displayValue = parameters[0].name ||
-                            parameters[0].parameterName ||
-                            parameters[0].displayName ||
-                            "";
+                    if (params) {
+                        if (typeof params.toJSON === "function") {
+                            parameters = params.toJSON();
+                        } else if (params.length !== undefined) {
+                            parameters = params;
+                        }
                     }
+
+                    var count = parameters.length || 0;
+                    var firstParam = parameters[0] || {};
+                    var displayValue = firstParam.name ||
+                        firstParam.parameterName ||
+                        firstParam.displayName ||
+                        "";
 
                     return "<div class='input-parameters-cell'>" +
                         "<span class='input-parameter-value' title='" +
@@ -185,16 +192,23 @@ define(function (require) {
             }
 
             var dataItem = viewOrDataItem || {};
-            var parameters = Array.isArray(dataItem.inputParameters) ? dataItem.inputParameters : [];
-            var count = parameters.length;
-            var displayValue = "";
+            var params = dataItem.inputParameters;
+            var parameters = [];
 
-            if (count > 0) {
-                displayValue = parameters[0].name ||
-                    parameters[0].parameterName ||
-                    parameters[0].displayName ||
-                    "";
+            if (params) {
+                if (typeof params.toJSON === "function") {
+                    parameters = params.toJSON();
+                } else if (params.length !== undefined) {
+                    parameters = params;
+                }
             }
+
+            var count = parameters.length || 0;
+            var firstParam = parameters[0] || {};
+            var displayValue = firstParam.name ||
+                firstParam.parameterName ||
+                firstParam.displayName ||
+                "";
 
             return "<div class='input-parameters-cell'>" +
                 "<span class='input-parameter-value' title='" +

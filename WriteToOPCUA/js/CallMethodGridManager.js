@@ -156,7 +156,7 @@ define(function (require) {
                                 },
                                 inputParameters: {
                                     defaultValue: [],
-                                    editable: false
+                                    editable: view.model.getKey("dynamicTransport") ? true : false
                                 },
                                 outputValue: {
                                     type: "string"
