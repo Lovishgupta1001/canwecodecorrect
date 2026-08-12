@@ -251,15 +251,54 @@ define(function (require) {
                 this.$(".call-method-container").hide();
                 this.$(".add-method-call-section").hide();
 
+                // ─── SAMPLE DATA FALLBACK — remove this block when API is ready ──
+                if (!this.model.getKey("dataChangeWrite") ||
+                    this.model.getKey("dataChangeWrite").length === 0) {
+                    this.model.setKey("dataChangeWrite", [
+                        { dataChangeName: "Temperature Sensor", nodeId: "ns=2;i=1001", sampleValue: "25.6", newValue: "" },
+                        { dataChangeName: "Pressure Gauge",     nodeId: "ns=2;i=1002", sampleValue: "101.3", newValue: "" },
+                        { dataChangeName: "Flow Rate",          nodeId: "ns=2;i=1003", sampleValue: "15.0", newValue: "" }
+                    ]);
+                }
+                // ─── END SAMPLE DATA FALLBACK ─────────────────────────────────────
+
                 DataChangeGridManager.renderDataChangeWriteComponent(this);
             } else {
                 this.$(".data-change-write-container").hide();
                 this.$(".call-method-container").show();
                 this.$(".add-method-call-section").show();
 
+                // ─── SAMPLE DATA FALLBACK — remove this block when API is ready ──
+                if (!this.model.getKey("callMethod") ||
+                    this.model.getKey("callMethod").length === 0) {
+                    this.model.setKey("callMethod", [
+                        {
+                            methodName: "StartProcess", nodeId: "ns=2;i=2001",
+                            inputParameters: [
+                                { name: "Speed", dataType: "Int32", value: "" },
+                                { name: "Direction", dataType: "String", value: "" }
+                            ],
+                            outputValue: ""
+                        },
+                        {
+                            methodName: "StopProcess", nodeId: "ns=2;i=2002",
+                            inputParameters: [
+                                { name: "EmergencyStop", dataType: "Boolean", value: "" }
+                            ],
+                            outputValue: ""
+                        },
+                        {
+                            methodName: "ResetCounter", nodeId: "ns=2;i=2003",
+                            inputParameters: [], outputValue: ""
+                        }
+                    ]);
+                }
+                // ─── END SAMPLE DATA FALLBACK ─────────────────────────────────────
+
                 CallMethodGridManager.renderCallMethodComponent(this);
             }
         },
+
 
         _onInputParameterBadgeClick: function (event) {
             CallMethodGridManager.onInputParameterBadgeClick(event, this);
