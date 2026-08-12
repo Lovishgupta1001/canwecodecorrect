@@ -40,6 +40,9 @@ define({
         "Cancel": "Cancel",
         "writetoopcua.outputSuccessfulWriteItems": "Successful Write items",
         "writetoopcua.outputFailedWriteItems": "Failed Write items",
-        "writetoopcua.outputSkippedWriteItems": "Skipped Write items"
+        "writetoopcua.outputSkippedWriteItems": "Skipped Write items",
+        "writetoopcua.selTransport": "Please select a Transport Name.",
+        "writetoopcua.emptyDataChangeWrite": "At least one Data Change Write item must be configured.",
+        "writetoopcua.emptyCallMethod": "At least one Call Method item must be configured."
     }
 });

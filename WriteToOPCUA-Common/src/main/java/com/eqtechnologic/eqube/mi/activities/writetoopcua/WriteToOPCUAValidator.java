@@ -47,7 +47,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
         }
 
         if (transportName == null || transportName.trim().isEmpty()) {
-            eQError error = new eQError("writeToOPCUA.selTransport", COMPONENT_ERR,
+            eQError error = new eQError("writetoopcua.selTransport", COMPONENT_ERR,
                     ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, WriteToOPCUAConstants.TRANSPORT_NAME),
                     false);
             errorList.add(error);
@@ -57,7 +57,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
         if (WriteToOPCUAConstants.DATA_CHANGE_WRITE.equals(operation)) {
             List<Map<String, Object>> dataChangeWriteList = (List<Map<String, Object>>) configMap.get("dataChangeWrite");
             if (dataChangeWriteList == null || dataChangeWriteList.isEmpty()) {
-                eQError error = new eQError("writeToOPCUA.emptyDataChangeWrite", COMPONENT_ERR,
+                eQError error = new eQError("writetoopcua.emptyDataChangeWrite", COMPONENT_ERR,
                         ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "dataChangeWrite"),
                         false);
                 errorList.add(error);
@@ -65,7 +65,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
         } else if (WriteToOPCUAConstants.CALL_METHOD.equals(operation)) {
             List<Map<String, Object>> callMethodList = (List<Map<String, Object>>) configMap.get("callMethod");
             if (callMethodList == null || callMethodList.isEmpty()) {
-                eQError error = new eQError("writeToOPCUA.emptyCallMethod", COMPONENT_ERR,
+                eQError error = new eQError("writetoopcua.emptyCallMethod", COMPONENT_ERR,
                         ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "callMethod"),
                         false);
                 errorList.add(error);
