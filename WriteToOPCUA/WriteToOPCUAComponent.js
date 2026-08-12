@@ -227,19 +227,27 @@ define(function (require) {
             this.$("#transport-name-expression-region").hide();
         },
 
+        _getGridInstance: function () {
+            if (this.$(".data-change-write-container").is(":visible") && this.dataChangeWriteGrid) {
+                return this.dataChangeWriteGrid.widget || this.dataChangeWriteGrid;
+            }
+            if (this.$(".call-method-container").is(":visible") && this.callMethodGrid) {
+                return this.callMethodGrid.widget || this.callMethodGrid;
+            }
+            return null;
+        },
+
         _onDeleteGridRow: function (event) {
             var row = $(event.currentTarget).closest("tr");
-            var gridElement = $(event.currentTarget).closest(".k-grid");
-            var grid = gridElement.data("kendoGrid");
+            var grid = this._getGridInstance();
 
             if (grid && row.length) {
                 grid.removeRow(row);
             }
         },
 
-        _onDeleteToolbarRow: function (event) {
-            var gridElement = $(event.currentTarget).closest(".k-grid");
-            var grid = gridElement.data("kendoGrid");
+        _onDeleteToolbarRow: function () {
+            var grid = this._getGridInstance();
 
             if (grid) {
                 var selectedRow = grid.select();

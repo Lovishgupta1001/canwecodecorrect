@@ -194,7 +194,7 @@ define(function (require) {
         },
 
         _outputValueEditor: function (container, options) {
-            var input = $("<input type='text' class='k-input k-textbox output-value-editor'/>");
+            var input = $("<input type='text' class='ul-textbox output-value-editor'/>");
 
             input.attr("name", options.field);
             input.val(options.model.get(options.field) || "");
@@ -300,12 +300,12 @@ define(function (require) {
 
             var badge = $(event.currentTarget);
             var row = badge.closest("tr");
-            var gridElement = badge.closest(".k-grid");
-            var grid = gridElement.data("kendoGrid");
 
-            if (!grid || !row.length) {
+            if (!view.callMethodGrid || !view.callMethodGrid.widget || !row.length) {
                 return;
             }
+
+            var grid = view.callMethodGrid.widget;
 
             var dataItem = grid.dataItem(row);
 
