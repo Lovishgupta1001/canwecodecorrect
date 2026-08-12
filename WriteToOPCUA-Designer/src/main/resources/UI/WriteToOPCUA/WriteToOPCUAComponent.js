@@ -142,18 +142,6 @@ define(function (require) {
                 elem: this.$el.find(".transport-name-variable-checkbox")
             });
 
-            this.parallelHelpIcon = uilayer.help({
-                elem: this.$(".parallel-mode-icon-region"),
-                content: this.nls.ParallelHelp,
-                position: "right"
-            });
-
-            this.sequentialHelpIcon = uilayer.help({
-                elem: this.$(".sequential-mode-icon-region"),
-                content: this.nls.SequentialHelp,
-                position: "right"
-            });
-
             this.$("#transport-name-expression-region").attr("name", Constants.TRANSPORT_NAME);
 
             this._initializeControls();
@@ -483,12 +471,6 @@ define(function (require) {
 
             this._destroyComponent(this.transportNameAsVariable);
             this.transportNameAsVariable = null;
-
-            this._destroyComponent(this.parallelHelpIcon);
-            this.parallelHelpIcon = null;
-
-            this._destroyComponent(this.sequentialHelpIcon);
-            this.sequentialHelpIcon = null;
 
             this._destroyComponent(this.dataChangeWriteSearchBar);
             this.dataChangeWriteSearchBar = null;
