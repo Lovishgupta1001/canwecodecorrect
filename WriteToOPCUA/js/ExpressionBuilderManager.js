@@ -57,6 +57,10 @@ define(function (require) {
             this.renderGridExpressionEditor(container, options, view, "methodName");
         },
 
+        inputParametersEditor: function (container, options, view) {
+            this.renderGridExpressionEditor(container, options, view, "inputParameters");
+        },
+
         renderTransportExpressionBuilder: function (view) {
             if (view.transportExpressionBuilder) {
                 ExpressionBuilderUtility.destroy(view.transportExpressionBuilder);

@@ -109,8 +109,9 @@ define(function (require) {
 
         getNewValueTemplate: function (dataItem) {
             var value = dataItem.newValue || "";
+            var isEmpty = !value;
 
-            return "<div class='writetoopcua-editable-cell'>" +
+            return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
                 "<span class='writetoopcua-editable-cell-value' " +
                 "title='" + _.escape(value) + "'>" +
                 _.escape(value) +
@@ -122,8 +123,9 @@ define(function (require) {
 
         getOutputValueTemplate: function (dataItem) {
             var outputValue = dataItem.outputValue || "";
+            var isEmpty = !outputValue;
 
-            return "<div class='writetoopcua-editable-cell'>" +
+            return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
                 "<span class='writetoopcua-editable-cell-value' " +
                 "title='" + _.escape(outputValue) + "'>" +
                 _.escape(outputValue) +
@@ -140,10 +142,22 @@ define(function (require) {
                     var isDynamicTransport = view.model.getKey("dynamicTransport");
 
                     if (isDynamicTransport) {
-                        return "";
+                        var val = typeof dataItem.inputParameters === "string"
+                            ? dataItem.inputParameters
+                            : "";
+                        var isEmpty = !val;
+
+                        return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
+                            "<span class='writetoopcua-editable-cell-value' " +
+                            "title='" + _.escape(val) + "'>" +
+                            _.escape(val) +
+                            "</span>" +
+                            "<span class='eQ-icon eQ-fonts-edit eq-cursor-pointer " +
+                            "writetoopcua-editable-cell-icon input-parameters-edit-icon'></span>" +
+                            "</div>";
                     }
 
-                    var parameters = dataItem.inputParameters || [];
+                    var parameters = Array.isArray(dataItem.inputParameters) ? dataItem.inputParameters : [];
                     var count = parameters.length;
                     var displayValue = "";
 
@@ -171,7 +185,7 @@ define(function (require) {
             }
 
             var dataItem = viewOrDataItem || {};
-            var parameters = dataItem.inputParameters || [];
+            var parameters = Array.isArray(dataItem.inputParameters) ? dataItem.inputParameters : [];
             var count = parameters.length;
             var displayValue = "";
 
@@ -199,9 +213,11 @@ define(function (require) {
 
         getEditableValueTemplate: function (field, iconClass) {
             return function (dataItem) {
-                var value = dataItem[field] || "";
+                var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
+                var value = rawVal || "";
+                var isEmpty = !value;
 
-                return "<div class='writetoopcua-editable-cell'>" +
+                return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
                     "<span class='writetoopcua-editable-cell-value' " +
                     "title='" + _.escape(value) + "'>" +
                     _.escape(value) +

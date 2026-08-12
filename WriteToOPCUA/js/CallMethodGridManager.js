@@ -104,8 +104,16 @@ define(function (require) {
                     {
                         field: "inputParameters",
                         title: view.nls.InputParameters,
-                        editable: false,
                         template: GridUtils.getInputParametersTemplate(view),
+                        editor: view.model.getKey("dynamicTransport")
+                            ? function (container, options) {
+                                ExpressionBuilderManager.inputParametersEditor(
+                                    container,
+                                    options,
+                                    view
+                                );
+                            }
+                            : null,
                         filterable: false,
                         sortable: false
                     },
