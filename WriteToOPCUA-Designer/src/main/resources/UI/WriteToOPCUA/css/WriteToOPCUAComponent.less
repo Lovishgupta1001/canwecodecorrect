@@ -137,6 +137,23 @@
     }
 }
 
-.input-parameters-modal-grid {
-    width: 100%;
+/*
+ * Grid container — fixed height so the grid shows:
+ *   toolbar    : 3rem  (min-height set in .k-grid-toolbar)
+ *   header row : ~2.2rem
+ *   3 data rows: 3 × ~2.2rem = ~6.6rem
+ *   border     : ~0.2rem
+ *   total      ≈ 13rem
+ *
+ * Kendo grid uses height: "100%" which fills this container.
+ * scrollable: true causes the tbody to scroll when rows exceed the visible area.
+ */
+.writetoopcua-grid-container {
+    height: 13rem;
+    box-sizing: border-box;
+}
+
+.writetoopcua-grid-container .cvt-grid-div.k-grid {
+    height: 100%;
+    box-sizing: border-box;
 }

@@ -251,6 +251,18 @@ define(function (require) {
             // Update model FIRST — grid managers read this when rebuilding columns
             this.model.setKey("dynamicTransport", isDynamicTransport);
 
+            // Clear transport name on every mode switch so the expression editor
+            // starts empty and the dropdown resets to the optionLabel placeholder.
+            this.model.setKey("transportName", "");
+
+            // Destroy the dropdown so renderTransportDropdown recreates it fresh
+            // at the optionLabel (placeholder) state when switching back to static.
+            if (this.transportDropdown) {
+                this._destroyComponent(this.transportDropdown);
+                this.transportDropdown = null;
+                this.$(".transport-selector-dropdown").empty();
+            }
+
             TransportManager.updateTransportUI(this);
             DataChangeGridManager.refreshGridMode(this);
             CallMethodGridManager.refreshGridMode(this);
