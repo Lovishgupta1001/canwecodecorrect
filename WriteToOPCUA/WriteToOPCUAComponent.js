@@ -234,10 +234,15 @@ define(function (require) {
 
         _updateTransportUI: function () {
             var isDynamicTransport = this.$(".transport-name-variable-checkbox").is(":checked");
+
+            // Update model FIRST — grid managers read this when rebuilding columns
+            this.model.setKey("dynamicTransport", isDynamicTransport);
+
             TransportManager.updateTransportUI(this);
             DataChangeGridManager.refreshGridMode(this, isDynamicTransport);
             CallMethodGridManager.refreshGridMode(this, isDynamicTransport);
         },
+
 
         _updateOperationUI: function () {
             var operation = this.$(".data-change-write-radio").is(":checked")
