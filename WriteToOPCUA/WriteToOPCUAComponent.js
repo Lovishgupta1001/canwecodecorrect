@@ -25,6 +25,8 @@ define(function (require) {
             "click .add-method-call-cancel-btn": "_onCancelMethodCall",
             "click .writetoopcua-delete-row": "_onDeleteGridRow",
             "click .input-parameter-badge": "_onInputParameterBadgeClick",
+            "click .data-change-write-add-btn": "_onAddDataChangeRow",
+            "click .call-method-add-btn": "_onAddCallMethodRow",
             "change .transport-name-variable-checkbox": "_updateTransportUI",
             "change .data-change-write-radio": "_updateOperationUI",
             "change .call-method-radio": "_updateOperationUI"
@@ -225,6 +227,18 @@ define(function (require) {
 
             if (grid && row.length) {
                 grid.removeRow(row);
+            }
+        },
+
+        _onAddDataChangeRow: function () {
+            if (this.dataChangeWriteGrid && this.dataChangeWriteGrid.widget) {
+                this.dataChangeWriteGrid.widget.addRow();
+            }
+        },
+
+        _onAddCallMethodRow: function () {
+            if (this.callMethodGrid && this.callMethodGrid.widget) {
+                this.callMethodGrid.widget.addRow();
             }
         },
 

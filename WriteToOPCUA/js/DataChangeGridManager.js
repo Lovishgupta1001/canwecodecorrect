@@ -58,7 +58,6 @@ define(function (require) {
 
             view.dataChangeWriteGrid = uilayer.grid({
                 elem: view.$(".cvt-grid-div-data-change-write"),
-                toolbar: GridUtils.getOperationGridToolbar("data-change-write-search", view.nls),
                 editable: {
                     mode: "incell",
                     createAt: "bottom"

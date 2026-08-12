@@ -57,7 +57,6 @@ define(function (require) {
 
             view.callMethodGrid = uilayer.grid({
                 elem: view.$(".cvt-grid-div-call-method"),
-                toolbar: GridUtils.getOperationGridToolbar("call-method-search", view.nls),
                 editable: {
                     mode: "incell",
                     createAt: "bottom"
