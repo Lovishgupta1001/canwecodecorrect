@@ -20,9 +20,6 @@ define(function (require) {
         nls: nls,
 
         events: {
-            "click .add-method-call-btn": "_onAddMethodCallClick",
-            "click .add-method-call-save-btn": "_onSaveMethodCall",
-            "click .add-method-call-cancel-btn": "_onCancelMethodCall",
             "click .writetoopcua-delete-row": "_onDeleteGridRow",
             "click .input-parameter-badge": "_onInputParameterBadgeClick",
             "click .data-change-write-add-btn": "_onAddDataChangeRow",
@@ -216,7 +213,6 @@ define(function (require) {
         _initializeControls: function () {
             this.$(".data-change-write-container").hide();
             this.$(".call-method-container").hide();
-            this.$(".add-method-call-section").hide();
             this.$("#transport-name-expression-region").hide();
         },
 
@@ -268,7 +264,6 @@ define(function (require) {
             if (operation === Constants.DATA_CHANGE_WRITE) {
                 this.$(".data-change-write-container").show();
                 this.$(".call-method-container").hide();
-                this.$(".add-method-call-section").hide();
 
                 // ─── SAMPLE DATA FALLBACK — remove this block when API is ready ──
                 if (!this.model.getKey("dataChangeWrite") ||
@@ -285,7 +280,6 @@ define(function (require) {
             } else {
                 this.$(".data-change-write-container").hide();
                 this.$(".call-method-container").show();
-                this.$(".add-method-call-section").show();
 
                 // ─── SAMPLE DATA FALLBACK — remove this block when API is ready ──
                 if (!this.model.getKey("callMethod") ||
@@ -321,18 +315,6 @@ define(function (require) {
 
         _onInputParameterBadgeClick: function (event) {
             CallMethodGridManager.onInputParameterBadgeClick(event, this);
-        },
-
-        _onAddMethodCallClick: function () {
-
-        },
-
-        _onSaveMethodCall: function () {
-
-        },
-
-        _onCancelMethodCall: function () {
-
         },
 
         /*

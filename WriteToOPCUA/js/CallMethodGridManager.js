@@ -321,15 +321,20 @@ define(function (require) {
 
             this._destroyInputParametersModal(view);
 
-            var modalElement = view.$(".input-parameters-modal");
-            var gridElement = modalElement.find(".input-parameters-modal-grid");
+            // Create a fresh container each time — modal.destroy() removes DOM elements,
+            // so a static template div would disappear after the first close.
+            var $modalWrapper = $(
+                "<div class='input-parameters-modal-wrapper'>" +
+                    "<div class='ul-pad-2x-b'>" +
+                        "<label class='ul-body-m-b'>" + (view.nls.InputParameters || "Input Parameters") + "</label>" +
+                    "</div>" +
+                    "<div class='input-parameters-modal-grid'></div>" +
+                "</div>"
+            );
+            view.$el.append($modalWrapper);
+            view._inputParametersModalWrapper = $modalWrapper;
 
-            if (!modalElement.length || !gridElement.length) {
-                return;
-            }
-
-            modalElement.show();
-            gridElement.empty();
+            var gridElement = $modalWrapper.find(".input-parameters-modal-grid");
 
             var isDynamic = view.model.getKey("dynamicTransport");
 
@@ -408,7 +413,7 @@ define(function (require) {
 
 
             view.inputParametersModal = uilayer.modal({
-                elem: modalElement,
+                elem: $modalWrapper,
                 title: view.nls.AddMethodCall + " " + (methodName || ""),
                 modalSize: "medium",
                 width: "40rem",
@@ -473,10 +478,12 @@ define(function (require) {
             var grid = view.inputParametersModalGrid;
             var modal = view.inputParametersModal;
             var paramEBs = view.parameterValueExpressionBuilders;
+            var wrapper = view._inputParametersModalWrapper;
 
             view.inputParametersModalGrid = null;
             view.inputParametersModal = null;
             view.parameterValueExpressionBuilders = null;
+            view._inputParametersModalWrapper = null;
 
             // Destroy inline expression builders rendered in Value cells
             if (paramEBs && paramEBs.length) {
@@ -493,8 +500,10 @@ define(function (require) {
                 modal.destroy();
             }
 
-            view.$(".input-parameters-modal-grid").empty();
-            view.$(".input-parameters-modal").hide();
+            // Remove the dynamically created wrapper entirely so next open starts fresh
+            if (wrapper && wrapper.length) {
+                wrapper.remove();
+            }
         }
     };
 
