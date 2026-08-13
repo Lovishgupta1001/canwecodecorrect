@@ -144,7 +144,6 @@ function MonitorThreadPoolTabStrip(props) {
           alignItems: "center",
         }}>
           <EQULIndicator
-            uiSurface={props.surface}
             status ={status}
             text=""
             statusTitle={dataItem.status}
@@ -171,7 +170,6 @@ function MonitorThreadPoolTabStrip(props) {
       const content = (
         <span>
           <EQULIndicator
-            uiSurface={props.surface}
             status ={null}
             text=""
             statusTitle={null}
@@ -333,13 +331,13 @@ function MonitorThreadPoolTabStrip(props) {
                 <div className="dls-compact-component ul-pad-1x-x" id="inputwidth">
                   <EQULNumericTextBox
                     value={time}
-                    size="x-small"
+                    size="small"
                     type="number"
-                    min="0"
+                    min={0}
                     onBlur={(event)=>{
                       handleBlur(event);
                     }}
-                    defaultValue="30"
+                    defaultValue={30}
                   />
                 </div>
                 <EQULTypo className="refresh-labels" type="body" size="m">

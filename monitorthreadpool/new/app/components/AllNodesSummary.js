@@ -34,7 +34,6 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
             <td>
                 <span style={{ display: "inline-flex", alignItems: "center" }}>
                     <EQULIndicator
-                        uiSurface={surface}
                         status={status}
                         text=""
                         statusTitle={state}
@@ -117,7 +116,6 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                             </div>
                             <div className="ul-col-sm-2" style={{ display: "inline-flex", alignItems: "center" }}>
                                 <EQULIndicator
-                                    uiSurface={surface}
                                     status="success"
                                     text=""
                                     indicatorSize="sm"
