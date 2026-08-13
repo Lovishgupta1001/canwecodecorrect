@@ -61,8 +61,8 @@ export async function getDSURL(errorHandler) {
     );
 }
 
-export async function getAllNodesMetrics(errorHandler) {
-    return networkInstance.get("miMonitoring/miHealth/getAllNodesMetrics",
+export async function getAllNodesMetrices(executionServerName,errorHandler) {
+    return networkInstance.get("miMonitoring/miHealth/getAllNodesMetrices?executionServerName="+executionServerName,
     {
         customErrorHandler: getCustomErrorHandler(errorHandler)
     }

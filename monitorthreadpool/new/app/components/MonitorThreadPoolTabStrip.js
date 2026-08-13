@@ -5,7 +5,7 @@ import {EQULTooltipOnIcon, EQULIcon} from '@uilayer/icons';
 import {useTrans} from '@uilayer/react-i18n';
 import {EQULNumericTextBox} from '@uilayer/inputs';
 import { EQULDropDownList } from '@uilayer/dropdowns';
-import {getThreadDetails, downloadThreadDump,getExecutionServerNames,getAllOperations,getDSURL,getAllNodesMetrics} from '../service/MonitorThreadpoolService';
+import {getThreadDetails, downloadThreadDump,getExecutionServerNames,getAllOperations,getDSURL,getAllNodesMetrices} from '../service/MonitorThreadpoolService';
 import {getExceptionHandler} from '../utilities/exceptionHandler';
 import PriorityWiseActiveThreadDistribution from './PriorityWiseActiveThreadDistribution';
 import TransactionThreadPool from './TransactionThreadPool';
@@ -73,8 +73,8 @@ function MonitorThreadPoolTabStrip(props) {
       setDate(new Date().toLocaleString());
     };
 
-    const getAllNodesMetricsHandler = () => {
-      getAllNodesMetrics(getThreadDetailErrorHandler).then((response) => {
+    const getAllNodesMetricesHandler = () => {
+      getAllNodesMetrices(selectedNode?selectedNode.name:selectedNode, getThreadDetailErrorHandler).then((response) => {
         setAllNodesData(response.data?.allNodesSummary || response.data?.allNodesData || response.data);
         setJobDetails(response.data?.jobExecutorDetails || response.data?.jobDetails || null);
         setMetricsData(response.data?.metricsData || response.data?.metrics || null);
@@ -230,7 +230,7 @@ function MonitorThreadPoolTabStrip(props) {
     }
     React.useEffect(() => {
       getExecutionServerNamesHandler();
-      getAllNodesMetricsHandler();
+      getAllNodesMetricesHandler();
       if (time > 0 && selectedNode!=null) {
         getThreadDetailsHandler();
         const intervalId = setInterval(() => {
@@ -240,7 +240,7 @@ function MonitorThreadPoolTabStrip(props) {
                         getThreadDetailsHandler();
                     }
                 });
-            getAllNodesMetricsHandler();
+            getAllNodesMetricesHandler();
         }, time * 1000);
         return () => clearInterval(intervalId);
       } else {
@@ -299,7 +299,7 @@ function MonitorThreadPoolTabStrip(props) {
                                       getThreadDetailsHandler();
                                   }
                               });
-                      getAllNodesMetricsHandler();
+                      getAllNodesMetricesHandler();
                     }}
                     type="action"
                     size="xs"
