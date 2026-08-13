@@ -1,0 +1,102 @@
+{
+  "AbortTransactions_Title": "Abort Transactions",
+  "AbortErrorNotifyMessage": "Please select at least one thread to abort.",
+  "AbortTransactions": {
+    "ModalTitle": "Abort Transactions",
+    "ModalBody": "Are you sure you want to abort the selected transactions?",
+    "ModalButtonArrayOk": "Abort",
+    "ModalButtonArrayCancel": "Cancel",
+    "ModalSystematicLabel": "Systematic",
+    "ModalForcefulLabel": "Forceful",
+    "ConfirmationButtonArrayClose": "Close"
+  },
+  "AbortTransactionsColumns": {
+    "Title": {
+      "transactionID": "Transaction ID",
+      "threadName": "Thread Name",
+      "status": "Status",
+      "failCause": "Fail Cause"
+    }
+  },
+  "SystematicAbortConfirmation": "Systematic Abort Result",
+  "ForcefulAbortConfirmation": "Forceful Abort Result",
+  "SelectNode": "Select Node",
+  "Last_Refresh": "Last Refresh: ",
+  "Refresh_Title": "Refresh",
+  "Refresh_Time": "Auto-refresh every",
+  "Seconds": "seconds",
+  "NodeDown": "The selected node is currently down or unavailable.",
+  "failed": "Failed",
+  "running": "Running",
+  "ThreadDetailsTabTitle": "Thread Details",
+  "DownloadThreaddump_Title": "Download Thread Dump",
+  "TransactionsTabTitle": "Transaction Thread Pool",
+  "PriorityTitle": "Priority Wise Active Thread Distribution",
+  "PriorityFooterTotal": "Total",
+  "Priority1": "Priority 1 (High)",
+  "Priority2": "Priority 2 (Normal)",
+  "Priority3": "Priority 3 (Low)",
+  "PriorityColumns": {
+    "Title": {
+      "priority": "Priority",
+      "activeThreads": "Active Threads",
+      "allocatedThreads": "Allocated Threads"
+    }
+  },
+  "ThreaddetailsTableColumns": {
+    "Title": {
+      "threadName": "Thread Name",
+      "convId": "Conversation ID",
+      "txnId": "Transaction ID",
+      "priority": "Priority",
+      "txnStartTime": "Transaction Start Time",
+      "fromTime": "From Time",
+      "formattedDuration": "Duration",
+      "txnStatus": "Transaction Status",
+      "oprStatus": "Operation Status",
+      "processName": "Process Name",
+      "stepName": "Step Name",
+      "subStepName": "Sub-Step Name"
+    }
+  },
+  "TransactionThreadPool": {
+    "AvailableThreads": "Available Threads",
+    "ActiveThreads": "Active Threads",
+    "CurrentRunningTransactions": "Current Running Transactions",
+    "MaximumThreadsperTransaction": "Maximum Threads per Transaction"
+  },
+  "Go_to_Monitor_Connection_Pool": "Go to Monitor Connection Pool",
+  "AllNodesSummaryTitle": "All Nodes Summary",
+  "AllNodesSummaryColumns": {
+    "Title": {
+      "serverName": "Server Name",
+      "serverState": "Server State",
+      "currentPoolSize": "Available Threads",
+      "activeThreadCount": "Active Threads",
+      "runningTransactionCount": "Running Transactions",
+      "maxThreadCountPerTransaction": "Max Threads/Transaction"
+    }
+  },
+  "AllNodeThreadDetailsTitle": "All Nodes Thread Details",
+  "JobExecutorDetailsTitle": "Job Executor Details",
+  "JobExecutorColumns": {
+    "Title": {
+      "jobName": "Job Name",
+      "jobGroup": "Job Group",
+      "jobStatus": "Job Status",
+      "nextFireTime": "Next Fire Time",
+      "previousFireTime": "Previous Fire Time",
+      "triggerName": "Trigger Name",
+      "triggerGroup": "Trigger Group",
+      "triggerState": "Trigger State"
+    }
+  },
+  "errorMessages": {
+    "UnauthorizedOperation": "You are not authorized to perform this operation.",
+    "abortError": "An error occurred while aborting the transaction.",
+    "dataFetchError": "Failed to fetch thread pool data.",
+    "downloadError": "Failed to download thread dump.",
+    "fetchExceutionServerError": "Failed to fetch execution server details.",
+    "onlyPositiveNumbersAllowedError": "Please enter a positive number for the refresh interval."
+  }
+}
