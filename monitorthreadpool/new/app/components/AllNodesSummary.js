@@ -22,10 +22,10 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
         [constants.SERVER_STATE.SUSPENDED]: "suspended",
     };
 
-    const orchestratorNode = summaryData?.jobOrchestratorNode || allNodesData?.[0]?.serverName || "-";
-    const readyToRunTxns = summaryData?.readyToRunTransactions ?? summaryData?.readyToRunCount ?? 20;
-    const availableThreadsPerNode = summaryData?.availableThreadsPerNode ?? allNodesData?.[0]?.currentPoolSize ?? 50;
-    const maxThreadsPerTxn = summaryData?.maxThreadsPerTransaction ?? allNodesData?.[0]?.maxThreadCountPerTransaction ?? 50;
+    const orchestratorNode = summaryData?.jobOrchestratorNode || summaryData?.orchestratorNode || summaryData?.jobOrchestrator || allNodesData?.[0]?.serverName || allNodesData?.[0]?.nodeName || "-";
+    const readyToRunTxns = summaryData?.readyToRunTransactions ?? summaryData?.readyToRunCount ?? summaryData?.readyToRunTxns ?? 20;
+    const availableThreadsPerNode = summaryData?.availableThreadsPerNode ?? summaryData?.availableThreads ?? allNodesData?.[0]?.currentPoolSize ?? allNodesData?.[0]?.availableThreads ?? 50;
+    const maxThreadsPerTxn = summaryData?.maxThreadsPerTransaction ?? summaryData?.maxThreadsPerTxn ?? allNodesData?.[0]?.maxThreadCountPerTransaction ?? allNodesData?.[0]?.maxThreadsPerTransaction ?? 50;
 
     const nodeStatusCell = (props) => {
         const state = props.dataItem.serverState || props.dataItem.nodeStatus || "Running";
@@ -91,12 +91,12 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
         if (!allNodesData) return [];
         return allNodesData.map((node) => ({
             ...node,
-            serverName: node.serverName || node.nodeName,
-            serverState: node.serverState || node.nodeStatus || "Running",
+            serverName: node.serverName || node.nodeName || node.name || "",
+            serverState: node.serverState || node.nodeStatus || node.status || "Running",
             activeThreadCount: node.activeThreadCount ?? node.activeThreads ?? 0,
-            runningTransactionCount: node.runningTransactionCount ?? node.currentRunningThreads ?? 0,
-            jobExecutorStatus: node.jobExecutorStatus || node.jobStatus || (node.serverState === "Running" ? "Running" : "Stopped"),
-            stoppedReason: node.stoppedReason || node.failCause || (node.serverState === "Running" ? "-" : "Node terminated"),
+            runningTransactionCount: node.runningTransactionCount ?? node.currentRunningThreads ?? node.runningTransactions ?? 0,
+            jobExecutorStatus: node.jobExecutorStatus || node.jobStatus || node.executorStatus || (node.serverState === "Running" ? "Running" : "Stopped"),
+            stoppedReason: node.stoppedReason || node.failCause || node.reason || (node.serverState === "Running" ? "-" : "Node terminated"),
         }));
     }, [allNodesData]);
 
