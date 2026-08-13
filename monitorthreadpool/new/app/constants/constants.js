@@ -1,79 +1,91 @@
 export default Object.freeze({
-    ThreaddetailsTableColumns: {
-        Field: {
-            threadName: "threadName",
-            convId: "convId",
-            txnId: "txnId",
-            priority: "priority",
-            txnStartTime: "txnStartTime",
-            fromTime: "fromTime",
-            formattedDuration: "formattedDuration",
-            txnStatus: "txnStatus",
-            oprStatus: "oprStatus",
-            processName: "processName",
-            stepName: "stepName",
-            subStepName: "subStepName"
+ThreaddetailsTableColumns:{
+        Field:{
+            threadName : "threadName",
+            convId : "convId",
+            txnId : "txnId",
+            priority : "priority",
+            txnStartTime : "txnStartTime",
+            fromTime : "fromTime",
+            formattedDuration : "formattedDuration",
+            txnStatus : "txnStatus",
+            oprStatus : "oprStatus",
+            processName : "processName",
+            stepName : "stepName",
+            subStepName : "subStepName"
         },
     },
-    PriorityColumns: {
-        Field: {
-            priority: "priority",
-            activeThreads: "activeThreads",
-            allocatedThreads: "allocatedThreads",
-            waitingJobs: "waitingJobs"
+    PriorityColumns:{
+        Field:{
+            priority : "priority",
+            activeThreads : "activeThreads",
+            allocatedThreads : "allocatedThreads",
+            waitingJobs : "waitingJobs"
+
         },
     },
-    AbortTransactionsColumns: {
-        Field: {
-            transactionID: "transactionID",
-            threadName: "threadName",
-            status: "status",
-            failCause: "failCause"
+    AbortTransactionsColumns:{
+        Field:{
+            transactionID : "transactionID",
+            threadName : "threadName",
+            status : "status",
+            failCause : "failCause"
+
         }
     },
-    AllNodesSummaryColumns: {
-        Field: {
-            serverName: "serverName",
-            serverState: "serverState",
-            currentPoolSize: "currentPoolSize",
-            activeThreadCount: "activeThreadCount",
-            runningTransactionCount: "runningTransactionCount",
-            maxThreadCountPerTransaction: "maxThreadCountPerTransaction"
+    AllNodesSummaryColumns:{
+        Field:{
+            serverName : "serverName",
+            serverState : "serverState",
+            currentPoolSize : "currentPoolSize",
+            activeThreadCount : "activeThreadCount",
+            runningTransactionCount : "runningTransactionCount",
+            maxThreadCountPerTransaction : "maxThreadCountPerTransaction"
         }
     },
-    JobExecutorColumns: {
-        Field: {
-            jobName: "jobName",
-            jobGroup: "jobGroup",
-            jobStatus: "jobStatus",
-            nextFireTime: "nextFireTime",
-            previousFireTime: "previousFireTime",
-            triggerName: "triggerName",
-            triggerGroup: "triggerGroup",
-            triggerState: "triggerState"
+    JobExecutorColumns:{
+        Field:{
+            jobName : "jobName",
+            jobGroup : "jobGroup",
+            jobStatus : "jobStatus",
+            nextFireTime : "nextFireTime",
+            previousFireTime : "previousFireTime",
+            triggerName : "triggerName",
+            triggerGroup : "triggerGroup",
+            triggerState : "triggerState"
         }
     },
-    ERROR_CODE_NOT_FOUND: "ERROR_CODE_NOT_FOUND",
+    MetricsColumns:{
+        Field:{
+            metricName : "metricName",
+            metricValue : "metricValue",
+            metricStatus : "metricStatus"
+        }
+    },
+ERROR_CODE_NOT_FOUND: "ERROR_CODE_NOT_FOUND",
     EVENTS: {
-        THREAD_POOL_USAGE: {
-            TRANSACTION_THREAD_POOL: "TRANSACTION_THREAD_POOL",
-            THREAD_DETAILS: "THREAD_DETAILS"
-        },
+        THREAD_POOL_USAGE:
+            {
+                TRANSACTION_THREAD_POOL: "TRANSACTION_THREAD_POOL",
+                THREAD_DETAILS: "THREAD_DETAILS"
+            },
     },
-    THREAD_POOL_USAGE: {
-        PAGE: {
-            THREAD_DETAILS: "threadDetails"
+    THREAD_POOL_USAGE:
+        {
+            PAGE : {
+                THREAD_DETAILS : "threadDetails"
+            }
         }
-    },
+    ,
     OPERATIONS: {
-        MONITORTHREADPOOL_OPERATION: "Monitor Thread Pool",
+    MONITORTHREADPOOL_OPERATION: "Monitor Thread Pool",
         ABORT_THREAD: "Abort Transaction"
     },
-    SERVER_STATE: {
-        RUNNING: "Running",
-        PAUSED: "Paused",
-        PAUSED_INITIATED: "Paused Initiated",
-        SUSPENDED: "Suspended",
-        FAILED: "Failed"
-    }
+    SERVER_STATE:{
+        RUNNING:"Running",
+        PAUSED:"Paused",
+        PAUSED_INITIATED:"Paused Initiated",
+        SUSPENDED:"Suspended",
+        FAILED:"Failed"
+    } 
 });

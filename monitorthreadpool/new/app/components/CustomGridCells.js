@@ -6,6 +6,11 @@ import {EQULTooltipOnIcon} from '@uilayer/icons';
 import {useTrans} from '@uilayer/react-i18n';
 import { useDsURL } from '../context/DsURLContext';
 
+/**
+* @param props - Props passed to the GridCell
+* @param customCell - Custom cell jsx element
+* @returns {JSX.Element} - Returns the custom cell wrapped in <td> element with required props
+*/
 const getCustomCell = function (props, customCell) {
     return (
         <td
