@@ -61,24 +61,8 @@ export async function getDSURL(errorHandler) {
     );
 }
 
-export async function getAllNodesThreadDetails(errorHandler) {
-    return networkInstance.get("miMonitoring/miHealth/getAllNodesThreadsAndQueuesData",
-    {
-        customErrorHandler: getCustomErrorHandler(errorHandler)
-    }
-    );
-}
-
-export async function getJobExecutorDetails(executionServerName,errorHandler) {
-    return networkInstance.get("miMonitoring/miHealth/getJobExecutorDetails?executionServerName="+executionServerName,
-    {
-        customErrorHandler: getCustomErrorHandler(errorHandler)
-    }
-    );
-}
-
-export async function getThreadPoolMetrics(executionServerName,errorHandler) {
-    return networkInstance.get("miMonitoring/miHealth/getThreadPoolMetrics?executionServerName="+executionServerName,
+export async function getAllNodesMetrics(errorHandler) {
+    return networkInstance.get("miMonitoring/miHealth/getAllNodesMetrics",
     {
         customErrorHandler: getCustomErrorHandler(errorHandler)
     }

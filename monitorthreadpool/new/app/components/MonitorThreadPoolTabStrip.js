@@ -5,7 +5,7 @@ import {EQULTooltipOnIcon, EQULIcon} from '@uilayer/icons';
 import {useTrans} from '@uilayer/react-i18n';
 import {EQULNumericTextBox} from '@uilayer/inputs';
 import { EQULDropDownList } from '@uilayer/dropdowns';
-import {getThreadDetails, downloadThreadDump,getExecutionServerNames,getAllOperations,getDSURL,getAllNodesThreadDetails,getJobExecutorDetails,getThreadPoolMetrics} from '../service/MonitorThreadpoolService';
+import {getThreadDetails, downloadThreadDump,getExecutionServerNames,getAllOperations,getDSURL,getAllNodesMetrics} from '../service/MonitorThreadpoolService';
 import {getExceptionHandler} from '../utilities/exceptionHandler';
 import PriorityWiseActiveThreadDistribution from './PriorityWiseActiveThreadDistribution';
 import TransactionThreadPool from './TransactionThreadPool';
@@ -73,21 +73,11 @@ function MonitorThreadPoolTabStrip(props) {
       setDate(new Date().toLocaleString());
     };
 
-    const getAllNodesThreadDetailsHandler = () => {
-      getAllNodesThreadDetails(getThreadDetailErrorHandler).then((response) => {
-        setAllNodesData(response.data);
-      });
-    };
-
-    const getJobExecutorDetailsHandler = () => {
-      getJobExecutorDetails(selectedNode?selectedNode.name:selectedNode, getThreadDetailErrorHandler).then((response) => {
-        setJobDetails(response.data);
-      });
-    };
-
-    const getThreadPoolMetricsHandler = () => {
-      getThreadPoolMetrics(selectedNode?selectedNode.name:selectedNode, getThreadDetailErrorHandler).then((response) => {
-        setMetricsData(response.data);
+    const getAllNodesMetricsHandler = () => {
+      getAllNodesMetrics(getThreadDetailErrorHandler).then((response) => {
+        setAllNodesData(response.data?.allNodesSummary || response.data?.allNodesData || response.data);
+        setJobDetails(response.data?.jobExecutorDetails || response.data?.jobDetails || null);
+        setMetricsData(response.data?.metricsData || response.data?.metrics || null);
       });
     };
  
@@ -240,21 +230,17 @@ function MonitorThreadPoolTabStrip(props) {
     }
     React.useEffect(() => {
       getExecutionServerNamesHandler();
-      getAllNodesThreadDetailsHandler();
+      getAllNodesMetricsHandler();
       if (time > 0 && selectedNode!=null) {
         getThreadDetailsHandler();
-        getJobExecutorDetailsHandler();
-        getThreadPoolMetricsHandler();
         const intervalId = setInterval(() => {
             getExecutionServerNamesHandler()
                 .then((isRunning) => {
                     if (isRunning) {
                         getThreadDetailsHandler();
-                        getJobExecutorDetailsHandler();
-                        getThreadPoolMetricsHandler();
                     }
                 });
-            getAllNodesThreadDetailsHandler();
+            getAllNodesMetricsHandler();
         }, time * 1000);
         return () => clearInterval(intervalId);
       } else {
@@ -311,11 +297,9 @@ function MonitorThreadPoolTabStrip(props) {
                               .then((isRunning) => {
                                   if (isRunning) {
                                       getThreadDetailsHandler();
-                                      getJobExecutorDetailsHandler();
-                                      getThreadPoolMetricsHandler();
                                   }
                               });
-                      getAllNodesThreadDetailsHandler();
+                      getAllNodesMetricsHandler();
                     }}
                     type="action"
                     size="xs"
