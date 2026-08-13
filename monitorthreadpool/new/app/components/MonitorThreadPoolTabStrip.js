@@ -7,12 +7,10 @@ import {EQULNumericTextBox} from '@uilayer/inputs';
 import { EQULDropDownList } from '@uilayer/dropdowns';
 import {getThreadDetails, downloadThreadDump,getExecutionServerNames,getAllOperations,getDSURL,getAllNodesMetrices} from '../service/MonitorThreadpoolService';
 import {getExceptionHandler} from '../utilities/exceptionHandler';
-import PriorityWiseActiveThreadDistribution from './PriorityWiseActiveThreadDistribution';
 import TransactionThreadPool from './TransactionThreadPool';
 import ThreadDetailsTable from './ThreadDetailsTable';
 import AbortTransactions from './AbortTransactions';
 import AllNodesSummary from './AllNodesSummary';
-import AllNodeThreadDetailsTable from './AllNodeThreadDetailsTable';
 import JobExecutorDetails from './JobExecutorDetails';
 import {eQULNotify} from '@uilayer/notification';
 import { useEQULURLHashUpdator } from "@uilayer/utils";
@@ -59,7 +57,8 @@ function MonitorThreadPoolTabStrip(props) {
       )(error);
     };
     const getThreadDetailsHandler = () => {
-      getThreadDetails(selectedNode?selectedNode.name:selectedNode, getThreadDetailErrorHandler).then(
+      if (!selectedNode || selectedNode.id === "all_nodes") return;
+      getThreadDetails(selectedNode ? selectedNode.name : selectedNode, getThreadDetailErrorHandler).then(
         (response) => {
           setData(response.data);
           if (response.data?.[0]?.usageInfo) {
@@ -74,7 +73,7 @@ function MonitorThreadPoolTabStrip(props) {
     };
 
     const getAllNodesMetricesHandler = () => {
-      getAllNodesMetrices(selectedNode?selectedNode.name:selectedNode, getThreadDetailErrorHandler).then((response) => {
+      getAllNodesMetrices(selectedNode ? selectedNode.name : selectedNode, getThreadDetailErrorHandler).then((response) => {
         setAllNodesData(response.data?.allNodesSummary || response.data?.allNodesData || response.data);
         setJobDetails(response.data?.jobExecutorDetails || response.data?.jobDetails || null);
         setMetricsData(response.data?.metricsData || response.data?.metrics || null);
@@ -90,31 +89,35 @@ function MonitorThreadPoolTabStrip(props) {
     const getExecutionServerNamesHandler = () => {
       return getExecutionServerNames(getExecutionServerNamesErrorHandler).then(
         (response) => {
-          const serverNames = response.data.map((server) => ({
-            name: server.serverName,
-            id: server.sequenceNbr,
-            status: server.serverState
-          }));
+          const allNodesOption = {
+            name: nls("AllNodes"),
+            id: "all_nodes",
+            status: null
+          };
+          const serverNames = [
+            allNodesOption,
+            ...response.data.map((server) => ({
+              name: server.serverName,
+              id: server.sequenceNbr,
+              status: server.serverState
+            }))
+          ];
           if (defaultItem == null) {
-            const defaultServer = {
-              name: response.data[0].serverName,
-              id: response.data[0].sequenceNbr,
-              status: response.data[0].serverState
-            };
-              setDefaultItem(defaultServer);
-              setSelectedNode(defaultServer); 
-            }
+            setDefaultItem(serverNames[0]);
+            setSelectedNode(serverNames[0]); 
+          }
           setDropdownData(serverNames);
-          const activeCount = serverNames.filter(
+          const realServers = serverNames.filter(s => s.id !== "all_nodes");
+          const activeCount = realServers.filter(
             server => server.status === constants.SERVER_STATE.RUNNING
           ).length;
-          const pausedAndSuspended = serverNames.filter(
+          const pausedAndSuspended = realServers.filter(
             server => server.status === constants.SERVER_STATE.PAUSED || server.status ===  constants.SERVER_STATE.PAUSED_INITIATED || server.status === constants.SERVER_STATE.SUSPENDED
           ).length;
-          const failedCount = serverNames.length - activeCount - pausedAndSuspended;
+          const failedCount = realServers.length - activeCount - pausedAndSuspended;
           setActiveNodesCount(String(activeCount));
           setFailedNodesCount(String(failedCount));
-          if(selectedNode){
+          if(selectedNode && selectedNode.id !== "all_nodes"){
             setDropdownData(serverNames);
             const currentNode = serverNames.find(
                 server => server.name === selectedNode?.name
@@ -122,13 +125,18 @@ function MonitorThreadPoolTabStrip(props) {
             const isRunning = currentNode?.status != constants.SERVER_STATE.FAILED;
             setIsCurrentNodeDown(!isRunning);
             return isRunning;
+          } else {
+            setIsCurrentNodeDown(false);
+            return true;
           }
         },
       );
     };
     const itemRender = (li, itemProps) => {
       const { dataItem } = itemProps;
-
+      if (dataItem.id === "all_nodes") {
+        return React.cloneElement(li, li.props, <span className="ul-pad-sm-x">{dataItem.name}</span>);
+      }
       const status = statusMap[dataItem.status] ;
       const content = (
         <span  style={{
@@ -156,6 +164,9 @@ function MonitorThreadPoolTabStrip(props) {
     const valueRender = (element, value) => {
       if (!value) {
         return element;
+      }
+      if (value.id === "all_nodes") {
+        return React.cloneElement(element, element.props, <span className="ul-pad-sm-x">{value.name}</span>);
       }
       const content = (
         <span>
@@ -198,6 +209,7 @@ function MonitorThreadPoolTabStrip(props) {
     };
     const downloadThreadDumpHandler = () => {     
       const serverId = selectedNode?.id;
+      if (!serverId || serverId === "all_nodes") return;
       downloadThreadDump(downloadThreadDumpErrorHandler,serverId).then((response) => {
         const generatedText = response.data;
         const decoder = new TextDecoder('utf-8');
@@ -232,11 +244,13 @@ function MonitorThreadPoolTabStrip(props) {
       getExecutionServerNamesHandler();
       getAllNodesMetricesHandler();
       if (time > 0 && selectedNode!=null) {
-        getThreadDetailsHandler();
+        if (selectedNode.id !== "all_nodes") {
+          getThreadDetailsHandler();
+        }
         const intervalId = setInterval(() => {
             getExecutionServerNamesHandler()
                 .then((isRunning) => {
-                    if (isRunning) {
+                    if (isRunning && selectedNode.id !== "all_nodes") {
                         getThreadDetailsHandler();
                     }
                 });
@@ -244,9 +258,12 @@ function MonitorThreadPoolTabStrip(props) {
         }, time * 1000);
         return () => clearInterval(intervalId);
       } else {
-        getThreadDetailsHandler();
+        if (selectedNode?.id !== "all_nodes") {
+          getThreadDetailsHandler();
+        }
       }
     }, [time, abortFlag, selectedNode]);
+
     const setThreadIdsCallback = (childData) => {
       setThreadIds(childData);
     };
@@ -259,6 +276,9 @@ function MonitorThreadPoolTabStrip(props) {
     const tooltipIconProps = {
       position: "bottom",
     };
+
+    const isAllNodesSelected = selectedNode?.id === "all_nodes";
+
     return (
       <div className="monitorthreadPool ul-pad-2x-t">
         <div className='ul-flex-col-container'>
@@ -295,7 +315,7 @@ function MonitorThreadPoolTabStrip(props) {
                     onClick={()=>{
                       getExecutionServerNamesHandler()
                               .then((isRunning) => {
-                                  if (isRunning) {
+                                  if (isRunning && !isAllNodesSelected) {
                                       getThreadDetailsHandler();
                                   }
                               });
@@ -329,73 +349,69 @@ function MonitorThreadPoolTabStrip(props) {
             </div>
           </div>
         </div>
-        {isCurrentNodeDown?<div style={{ height: "90%" }}>
-          <EQULNoData icon={"eQ-icon eQ-fonts-no-data"} description={nls("NodeDown")}/>
-      </div>:<div className='fullheight'>
-        <div className='ul-row ul-pad-2x-t'>
-          <div className="ul-col-sm-2 fullheight">
-            <div>
-              <TransactionThreadPool stats={data} metrics={metricsData} />
-            </div>
+
+        {isCurrentNodeDown ? (
+          <div style={{ height: "90%" }}>
+            <EQULNoData icon={"eQ-icon eQ-fonts-no-data"} description={nls("NodeDown")}/>
           </div>
-          <div className="ul-col-sm-2 fullheight">
-            <div>
-              <PriorityWiseActiveThreadDistribution
-                stats={data?.[0]?.priorityStats ?? null}
+        ) : isAllNodesSelected ? (
+          /* View 1: All Nodes View */
+          <div className="fullheight ul-pad-2x-t">
+            <AllNodesSummary allNodesData={allNodesData} summaryData={metricsData} surface={props.surface} />
+          </div>
+        ) : (
+          /* View 2: Specific Node View */
+          <div className="fullheight">
+            <div className="ul-row ul-pad-2x-t">
+              <div className="ul-col-sm-2 fullheight">
+                <div>
+                  <TransactionThreadPool stats={data} metrics={metricsData} />
+                </div>
+              </div>
+              <div className="ul-col-sm-2 fullheight">
+                <div>
+                  <JobExecutorDetails jobDetails={jobDetails} />
+                </div>
+              </div>
+            </div>
+            <div className="fullheight ul-pad-2x-t">
+              <div className="ul-flex-col-container">
+                <EQULTypo type="head" className="ul-header-xxxs-b">
+                  {nls("ThreadDetailsTabTitle")}
+                </EQULTypo>
+                <div id="toolbarRefresh" className="ul-flex-col-container">
+                  <AbortTransactions
+                    abortThreadIds={threadIds}
+                    abortFlagCallback={setAbortFlagCallback}
+                    threadDetails={data?.[0]?.usageInfo ?? null}
+                    emptyThreadIdsCallback={setThreadIdsEmptyCallback}
+                    OperationList={operationList}
+                  />
+                  <div className="ul-pad-1x-x">
+                    <EQULTooltipOnIcon
+                      iconClass="eQ-icon eQ-fonts-download"
+                      type="action"
+                      size="xs"
+                      title={nls("DownloadThreaddump_Title")}
+                      onClick={downloadThreadDumpHandler}
+                      tooltipProps={tooltipIconProps}
+                    />
+                  </div>
+                </div>
+              </div>
+              <ThreadDetailsTable
+                detailsList={data?.[0]?.usageInfo ?? null}
+                setParentCallback={setThreadIdsCallback}
+                abortFlagforCheckbox={abortFlag}
+                dsURL={dsURL}
               />
             </div>
           </div>
-        </div>
-        <div className="fullheight ul-pad-2x-t">
-            <div className="ul-flex-col-container">
-              <EQULTypo type="head" className='ul-header-xxxs-b'>
-                  {nls('ThreadDetailsTabTitle')}
-              </EQULTypo>
-              <div id='toolbarRefresh' className="ul-flex-col-container">
-                <AbortTransactions
-                  abortThreadIds={threadIds}
-                  abortFlagCallback={setAbortFlagCallback}
-                  threadDetails = {data?.[0]?.usageInfo ?? null}
-                  emptyThreadIdsCallback={setThreadIdsEmptyCallback}
-                  OperationList={operationList}
-                />
-                <div className="ul-pad-1x-x">
-                  <EQULTooltipOnIcon
-                    iconClass="eQ-icon eQ-fonts-download"
-                    type="action"
-                    size="xs"
-                    title={nls("DownloadThreaddump_Title")}
-                    onClick={downloadThreadDumpHandler}
-                    tooltipProps={tooltipIconProps}
-                  />
-                </div>
-            </div>
-
-            </div>
-            <ThreadDetailsTable
-              detailsList={data?.[0]?.usageInfo ?? null}
-              setParentCallback={setThreadIdsCallback}
-              abortFlagforCheckbox={abortFlag}
-              dsURL={dsURL}
-            />
-          </div>
-
-        <div className="fullheight ul-pad-2x-t">
-            <JobExecutorDetails jobDetails={jobDetails} />
-        </div>
-
-        <div className="fullheight ul-pad-2x-t">
-            <AllNodesSummary allNodesData={allNodesData} surface={props.surface} />
-        </div>
-
-        <div className="fullheight ul-pad-2x-t">
-            <AllNodeThreadDetailsTable allNodesThreadDetails={allNodesData} />
-        </div>
-      </div>}
-
+        )}
       </div>
     );
   }
+
 MonitorThreadPoolTabStrip.propTypes = {
   surface: PropTypes.string,
 };

@@ -1,92 +1,76 @@
 import React from "react";
-import { EQULGrid, EQULGridFilterColumnMenu } from "@uilayer/grid";
 import { EQULTypo } from "@uilayer/typography";
 import { useTrans } from "@uilayer/react-i18n";
-import constants from "../constants/constants";
 import PropTypes from "prop-types";
 
+/**
+ * JobExecutorDetails displays key-value details for the Job Executor on a specific node:
+ * - Status: Running / Stopped
+ * - Stopped Since (if stopped)
+ * - Stopped Reason (if stopped)
+ */
 const JobExecutorDetails = function ({ jobDetails }) {
     const nls = useTrans(["mimonitorthreadpool"]);
-
-    const columns = [
-        {
-            field: constants.JobExecutorColumns.Field.jobName,
-            title: nls("JobExecutorColumns.Title.jobName"),
-            filter: "text",
-            columnMenu: EQULGridFilterColumnMenu,
-        },
-        {
-            field: constants.JobExecutorColumns.Field.jobGroup,
-            title: nls("JobExecutorColumns.Title.jobGroup"),
-            filter: "text",
-            columnMenu: EQULGridFilterColumnMenu,
-        },
-        {
-            field: constants.JobExecutorColumns.Field.jobStatus,
-            title: nls("JobExecutorColumns.Title.jobStatus"),
-        },
-        {
-            field: constants.JobExecutorColumns.Field.nextFireTime,
-            title: nls("JobExecutorColumns.Title.nextFireTime"),
-        },
-        {
-            field: constants.JobExecutorColumns.Field.previousFireTime,
-            title: nls("JobExecutorColumns.Title.previousFireTime"),
-        },
-        {
-            field: constants.JobExecutorColumns.Field.triggerName,
-            title: nls("JobExecutorColumns.Title.triggerName"),
-            filter: "text",
-            columnMenu: EQULGridFilterColumnMenu,
-        },
-        {
-            field: constants.JobExecutorColumns.Field.triggerGroup,
-            title: nls("JobExecutorColumns.Title.triggerGroup"),
-            filter: "text",
-            columnMenu: EQULGridFilterColumnMenu,
-        },
-        {
-            field: constants.JobExecutorColumns.Field.triggerState,
-            title: nls("JobExecutorColumns.Title.triggerState"),
-        },
-    ];
-
-    const tooltip = React.useMemo(() => {
-        const tooltipobject = {};
-        for (const col of columns) {
-            tooltipobject[col.field] = true;
-        }
-        return tooltipobject;
-    }, []);
+    const status = jobDetails?.status || jobDetails?.[0]?.status || jobDetails?.[0]?.jobStatus || "Running";
+    const stoppedSince = jobDetails?.stoppedSince || jobDetails?.[0]?.stoppedSince || null;
+    const stoppedReason = jobDetails?.stoppedReason || jobDetails?.[0]?.stoppedReason || null;
 
     return (
-        <div className="ul-pad-1x-x ul-pad-1x-y">
-            <div className="ul-pad-1x-b">
+        <div>
+            <div className="ul-pad-1x-y">
                 <EQULTypo type="head" className="ul-header-xxxs-b">
-                    {nls("JobExecutorDetailsTitle")}
+                    {nls("JobExecutorDetails.Title")}
                 </EQULTypo>
             </div>
-            <div id="jobExecutorDetailsContainer" className="ul-fluid-container">
-                <div id="jobExecutorDetailsTable" className="ul-row ul-pad-1x-y">
-                    <EQULGrid
-                        id="jobExecutorDetails"
-                        columns={columns}
-                        data={jobDetails ? jobDetails : []}
-                        sortable={true}
-                        style={{ height: "100%", width: "100%" }}
-                        spanColumnWidth={true}
-                        tooltip={tooltip}
-                        resizable={true}
-                        searchByColumn={"all"}
-                    />
+            <div className="ul-pad-2x-y">
+                <div className="ul-row ul-pad-1x-b">
+                    <div className="ul-col-sm-2">
+                        <EQULTypo type="body" size="medium" bold={true}>
+                            {nls("JobExecutorDetails.Status")}
+                        </EQULTypo>
+                    </div>
+                    <div className="ul-col-sm-2">
+                        <EQULTypo type="body" size="medium">
+                            {status}
+                        </EQULTypo>
+                    </div>
                 </div>
+
+                {status !== "Running" && (
+                    <>
+                        <div className="ul-row ul-pad-1x-b">
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium" bold={true}>
+                                    {nls("JobExecutorDetails.StoppedSince")}
+                                </EQULTypo>
+                            </div>
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium">
+                                    {stoppedSince || "-"}
+                                </EQULTypo>
+                            </div>
+                        </div>
+                        <div className="ul-row ul-pad-1x-b">
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium" bold={true}>
+                                    {nls("JobExecutorDetails.StoppedReason")}
+                                </EQULTypo>
+                            </div>
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium">
+                                    {stoppedReason || "-"}
+                                </EQULTypo>
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
 };
 
 JobExecutorDetails.propTypes = {
-    jobDetails: PropTypes.array,
+    jobDetails: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 export default JobExecutorDetails;

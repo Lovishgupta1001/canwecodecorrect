@@ -6,7 +6,12 @@ import { useTrans } from "@uilayer/react-i18n";
 import constants from "../constants/constants";
 import PropTypes from "prop-types";
 
-const AllNodesSummary = function ({ allNodesData, surface }) {
+/**
+ * AllNodesSummary component renders the "All Nodes" view:
+ * 1. Summary section (Job orchestrator node, Ready to run transactions, Available threads per node, Max threads per transaction)
+ * 2. Node wise details grid (Node Name, Node Status, Active threads, Current running threads, Job Executor status, Stopped reason)
+ */
+const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const nls = useTrans(["mimonitorthreadpool"]);
 
     const statusMap = {
@@ -17,20 +22,26 @@ const AllNodesSummary = function ({ allNodesData, surface }) {
         [constants.SERVER_STATE.SUSPENDED]: "suspended",
     };
 
-    const serverStateCell = (props) => {
-        const state = props.dataItem[constants.AllNodesSummaryColumns.Field.serverState];
-        const status = statusMap[state] || null;
+    const orchestratorNode = summaryData?.jobOrchestratorNode || allNodesData?.[0]?.serverName || "-";
+    const readyToRunTxns = summaryData?.readyToRunTransactions ?? summaryData?.readyToRunCount ?? 20;
+    const availableThreadsPerNode = summaryData?.availableThreadsPerNode ?? allNodesData?.[0]?.currentPoolSize ?? 50;
+    const maxThreadsPerTxn = summaryData?.maxThreadsPerTransaction ?? allNodesData?.[0]?.maxThreadCountPerTransaction ?? 50;
+
+    const nodeStatusCell = (props) => {
+        const state = props.dataItem.serverState || props.dataItem.nodeStatus || "Running";
+        const status = statusMap[state] || (state === "Running" ? "success" : "error");
         return (
             <td>
                 <span style={{ display: "inline-flex", alignItems: "center" }}>
                     <EQULIndicator
                         uiSurface={surface}
                         status={status}
-                        text={state}
+                        text=""
                         statusTitle={state}
                         typoSize="small"
                         indicatorSize="sm"
                     />
+                    <span className="ul-pad-sm-x">{state}</span>
                 </span>
             </td>
         );
@@ -38,31 +49,33 @@ const AllNodesSummary = function ({ allNodesData, surface }) {
 
     const columns = [
         {
-            field: constants.AllNodesSummaryColumns.Field.serverName,
-            title: nls("AllNodesSummaryColumns.Title.serverName"),
+            field: "serverName",
+            title: nls("NodeWiseDetailsColumns.Title.nodeName"),
             filter: "text",
             columnMenu: EQULGridFilterColumnMenu,
         },
         {
-            field: constants.AllNodesSummaryColumns.Field.serverState,
-            title: nls("AllNodesSummaryColumns.Title.serverState"),
-            cell: serverStateCell,
+            field: "serverState",
+            title: nls("NodeWiseDetailsColumns.Title.nodeStatus"),
+            cell: nodeStatusCell,
+            filter: "text",
+            columnMenu: EQULGridFilterColumnMenu,
         },
         {
-            field: constants.AllNodesSummaryColumns.Field.currentPoolSize,
-            title: nls("AllNodesSummaryColumns.Title.currentPoolSize"),
+            field: "activeThreadCount",
+            title: nls("NodeWiseDetailsColumns.Title.activeThreads"),
         },
         {
-            field: constants.AllNodesSummaryColumns.Field.activeThreadCount,
-            title: nls("AllNodesSummaryColumns.Title.activeThreadCount"),
+            field: "runningTransactionCount",
+            title: nls("NodeWiseDetailsColumns.Title.currentRunningThreads"),
         },
         {
-            field: constants.AllNodesSummaryColumns.Field.runningTransactionCount,
-            title: nls("AllNodesSummaryColumns.Title.runningTransactionCount"),
+            field: "jobExecutorStatus",
+            title: nls("NodeWiseDetailsColumns.Title.jobExecutorStatus"),
         },
         {
-            field: constants.AllNodesSummaryColumns.Field.maxThreadCountPerTransaction,
-            title: nls("AllNodesSummaryColumns.Title.maxThreadCountPerTransaction"),
+            field: "stoppedReason",
+            title: nls("NodeWiseDetailsColumns.Title.stoppedReason"),
         },
     ];
 
@@ -74,39 +87,117 @@ const AllNodesSummary = function ({ allNodesData, surface }) {
         return tooltipobject;
     }, []);
 
+    const gridData = React.useMemo(() => {
+        if (!allNodesData) return [];
+        return allNodesData.map((node) => ({
+            ...node,
+            serverName: node.serverName || node.nodeName,
+            serverState: node.serverState || node.nodeStatus || "Running",
+            activeThreadCount: node.activeThreadCount ?? node.activeThreads ?? 0,
+            runningTransactionCount: node.runningTransactionCount ?? node.currentRunningThreads ?? 0,
+            jobExecutorStatus: node.jobExecutorStatus || node.jobStatus || (node.serverState === "Running" ? "Running" : "Stopped"),
+            stoppedReason: node.stoppedReason || node.failCause || (node.serverState === "Running" ? "-" : "Node terminated"),
+        }));
+    }, [allNodesData]);
+
     return (
-        <div className="ul-pad-1x-x ul-pad-1x-y">
-            <div className="ul-pad-1x-b">
+        <div className="ul-fluid-container ul-pad-1x-y">
+            {/* Top Summary Section */}
+            <div className="ul-pad-2x-b">
                 <EQULTypo type="head" className="ul-header-xxxs-b">
-                    {nls("AllNodesSummaryTitle")}
+                    {nls("Summary")}
                 </EQULTypo>
+                <div className="ul-row ul-pad-2x-y">
+                    <div className="ul-col-sm-3">
+                        <div className="ul-row ul-pad-1x-b">
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium" bold={true}>
+                                    {nls("JobOrchestratorNode")}
+                                </EQULTypo>
+                            </div>
+                            <div className="ul-col-sm-2" style={{ display: "inline-flex", alignItems: "center" }}>
+                                <EQULIndicator
+                                    uiSurface={surface}
+                                    status="success"
+                                    text=""
+                                    indicatorSize="sm"
+                                />
+                                <span className="ul-pad-sm-x">
+                                    <EQULTypo type="body" size="medium">
+                                        {orchestratorNode}
+                                    </EQULTypo>
+                                </span>
+                            </div>
+                        </div>
+                        <div className="ul-row">
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium" bold={true}>
+                                    {nls("ReadyToRunTransactions")}
+                                </EQULTypo>
+                            </div>
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium">
+                                    {readyToRunTxns}
+                                </EQULTypo>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="ul-col-sm-3">
+                        <div className="ul-row ul-pad-1x-b">
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium" bold={true}>
+                                    {nls("AvailableThreadsPerNode")}
+                                </EQULTypo>
+                            </div>
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium">
+                                    {availableThreadsPerNode}
+                                </EQULTypo>
+                            </div>
+                        </div>
+                        <div className="ul-row">
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium" bold={true}>
+                                    {nls("MaxThreadsPerTransaction")}
+                                </EQULTypo>
+                            </div>
+                            <div className="ul-col-sm-2">
+                                <EQULTypo type="body" size="medium">
+                                    {maxThreadsPerTxn}
+                                </EQULTypo>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="allNodesSummaryTable">
-                <EQULGrid
-                    id="allNodesSummary"
-                    columns={columns}
-                    data={allNodesData ? allNodesData : []}
-                    sortable={true}
-                    tooltip={tooltip}
-                    resizable={true}
-                    searchByColumn={"all"}
-                />
+
+            {/* Node wise details Section */}
+            <div className="ul-pad-2x-t">
+                <div className="ul-pad-1x-b">
+                    <EQULTypo type="head" className="ul-header-xxxs-b">
+                        {nls("NodeWiseDetailsTitle")}
+                    </EQULTypo>
+                </div>
+                <div id="nodeWiseDetailsTable">
+                    <EQULGrid
+                        id="nodeWiseDetails"
+                        columns={columns}
+                        data={gridData}
+                        sortable={true}
+                        tooltip={tooltip}
+                        resizable={true}
+                        searchByColumn={"all"}
+                    />
+                </div>
             </div>
         </div>
     );
 };
 
 AllNodesSummary.propTypes = {
-    allNodesData: PropTypes.arrayOf(
-        PropTypes.shape({
-            serverName: PropTypes.string,
-            serverState: PropTypes.string,
-            currentPoolSize: PropTypes.number,
-            activeThreadCount: PropTypes.number,
-            runningTransactionCount: PropTypes.number,
-            maxThreadCountPerTransaction: PropTypes.number,
-        })
-    ),
+    allNodesData: PropTypes.array,
+    summaryData: PropTypes.object,
     surface: PropTypes.string,
 };
 

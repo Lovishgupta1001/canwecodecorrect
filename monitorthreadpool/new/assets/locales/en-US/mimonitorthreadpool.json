@@ -21,10 +21,11 @@
   "SystematicAbortConfirmation": "Systematic Abort Result",
   "ForcefulAbortConfirmation": "Forceful Abort Result",
   "SelectNode": "Select Node",
-  "Last_Refresh": "Last Refresh: ",
+  "AllNodes": "All Nodes",
+  "Last_Refresh": "Last refresh: ",
   "Refresh_Title": "Refresh",
-  "Refresh_Time": "Auto-refresh every",
-  "Seconds": "seconds",
+  "Refresh_Time": "Auto refresh time: ",
+  "Seconds": "Seconds",
   "NodeDown": "The selected node is currently down or unavailable.",
   "failed": "Failed",
   "running": "Running",
@@ -63,9 +64,32 @@
     "AvailableThreads": "Available Threads",
     "ActiveThreads": "Active Threads",
     "CurrentRunningTransactions": "Current Running Transactions",
-    "MaximumThreadsperTransaction": "Maximum Threads per Transaction"
+    "MaximumThreadsperTransaction": "Max Threads per Transaction"
   },
   "Go_to_Monitor_Connection_Pool": "Go to Monitor Connection Pool",
+  "Summary": "Summary",
+  "JobOrchestratorNode": "Job orchestrator node",
+  "ReadyToRunTransactions": "Ready to run transactions",
+  "AvailableThreadsPerNode": "Available threads per node",
+  "MaxThreadsPerTransaction": "Max threads per transaction",
+  "NodeWiseDetailsTitle": "Node wise details",
+  "NodeWiseDetailsColumns": {
+    "Title": {
+      "nodeName": "Node Name",
+      "nodeStatus": "Node Status",
+      "activeThreads": "Active threads",
+      "currentRunningThreads": "Current running threads",
+      "jobExecutorStatus": "Job Executor status",
+      "stoppedReason": "Stopped reason",
+      "stoppedSince": "Stopped since"
+    }
+  },
+  "JobExecutorDetails": {
+    "Title": "Job Executor Details",
+    "Status": "Status",
+    "StoppedSince": "Stopped Since",
+    "StoppedReason": "Stopped Reason"
+  },
   "AllNodesSummaryTitle": "All Nodes Summary",
   "AllNodesSummaryColumns": {
     "Title": {
@@ -78,19 +102,6 @@
     }
   },
   "AllNodeThreadDetailsTitle": "All Nodes Thread Details",
-  "JobExecutorDetailsTitle": "Job Executor Details",
-  "JobExecutorColumns": {
-    "Title": {
-      "jobName": "Job Name",
-      "jobGroup": "Job Group",
-      "jobStatus": "Job Status",
-      "nextFireTime": "Next Fire Time",
-      "previousFireTime": "Previous Fire Time",
-      "triggerName": "Trigger Name",
-      "triggerGroup": "Trigger Group",
-      "triggerState": "Trigger State"
-    }
-  },
   "errorMessages": {
     "UnauthorizedOperation": "You are not authorized to perform this operation.",
     "abortError": "An error occurred while aborting the transaction.",
