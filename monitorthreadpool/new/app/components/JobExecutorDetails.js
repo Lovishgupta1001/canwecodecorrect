@@ -5,10 +5,6 @@ import { useTrans } from "@uilayer/react-i18n";
 import constants from "../constants/constants";
 import PropTypes from "prop-types";
 
-/**
- * JobExecutorDetails displays the scheduled/running job executor details for
- * the selected execution server node including trigger state and fire times.
- */
 const JobExecutorDetails = function ({ jobDetails }) {
     const nls = useTrans(["mimonitorthreadpool"]);
 

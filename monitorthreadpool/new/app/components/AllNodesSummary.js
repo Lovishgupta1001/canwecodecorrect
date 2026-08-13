@@ -6,11 +6,6 @@ import { useTrans } from "@uilayer/react-i18n";
 import constants from "../constants/constants";
 import PropTypes from "prop-types";
 
-/**
- * AllNodesSummary displays a summary table of thread pool statistics across all
- * execution server nodes, including their running state, pool sizes, and active
- * thread counts.
- */
 const AllNodesSummary = function ({ allNodesData, surface }) {
     const nls = useTrans(["mimonitorthreadpool"]);
 

@@ -5,10 +5,6 @@ import { useTrans } from "@uilayer/react-i18n";
 import constants from "../constants/constants";
 import PropTypes from "prop-types";
 
-/**
- * AllNodeThreadDetailsTable shows thread-level details aggregated across all nodes.
- * Each row represents an active thread on any execution server node.
- */
 const AllNodeThreadDetailsTable = function ({ allNodesThreadDetails }) {
     const nls = useTrans(["mimonitorthreadpool"]);
 

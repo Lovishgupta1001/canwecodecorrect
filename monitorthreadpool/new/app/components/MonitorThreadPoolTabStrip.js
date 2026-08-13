@@ -318,7 +318,6 @@ function MonitorThreadPoolTabStrip(props) {
     return (
         <div className="monitorthreadPool ul-pad-2x-t">
             <div className="ul-flex-col-container">
-                {/* Node selector row */}
                 <div className="ul-flex-col-container">
                     <EQULTypo
                         className="selectNode-label"
@@ -357,7 +356,6 @@ function MonitorThreadPoolTabStrip(props) {
                     </div>
                 </div>
 
-                {/* Toolbar / refresh row */}
                 <div id="toolbarRefresh" className="ul-flex-col-container">
                     <div>
                         <div className="ul-flex-col-container">
@@ -431,7 +429,6 @@ function MonitorThreadPoolTabStrip(props) {
                 </div>
             ) : (
                 <div className="fullheight">
-                    {/* Per-node stats row */}
                     <div className="ul-row ul-pad-2x-t">
                         <div className="ul-col-sm-2 fullheight">
                             <div>
@@ -447,7 +444,6 @@ function MonitorThreadPoolTabStrip(props) {
                         </div>
                     </div>
 
-                    {/* Thread details for selected node */}
                     <div className="fullheight ul-pad-2x-t">
                         <div className="ul-flex-col-container">
                             <EQULTypo
@@ -493,12 +489,10 @@ function MonitorThreadPoolTabStrip(props) {
                         />
                     </div>
 
-                    {/* Job executor details for selected node */}
                     <div className="fullheight ul-pad-2x-t">
                         <JobExecutorDetails jobDetails={jobDetails} />
                     </div>
 
-                    {/* All-nodes summary */}
                     <div className="fullheight ul-pad-2x-t">
                         <AllNodesSummary
                             allNodesData={allNodesData}
@@ -506,7 +500,6 @@ function MonitorThreadPoolTabStrip(props) {
                         />
                     </div>
 
-                    {/* All-nodes thread details */}
                     <div className="fullheight ul-pad-2x-t">
                         <AllNodeThreadDetailsTable
                             allNodesThreadDetails={allNodesData}
