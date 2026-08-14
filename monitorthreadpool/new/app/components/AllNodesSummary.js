@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
 /**
  * AllNodesSummary component renders the "All Nodes" view:
  * 1. Summary section (Job orchestrator node, Ready to run transactions, Available threads per node, Max threads per transaction)
- * 2. Node wise details grid with showhide / column chooser property (Node Name, Node Status, Active threads, Current running threads, Job Executor status, Stopped reason, Stopped since)
+ * 2. Node wise details grid with showHideColumns persistent columns (first 5 visible & persistent, last 2 hidden by default)
  */
 const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const nls = useTrans(["mimonitorthreadpool"]);
@@ -84,10 +84,12 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
         {
             field: "stoppedReason",
             title: nls("NodeWiseDetailsColumns.Title.stoppedReason"),
+            hidden: true,
         },
         {
             field: "stoppedSince",
             title: nls("NodeWiseDetailsColumns.Title.stoppedSince"),
+            hidden: true,
         },
     ];
 
@@ -210,8 +212,8 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                         columns={columns}
                         data={gridData}
                         sortable={true}
-                        showHideColumn={true}
-                        showhide={true}
+                        showHideColumns={true}
+                        persistentColumns={["serverName", "serverState", "activeThreadCount", "runningTransactionCount", "jobExecutorStatus"]}
                         tooltip={tooltip}
                         resizable={true}
                         searchByColumn={"all"}
