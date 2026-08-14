@@ -23,16 +23,21 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     };
 
     // Extract summary values safely from summaryData, allNodesData, or fallback defaults
-    const combinedData = summaryData || (typeof allNodesData === "object" && !Array.isArray(allNodesData) ? allNodesData : {});
+    const combinedData = (summaryData && typeof summaryData === "object")
+        ? summaryData
+        : (allNodesData && typeof allNodesData === "object" && !Array.isArray(allNodesData))
+        ? allNodesData
+        : {};
+
     const nodesArray = Array.isArray(allNodesData) ? allNodesData : [];
 
-    const orchestratorNode = combinedData.jobOrchestratorNode || combinedData.orchestratorNode || combinedData.jobOrchestrator || nodesArray[0]?.serverName || nodesArray[0]?.nodeName || "-";
-    const readyToRunTxns = combinedData.readyToRunTransactions ?? combinedData.readyToRunCount ?? combinedData.readyToRunTxns ?? 20;
-    const availableThreadsPerNode = combinedData.availableThreadsPerNode ?? combinedData.availableThreads ?? nodesArray[0]?.currentPoolSize ?? nodesArray[0]?.availableThreads ?? 50;
-    const maxThreadsPerTxn = combinedData.maxThreadsPerTransaction ?? combinedData.maxThreadsPerTxn ?? nodesArray[0]?.maxThreadCountPerTransaction ?? nodesArray[0]?.maxThreadsPerTransaction ?? 50;
+    const orchestratorNode = combinedData?.jobOrchestratorNode || combinedData?.orchestratorNode || combinedData?.jobOrchestrator || nodesArray[0]?.serverName || nodesArray[0]?.nodeName || "-";
+    const readyToRunTxns = combinedData?.readyToRunTransactions ?? combinedData?.readyToRunCount ?? combinedData?.readyToRunTxns ?? 20;
+    const availableThreadsPerNode = combinedData?.availableThreadsPerNode ?? combinedData?.availableThreads ?? nodesArray[0]?.currentPoolSize ?? nodesArray[0]?.availableThreads ?? 50;
+    const maxThreadsPerTxn = combinedData?.maxThreadsPerTransaction ?? combinedData?.maxThreadsPerTxn ?? nodesArray[0]?.maxThreadCountPerTransaction ?? nodesArray[0]?.maxThreadsPerTransaction ?? 50;
 
     const nodeStatusCell = (props) => {
-        const state = props.dataItem.serverState || props.dataItem.nodeStatus || "Running";
+        const state = props.dataItem?.serverState || props.dataItem?.nodeStatus || "Running";
         const status = statusMap[state] || (state === "Running" ? "success" : "error");
         return (
             <td>
@@ -90,7 +95,7 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
         return tooltipobject;
     }, []);
 
-    // Safely derive node list array regardless of whether allNodesData is an Array, Object, or nested property
+    // Safely derive node list array regardless of whether allNodesData is an Array, Object, null, or nested property
     const nodesList = React.useMemo(() => {
         if (!allNodesData) return [];
         if (Array.isArray(allNodesData)) return allNodesData;
@@ -98,7 +103,7 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
         if (Array.isArray(allNodesData.nodes)) return allNodesData.nodes;
         if (Array.isArray(allNodesData.allNodesSummary)) return allNodesData.allNodesSummary;
         if (Array.isArray(allNodesData.allNodesData)) return allNodesData.allNodesData;
-        if (typeof allNodesData === "object") {
+        if (typeof allNodesData === "object" && allNodesData !== null) {
             return Object.values(allNodesData).filter((v) => v && typeof v === "object" && (v.serverName || v.nodeName || v.name));
         }
         return [];
@@ -107,12 +112,12 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const gridData = React.useMemo(() => {
         return nodesList.map((node) => ({
             ...node,
-            serverName: node.serverName || node.nodeName || node.name || "",
-            serverState: node.serverState || node.nodeStatus || node.status || "Running",
-            activeThreadCount: node.activeThreadCount ?? node.activeThreads ?? 0,
-            runningTransactionCount: node.runningTransactionCount ?? node.currentRunningThreads ?? node.runningTransactions ?? 0,
-            jobExecutorStatus: node.jobExecutorStatus || node.jobStatus || node.executorStatus || (node.serverState === "Running" ? "Running" : "Stopped"),
-            stoppedReason: node.stoppedReason || node.failCause || node.reason || (node.serverState === "Running" ? "-" : "Node terminated"),
+            serverName: node?.serverName || node?.nodeName || node?.name || "",
+            serverState: node?.serverState || node?.nodeStatus || node?.status || "Running",
+            activeThreadCount: node?.activeThreadCount ?? node?.activeThreads ?? 0,
+            runningTransactionCount: node?.runningTransactionCount ?? node?.currentRunningThreads ?? node?.runningTransactions ?? 0,
+            jobExecutorStatus: node?.jobExecutorStatus || node?.jobStatus || node?.executorStatus || (node?.serverState === "Running" ? "Running" : "Stopped"),
+            stoppedReason: node?.stoppedReason || node?.failCause || node?.reason || (node?.serverState === "Running" ? "-" : "Node terminated"),
         }));
     }, [nodesList]);
 
