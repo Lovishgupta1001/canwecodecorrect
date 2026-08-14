@@ -10,7 +10,7 @@ import {useTrans} from '@uilayer/react-i18n';
 import constants from '../constants/constants';
 import {getExceptionHandler} from '../utilities/exceptionHandler';
 
-function AbortTransactions({abortThreadIds,OperationList,abortFlagCallback,emptyThreadIdsCallback}) {
+const AbortTransactions = React.forwardRef(function AbortTransactions({abortThreadIds,OperationList,abortFlagCallback,emptyThreadIdsCallback, hideIcon}, ref) {
     const nls = useTrans("mimonitorthreadpool");
     const exceptionNLS = useTrans("monitorthreadpoolExceptions");
     const [visible, setVisible] = React.useState(false);
@@ -32,7 +32,12 @@ function AbortTransactions({abortThreadIds,OperationList,abortFlagCallback,empty
         else{
             eQULNotify('error',nls("errorMessages.UnauthorizedOperation"));
         }                    
-    }
+    };
+
+    React.useImperativeHandle(ref, () => ({
+        triggerAbort: toggleDialog
+    }));
+
     const toggleDialogConfirmation = () => {
         setVisibleConfirmation(!visibleConfirmation);         
     }
@@ -107,8 +112,8 @@ function AbortTransactions({abortThreadIds,OperationList,abortFlagCallback,empty
         position:"right"
     }
     return (
-        <div className='ul-pad-1x-x'>
-            <EQULTooltipOnIcon iconClass='eQ-icon eQ-fonts-abort-without-border' type="action" size="xs" onClick={toggleDialog} title={nls("AbortTransactions_Title")} tooltipProps={tooltipIconProps}/>
+        <div className={hideIcon ? '' : 'ul-pad-1x-x'}>
+            {!hideIcon && <EQULTooltipOnIcon iconClass='eQ-icon eQ-fonts-abort-without-border' type="action" size="xs" onClick={toggleDialog} title={nls("AbortTransactions_Title")} tooltipProps={tooltipIconProps}/>}
             {visible &&
                 <EQULWindow 
                     modal={true}
@@ -147,6 +152,6 @@ function AbortTransactions({abortThreadIds,OperationList,abortFlagCallback,empty
                 </EQULWindow>}
         </div>
     )
-}
+});
 
 export default AbortTransactions;

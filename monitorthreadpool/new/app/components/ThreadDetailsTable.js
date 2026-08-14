@@ -5,8 +5,20 @@ import {useTrans} from '@uilayer/react-i18n';
 import constants from '../constants/constants';
 import {customSubStepCell, customTxnIdCell} from './CustomGridCells';
 import { DsUrlProvider } from '../context/DsURLContext';
+import AbortTransactions from './AbortTransactions';
 
-const ThreadDetailsTable = function({detailsList, setParentCallback, abortFlagforCheckbox, dsURL, actionIcons}){
+const ThreadDetailsTable = function({
+  detailsList,
+  setParentCallback,
+  abortFlagforCheckbox,
+  dsURL,
+  toolbarIcons,
+  abortRef,
+  abortThreadIds,
+  setAbortFlagCallback,
+  setThreadIdsEmptyCallback,
+  operationList
+}){
   const nls = useTrans(["mimonitorthreadpool"]);
   const columns = [
     {
@@ -123,12 +135,17 @@ const ThreadDetailsTable = function({detailsList, setParentCallback, abortFlagfo
     return(
         <DsUrlProvider dsURL={dsURL}>
           <div id='threadDetailsContainer' className='ul-fluid-container'>
-            <div id="threadDetailsTable" className='ul-row ul-pad-1x-y' style={{ position: 'relative' }}>
-                {actionIcons && (
-                  <div style={{ position: 'absolute', right: '16px', top: '14px', zIndex: 10, display: 'flex', alignItems: 'center' }}>
-                    {actionIcons}
-                  </div>
-                )}
+            {abortRef && (
+              <AbortTransactions
+                ref={abortRef}
+                hideIcon={true}
+                abortThreadIds={abortThreadIds}
+                abortFlagCallback={setAbortFlagCallback}
+                emptyThreadIdsCallback={setThreadIdsEmptyCallback}
+                OperationList={operationList}
+              />
+            )}
+            <div id="threadDetailsTable" className='ul-row ul-pad-1x-y'>
                 <EQULGrid   
                     id="threadName"
                     columns={columns}
@@ -146,6 +163,7 @@ const ThreadDetailsTable = function({detailsList, setParentCallback, abortFlagfo
                     tooltip={tooltip}
                     resizable={true}
                     searchByColumn={'all'}
+                    toolbarIcons={toolbarIcons}
                 />
             </div>
         </div>

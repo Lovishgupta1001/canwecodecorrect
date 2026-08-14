@@ -37,6 +37,7 @@ function MonitorThreadPoolTabStrip(props) {
     const [allNodesData, setAllNodesData] = React.useState(null);
     const [jobDetails, setJobDetails] = React.useState(null);
     const [metricsData, setMetricsData] = React.useState(null);
+    const abortRef = React.useRef(null);
     const urlUpdator = useEQULURLHashUpdator();
     const statusMap = {
       [constants.SERVER_STATE.RUNNING] : "success",
@@ -279,30 +280,22 @@ function MonitorThreadPoolTabStrip(props) {
 
     const isAllNodesSelected = selectedNode?.id === "all_nodes";
 
-    const actionIcons = (
-      <div className="ul-flex-col-container">
-        <AbortTransactions
-          abortThreadIds={threadIds}
-          abortFlagCallback={setAbortFlagCallback}
-          threadDetails={data?.[0]?.usageInfo ?? null}
-          emptyThreadIdsCallback={setThreadIdsEmptyCallback}
-          OperationList={operationList}
-        />
-        <div className="ul-pad-1x-x">
-          <EQULTypo className="refresh-labels" type="body" size="m">
-            {/* Download Icon */}
-          </EQULTypo>
-          <EQULTooltipOnIcon
-            iconClass="eQ-icon eQ-fonts-download"
-            type="action"
-            size="xs"
-            title={nls("DownloadThreaddump_Title")}
-            onClick={downloadThreadDumpHandler}
-            tooltipProps={tooltipIconProps}
-          />
-        </div>
-      </div>
-    );
+    const toolbarIcons = [
+      {
+        iconClass: "eQ-icon eQ-fonts-abort-without-border",
+        title: nls("AbortTransactions_Title"),
+        onClick: () => {
+          if (abortRef.current) {
+            abortRef.current.triggerAbort();
+          }
+        }
+      },
+      {
+        iconClass: "eQ-icon eQ-fonts-download",
+        title: nls("DownloadThreaddump_Title"),
+        onClick: downloadThreadDumpHandler
+      }
+    ];
 
     return (
       <div className="monitorthreadPool ul-pad-2x-t">
@@ -411,7 +404,12 @@ function MonitorThreadPoolTabStrip(props) {
                 setParentCallback={setThreadIdsCallback}
                 abortFlagforCheckbox={abortFlag}
                 dsURL={dsURL}
-                actionIcons={actionIcons}
+                toolbarIcons={toolbarIcons}
+                abortRef={abortRef}
+                abortThreadIds={threadIds}
+                setAbortFlagCallback={setAbortFlagCallback}
+                setThreadIdsEmptyCallback={setThreadIdsEmptyCallback}
+                operationList={operationList}
               />
             </div>
           </div>
