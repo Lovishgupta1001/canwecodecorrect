@@ -33,35 +33,6 @@ ThreaddetailsTableColumns:{
 
         }
     },
-    AllNodesSummaryColumns:{
-        Field:{
-            serverName : "serverName",
-            serverState : "serverState",
-            currentPoolSize : "currentPoolSize",
-            activeThreadCount : "activeThreadCount",
-            runningTransactionCount : "runningTransactionCount",
-            maxThreadCountPerTransaction : "maxThreadCountPerTransaction"
-        }
-    },
-    JobExecutorColumns:{
-        Field:{
-            jobName : "jobName",
-            jobGroup : "jobGroup",
-            jobStatus : "jobStatus",
-            nextFireTime : "nextFireTime",
-            previousFireTime : "previousFireTime",
-            triggerName : "triggerName",
-            triggerGroup : "triggerGroup",
-            triggerState : "triggerState"
-        }
-    },
-    MetricsColumns:{
-        Field:{
-            metricName : "metricName",
-            metricValue : "metricValue",
-            metricStatus : "metricStatus"
-        }
-    },
 ERROR_CODE_NOT_FOUND: "ERROR_CODE_NOT_FOUND",
     EVENTS: {
         THREAD_POOL_USAGE:
