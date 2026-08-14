@@ -1,36 +1,48 @@
 import React from "react";
-
-import {EQULTypo} from '@uilayer/typography';
-import { EQULContainer } from '@uilayer/layout';
-import {useTrans} from '@uilayer/react-i18n';
+import { EQULTypo } from '@uilayer/typography';
+import { useTrans } from '@uilayer/react-i18n';
 import PropTypes from "prop-types";
 
-const TransactionThreadPool = function({stats, metrics}){
+const TransactionThreadPool = function({ stats, metrics }){
     const nls = useTrans(["mimonitorthreadpool"]);
     const metricsData = metrics || stats?.[0] || {};
-    return(
+    return (
         <div>
             <div className="ul-pad-1x-y">
                 <EQULTypo type="head" className='ul-header-xxxs-b'>
                     {nls('TransactionsTabTitle')}
                 </EQULTypo>
             </div>
-            <EQULContainer type="primary" borderRadius={true}>
-                <div className='ul-row ul-pad-2x'>
-                    <div className="ul-col-sm-2">
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.AvailableThreads")}</EQULTypo></div>
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.ActiveThreads")}</EQULTypo></div>
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.CurrentRunningTransactions")}</EQULTypo></div>
-                        <div><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.MaximumThreadsperTransaction")}</EQULTypo></div>
+            <div className='ul-row ul-pad-2x-y'>
+                <div className="ul-col-sm-2">
+                    <div className='ul-pad-2x-b'>
+                        <EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.AvailableThreads")}</EQULTypo>
                     </div>
-                    <div className="ul-col-sm-2">
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium">{metricsData.currentPoolSize ?? stats?.[0]?.currentPoolSize ?? null}</EQULTypo></div>
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium">{metricsData.activeThreadCount ?? stats?.[0]?.activeThreadCount ?? null}</EQULTypo></div>
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium">{metricsData.runningTransactionCount ?? stats?.[0]?.runningTransactionCount ?? null}</EQULTypo></div>
-                        <div><EQULTypo type="body" size="medium">{metricsData.maxThreadCountPerTransaction ?? stats?.[0]?.maxThreadCountPerTransaction ?? null}</EQULTypo></div>
+                    <div className='ul-pad-2x-b'>
+                        <EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.ActiveThreads")}</EQULTypo>
+                    </div>
+                    <div className='ul-pad-2x-b'>
+                        <EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.CurrentRunningTransactions")}</EQULTypo>
+                    </div>
+                    <div>
+                        <EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.MaximumThreadsperTransaction")}</EQULTypo>
                     </div>
                 </div>
-            </EQULContainer>
+                <div className="ul-col-sm-2">
+                    <div className='ul-pad-2x-b'>
+                        <EQULTypo type="body" size="medium">{metricsData.currentPoolSize ?? stats?.[0]?.currentPoolSize ?? null}</EQULTypo>
+                    </div>
+                    <div className='ul-pad-2x-b'>
+                        <EQULTypo type="body" size="medium">{metricsData.activeThreadCount ?? stats?.[0]?.activeThreadCount ?? null}</EQULTypo>
+                    </div>
+                    <div className='ul-pad-2x-b'>
+                        <EQULTypo type="body" size="medium">{metricsData.runningTransactionCount ?? stats?.[0]?.runningTransactionCount ?? null}</EQULTypo>
+                    </div>
+                    <div>
+                        <EQULTypo type="body" size="medium">{metricsData.maxThreadCountPerTransaction ?? stats?.[0]?.maxThreadCountPerTransaction ?? null}</EQULTypo>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
