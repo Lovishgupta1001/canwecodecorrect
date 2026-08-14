@@ -1,3 +1,161 @@
-@import "snowflake";
-@import "midnight";
-@import "layout";
+.monitorthreadPool {
+    height: 100%;
+    overflow: hidden;
+
+    #toolbarRefresh {
+        margin-left: auto;
+    }
+
+    .refresh-labels {
+        padding-top: 0.3076923076923077rem;
+    }
+
+    .selectNode-label {
+        padding-top: 0.5076923077rem;
+    }
+
+    #inputwidth {
+        width: 6rem;
+    }
+
+
+    .element-cursor {
+        & :hover {
+            cursor: pointer;
+        }
+    }
+
+    .overflowing-cell-content {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .on-hover-color :hover {
+        color: inherit;
+    }
+
+    #threadDetailsContainer {
+        height: 85%
+    }
+
+    #threadDetailsTable {
+        height: calc(80% - 1.846153846153846rem)
+    }
+
+    #waitingJobsContainer {
+        height: calc(100% - 0.6rem);
+        width: 100%
+    }
+
+    #waitingJobsTable {
+        height: calc(100% - 1.935384615384615rem)
+    }
+
+    #priority-container {
+        height: calc(100% - 12.230769230769232rem);
+
+    }
+
+    #priority-table {
+        height: calc(100% - 1.973846153846154rem);
+        width: 100%;
+    }
+
+    .priority-footer-cell {
+        padding-left: 1.23rem;
+        padding-right: 1.23rem;
+        box-sizing: border-box;
+        flex: 1;
+    }
+
+    .priority-footer-total-container {
+        box-sizing: border-box;
+        padding-right: 0.6rem;
+    }
+
+    .k-r-drawer-content {
+        height: 100%;
+        width: 100%;
+    }
+
+    .icons-padding {
+        padding-top: 0.3076923077rem;
+    }
+
+    .tabstrip-fullheight {
+        height: calc(100% - 6.875rem);
+        width: 100%;
+    }
+
+    .fullheight {
+        height: 100%;
+    }
+
+    [role=tabpanel] {
+        height: 100%;
+        width: 100%;
+    }
+
+    .waitingJobs-wrapper {
+        height: calc(100% - 31.138rem);
+    }
+
+    .customCell {
+        text-overflow: "ellipsis";
+        overflow: "hidden";
+        white-space: "nowrap";
+    }
+
+    .subStepDiv {
+        display: "block";
+        flex-direction: "row";
+    }
+
+    .cell-link :hover {
+        color: $eq-text-hyperlink;
+        cursor: pointer;
+    }
+}
+
+.abort-thread-modal-options-width {
+    width: 95%;
+}
+
+.job-executor-details-container {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 32px;
+    padding: 16px;
+}
+
+.job-executor-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.thread-details-grid-wrapper {
+    position: relative;
+}
+
+.thread-details-grid-actions {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+}
+
+.thread-details-grid-actions>div {
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .job-executor-details-container {
+        grid-template-columns: 1fr;
+    }
+}
