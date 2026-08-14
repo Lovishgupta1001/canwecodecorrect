@@ -1,5 +1,6 @@
 import React from "react";
 import { EQULTypo } from "@uilayer/typography";
+import { EQULContainer } from "@uilayer/layout";
 import { useTrans } from "@uilayer/react-i18n";
 import PropTypes from "prop-types";
 
@@ -22,49 +23,52 @@ const JobExecutorDetails = function ({ jobDetails }) {
                     {nls(["JobExecutorDetails.Title", "JobExecutorDetailsTitle", "JobExecutorDetails_Title"])}
                 </EQULTypo>
             </div>
-            <div className="ul-pad-2x-y">
-                <div className="ul-row ul-pad-1x-b">
+            <EQULContainer type="primary" borderRadius={true}>
+                <div className="ul-row ul-pad-2x">
                     <div className="ul-col-sm-2">
-                        <EQULTypo type="body" size="medium" bold={true}>
-                            {nls(["JobExecutorDetails.Status", "JobExecutorDetails_Status"])}
-                        </EQULTypo>
+                        <div className={status !== "Running" ? "ul-pad-3x-b" : ""}>
+                            <EQULTypo type="body" size="medium" bold={true}>
+                                {nls(["JobExecutorDetails.Status", "JobExecutorDetails_Status"])}
+                            </EQULTypo>
+                        </div>
+                        {status !== "Running" && (
+                            <>
+                                <div className="ul-pad-3x-b">
+                                    <EQULTypo type="body" size="medium" bold={true}>
+                                        {nls(["JobExecutorDetails.StoppedSince", "JobExecutorDetails_StoppedSince"])}
+                                    </EQULTypo>
+                                </div>
+                                <div>
+                                    <EQULTypo type="body" size="medium" bold={true}>
+                                        {nls(["JobExecutorDetails.StoppedReason", "JobExecutorDetails_StoppedReason"])}
+                                    </EQULTypo>
+                                </div>
+                            </>
+                        )}
                     </div>
                     <div className="ul-col-sm-2">
-                        <EQULTypo type="body" size="medium">
-                            {status}
-                        </EQULTypo>
+                        <div className={status !== "Running" ? "ul-pad-3x-b" : ""}>
+                            <EQULTypo type="body" size="medium">
+                                {status}
+                            </EQULTypo>
+                        </div>
+                        {status !== "Running" && (
+                            <>
+                                <div className="ul-pad-3x-b">
+                                    <EQULTypo type="body" size="medium">
+                                        {stoppedSince || "-"}
+                                    </EQULTypo>
+                                </div>
+                                <div>
+                                    <EQULTypo type="body" size="medium">
+                                        {stoppedReason || "-"}
+                                    </EQULTypo>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
-
-                {status !== "Running" && (
-                    <>
-                        <div className="ul-row ul-pad-1x-b">
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium" bold={true}>
-                                    {nls(["JobExecutorDetails.StoppedSince", "JobExecutorDetails_StoppedSince"])}
-                                </EQULTypo>
-                            </div>
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium">
-                                    {stoppedSince || "-"}
-                                </EQULTypo>
-                            </div>
-                        </div>
-                        <div className="ul-row ul-pad-1x-b">
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium" bold={true}>
-                                    {nls(["JobExecutorDetails.StoppedReason", "JobExecutorDetails_StoppedReason"])}
-                                </EQULTypo>
-                            </div>
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium">
-                                    {stoppedReason || "-"}
-                                </EQULTypo>
-                            </div>
-                        </div>
-                    </>
-                )}
-            </div>
+            </EQULContainer>
         </div>
     );
 };

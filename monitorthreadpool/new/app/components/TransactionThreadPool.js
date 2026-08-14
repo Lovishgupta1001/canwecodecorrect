@@ -4,6 +4,7 @@ import {EQULTypo} from '@uilayer/typography';
 import { EQULContainer } from '@uilayer/layout';
 import {useTrans} from '@uilayer/react-i18n';
 import PropTypes from "prop-types";
+
 const TransactionThreadPool = function({stats, metrics}){
     const nls = useTrans(["mimonitorthreadpool"]);
     const metricsData = metrics || stats?.[0] || {};
@@ -20,17 +21,13 @@ const TransactionThreadPool = function({stats, metrics}){
                         <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.AvailableThreads")}</EQULTypo></div>
                         <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.ActiveThreads")}</EQULTypo></div>
                         <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.CurrentRunningTransactions")}</EQULTypo></div>
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.MaximumThreadsperTransaction")}</EQULTypo></div>
-                        {metricsData.completedTaskCount !== undefined && <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.CompletedTasks")}</EQULTypo></div>}
-                        {metricsData.queueSize !== undefined && <div><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.QueueSize")}</EQULTypo></div>}
+                        <div><EQULTypo type="body" size="medium" bold={true}>{nls("TransactionThreadPool.MaximumThreadsperTransaction")}</EQULTypo></div>
                     </div>
                     <div className="ul-col-sm-2">
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{metricsData.currentPoolSize ?? stats?.[0]?.currentPoolSize ?? null}</EQULTypo></div>
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{metricsData.activeThreadCount ?? stats?.[0]?.activeThreadCount ?? null}</EQULTypo></div>
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{metricsData.runningTransactionCount ?? stats?.[0]?.runningTransactionCount ?? null}</EQULTypo></div>
-                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{metricsData.maxThreadCountPerTransaction ?? stats?.[0]?.maxThreadCountPerTransaction ?? null}</EQULTypo></div>
-                        {metricsData.completedTaskCount !== undefined && <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium" bold={true}>{metricsData.completedTaskCount}</EQULTypo></div>}
-                        {metricsData.queueSize !== undefined && <div><EQULTypo type="body" size="medium" bold={true}>{metricsData.queueSize}</EQULTypo></div>}
+                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium">{metricsData.currentPoolSize ?? stats?.[0]?.currentPoolSize ?? null}</EQULTypo></div>
+                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium">{metricsData.activeThreadCount ?? stats?.[0]?.activeThreadCount ?? null}</EQULTypo></div>
+                        <div className='ul-pad-3x-b'><EQULTypo type="body" size="medium">{metricsData.runningTransactionCount ?? stats?.[0]?.runningTransactionCount ?? null}</EQULTypo></div>
+                        <div><EQULTypo type="body" size="medium">{metricsData.maxThreadCountPerTransaction ?? stats?.[0]?.maxThreadCountPerTransaction ?? null}</EQULTypo></div>
                     </div>
                 </div>
             </EQULContainer>

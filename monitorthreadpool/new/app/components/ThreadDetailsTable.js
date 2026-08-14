@@ -123,6 +123,12 @@ const ThreadDetailsTable = function({detailsList, setParentCallback, abortFlagfo
     return(
         <DsUrlProvider dsURL={dsURL}>
           <div id='threadDetailsContainer' className='ul-fluid-container'>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <EQULTypo type="head" className='ul-header-xxxs-b'>
+                {nls("ThreadDetailsTabTitle")}
+              </EQULTypo>
+              {actionIcons}
+            </div>
             <div id="threadDetailsTable" className='ul-row ul-pad-1x-y'>
                 <EQULGrid   
                     id="threadName"
@@ -141,9 +147,6 @@ const ThreadDetailsTable = function({detailsList, setParentCallback, abortFlagfo
                     tooltip={tooltip}
                     resizable={true}
                     searchByColumn={'all'}
-                    customHeader={actionIcons}
-                    customToolbar={actionIcons}
-                    header={actionIcons}
                 />
             </div>
         </div>
