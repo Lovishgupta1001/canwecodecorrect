@@ -279,6 +279,28 @@ function MonitorThreadPoolTabStrip(props) {
 
     const isAllNodesSelected = selectedNode?.id === "all_nodes";
 
+    const actionIcons = (
+      <div className="ul-flex-col-container">
+        <AbortTransactions
+          abortThreadIds={threadIds}
+          abortFlagCallback={setAbortFlagCallback}
+          threadDetails={data?.[0]?.usageInfo ?? null}
+          emptyThreadIdsCallback={setThreadIdsEmptyCallback}
+          OperationList={operationList}
+        />
+        <div className="ul-pad-1x-x">
+          <EQULTooltipOnIcon
+            iconClass="eQ-icon eQ-fonts-download"
+            type="action"
+            size="xs"
+            title={nls("DownloadThreaddump_Title")}
+            onClick={downloadThreadDumpHandler}
+            tooltipProps={tooltipIconProps}
+          />
+        </div>
+      </div>
+    );
+
     return (
       <div className="monitorthreadPool ul-pad-2x-t">
         <div className='ul-flex-col-container'>
@@ -375,35 +397,17 @@ function MonitorThreadPoolTabStrip(props) {
               </div>
             </div>
             <div className="fullheight ul-pad-2x-t">
-              <div className="ul-flex-col-container">
+              <div className="ul-pad-1x-b">
                 <EQULTypo type="head" className="ul-header-xxxs-b">
                   {nls("ThreadDetailsTabTitle")}
                 </EQULTypo>
-                <div id="toolbarRefresh" className="ul-flex-col-container">
-                  <AbortTransactions
-                    abortThreadIds={threadIds}
-                    abortFlagCallback={setAbortFlagCallback}
-                    threadDetails={data?.[0]?.usageInfo ?? null}
-                    emptyThreadIdsCallback={setThreadIdsEmptyCallback}
-                    OperationList={operationList}
-                  />
-                  <div className="ul-pad-1x-x">
-                    <EQULTooltipOnIcon
-                      iconClass="eQ-icon eQ-fonts-download"
-                      type="action"
-                      size="xs"
-                      title={nls("DownloadThreaddump_Title")}
-                      onClick={downloadThreadDumpHandler}
-                      tooltipProps={tooltipIconProps}
-                    />
-                  </div>
-                </div>
               </div>
               <ThreadDetailsTable
                 detailsList={data?.[0]?.usageInfo ?? null}
                 setParentCallback={setThreadIdsCallback}
                 abortFlagforCheckbox={abortFlag}
                 dsURL={dsURL}
+                actionIcons={actionIcons}
               />
             </div>
           </div>

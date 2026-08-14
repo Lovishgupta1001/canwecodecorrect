@@ -5,7 +5,8 @@ import {useTrans} from '@uilayer/react-i18n';
 import constants from '../constants/constants';
 import {customSubStepCell, customTxnIdCell} from './CustomGridCells';
 import { DsUrlProvider } from '../context/DsURLContext';
-const ThreadDetailsTable = function({detailsList, setParentCallback, abortFlagforCheckbox,dsURL}){
+
+const ThreadDetailsTable = function({detailsList, setParentCallback, abortFlagforCheckbox, dsURL, actionIcons}){
   const nls = useTrans(["mimonitorthreadpool"]);
   const columns = [
     {
@@ -140,6 +141,9 @@ const ThreadDetailsTable = function({detailsList, setParentCallback, abortFlagfo
                     tooltip={tooltip}
                     resizable={true}
                     searchByColumn={'all'}
+                    customHeader={actionIcons}
+                    customToolbar={actionIcons}
+                    header={actionIcons}
                 />
             </div>
         </div>
