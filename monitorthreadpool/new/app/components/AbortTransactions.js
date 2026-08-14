@@ -22,8 +22,8 @@ const AbortTransactions = React.forwardRef(function AbortTransactions({abortThre
     const [abortTransactionsEndpointResponse,setAbortTransactionsEndpointResponse] = React.useState(null);
     const [abortFlag,setAbortFlag] = React.useState(true);
     const toggleDialog = () => {
-        if(OperationList && OperationList.includes(constants.OPERATIONS.ABORT_THREAD)){
-            if(abortThreadIds.length == 0){
+        if(OperationList?.includes(constants.OPERATIONS.ABORT_THREAD)){
+            if(abortThreadIds.length === 0){
                 eQULNotify('error',nls("AbortErrorNotifyMessage"));
             }
             else{
@@ -49,7 +49,7 @@ const AbortTransactions = React.forwardRef(function AbortTransactions({abortThre
     const abortTransactionsHandler = (forceful,abortThreadIds) => {
         abortTransactions(forceful,abortThreadIds,abortTransactionsErrorHandler)
         .then((response)=>{
-            var abortedTransactionsStatusArray = [];
+            const abortedTransactionsStatusArray = [];
             response.data.forEach(element => {
                 abortedTransactionsStatusArray.push(
                     {
@@ -147,7 +147,7 @@ const AbortTransactions = React.forwardRef(function AbortTransactions({abortThre
                     <div className='ul-pad-2x-y'>
                         <EQULGrid
                             columns={columns}
-                            data={ abortTransactionsEndpointResponse? abortTransactionsEndpointResponse : [] }
+                            data={ abortTransactionsEndpointResponse ?? [] }
                         />
                     </div>                   
                 </EQULWindow>}

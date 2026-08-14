@@ -23,11 +23,12 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     };
 
     // Extract summary values safely from summaryData, allNodesData, or fallback defaults
-    const combinedData = (summaryData && typeof summaryData === "object")
-        ? summaryData
-        : (allNodesData && typeof allNodesData === "object" && !Array.isArray(allNodesData))
-        ? allNodesData
-        : {};
+    let combinedData = {};
+    if (summaryData && typeof summaryData === "object") {
+        combinedData = summaryData;
+    } else if (allNodesData && typeof allNodesData === "object" && !Array.isArray(allNodesData)) {
+        combinedData = allNodesData;
+    }
 
     const nodesArray = Array.isArray(allNodesData) ? allNodesData : [];
 
@@ -65,6 +66,12 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                 </span>
             </td>
         );
+    };
+    nodeStatusCell.propTypes = {
+        dataItem: PropTypes.shape({
+            serverState: PropTypes.string,
+            nodeStatus: PropTypes.string,
+        }),
     };
 
     const columns = [
