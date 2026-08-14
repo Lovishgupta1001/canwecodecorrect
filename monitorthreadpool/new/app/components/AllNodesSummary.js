@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
 /**
  * AllNodesSummary component renders the "All Nodes" view:
  * 1. Summary section (Job orchestrator node, Ready to run transactions, Available threads per node, Max threads per transaction)
- * 2. Node wise details grid (Node Name, Node Status, Active threads, Current running threads, Job Executor status, Stopped reason)
+ * 2. Node wise details grid with showhide / column chooser property (Node Name, Node Status, Active threads, Current running threads, Job Executor status, Stopped reason, Stopped since)
  */
 const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const nls = useTrans(["mimonitorthreadpool"]);
@@ -85,6 +85,10 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
             field: "stoppedReason",
             title: nls("NodeWiseDetailsColumns.Title.stoppedReason"),
         },
+        {
+            field: "stoppedSince",
+            title: nls("NodeWiseDetailsColumns.Title.stoppedSince"),
+        },
     ];
 
     const tooltip = React.useMemo(() => {
@@ -118,6 +122,7 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
             runningTransactionCount: node?.runningTransactionCount ?? node?.currentRunningThreads ?? node?.runningTransactions ?? 0,
             jobExecutorStatus: node?.jobExecutorStatus || node?.jobStatus || node?.executorStatus || (node?.serverState === "Running" ? "Running" : "Stopped"),
             stoppedReason: node?.stoppedReason || node?.failCause || node?.reason || (node?.serverState === "Running" ? "-" : "Node terminated"),
+            stoppedSince: node?.stoppedSince || node?.stoppedTime || "-",
         }));
     }, [nodesList]);
 
@@ -205,6 +210,8 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                         columns={columns}
                         data={gridData}
                         sortable={true}
+                        showHideColumn={true}
+                        showhide={true}
                         tooltip={tooltip}
                         resizable={true}
                         searchByColumn={"all"}
