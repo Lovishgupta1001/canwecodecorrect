@@ -61,8 +61,8 @@ function MonitorThreadPoolTabStrip(props) {
       if (!selectedNode || selectedNode.id === "all_nodes") return;
       getThreadDetails(selectedNode ? selectedNode.name : selectedNode, getThreadDetailErrorHandler).then(
         (response) => {
-          setData(response.data);
           if (response.data?.[0]?.usageInfo) {
+            setData(response.data);
             setIsCurrentNodeDown(false);
           } else {
             setIsCurrentNodeDown(true);
@@ -76,10 +76,34 @@ function MonitorThreadPoolTabStrip(props) {
     const getAllNodesMetricesHandler = () => {
       getAllNodesMetrices(selectedNode ? selectedNode.name : selectedNode, getThreadDetailErrorHandler).then((response) => {
         const resData = response.data;
-        const nodesData = resData?.allNodesSummary || resData?.nodeWiseDetails || resData?.nodes || resData;
+        if (!resData) return;
+
+        // If threadStatusList is present, populate thread usage info for single-node table fallback
+        if (resData?.threadStatusList?.[0]?.usageInfo) {
+          setData(resData.threadStatusList);
+        }
+
+        // All Nodes Grid Data
+        const nodesData = resData?.nodeExecutionStatusBeans || resData?.allNodesSummary || resData?.nodeWiseDetails || resData;
         setAllNodesData(nodesData);
-        setJobDetails(resData?.jobExecutorDetails || resData?.jobDetails || resData);
-        setMetricsData(resData?.metricsData || resData?.summaryData || resData?.metrics || resData);
+
+        // Job Executor Details
+        setJobDetails({
+          status: resData?.jobExecutorStatus,
+          stoppedReason: resData?.jobExecutorStopped,
+          stoppedSince: resData?.jobExecutorSince
+        });
+
+        // Summary & Metrics Data
+        setMetricsData({
+          jobOrchestratorNodes: resData?.jobOrchestratorNodes,
+          jobOrchestratorNodesStatus: resData?.jobOrchestratorNodesStatus,
+          readyToRunTransaction: resData?.readyToRunTransaction ?? resData?.readyToRunTransactions,
+          availableThreads: resData?.availableThreads ?? resData?.availableThreadsPerNode,
+          activeThreadCount: resData?.activeThreadCount,
+          currentRunningTransaction: resData?.currentRunningTransaction ?? resData?.currentRunningTransactions,
+          maxThreadCountPerTransaction: resData?.maxThreadCountPerTransaction ?? resData?.maxThreadsPerTransaction,
+        });
       });
     };
  

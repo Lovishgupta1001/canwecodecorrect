@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
 /**
  * AllNodesSummary component renders the "All Nodes" view:
  * 1. Summary section with 2 side-by-side columns (Job orchestrator node & Ready to run transactions on left, Available threads per node & Max threads per transaction on right)
- * 2. Node wise details grid with search by all columns, showHideColumns & persistentColumns
+ * 2. Node wise details grid mapping nodeExecutionStatusBeans from API response
  */
 const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const nls = useTrans(["mimonitorthreadpool"]);
@@ -32,13 +32,19 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const nodesArray = Array.isArray(allNodesData) ? allNodesData : [];
 
     const orchestratorNode = combinedData?.jobOrchestratorNodes || combinedData?.jobOrchestratorNode || combinedData?.orchestratorNode || combinedData?.jobOrchestrator || nodesArray[0]?.serverName || nodesArray[0]?.nodeName || "-";
+    const orchestratorStatus = combinedData?.jobOrchestratorNodesStatus || "Running";
     const readyToRunTxns = combinedData?.readyToRunTransaction ?? combinedData?.readyToRunTransactions ?? combinedData?.readyToRunCount ?? combinedData?.readyToRunTxns ?? 20;
     const availableThreadsPerNode = combinedData?.availableThreadsPerNode ?? combinedData?.availableThreads ?? nodesArray[0]?.currentPoolSize ?? nodesArray[0]?.availableThreads ?? 50;
     const maxThreadsPerTxn = combinedData?.maxThreadsPerTransaction ?? combinedData?.maxThreadCountPerTransaction ?? combinedData?.maxThreadsPerTxn ?? nodesArray[0]?.maxThreadCountPerTransaction ?? nodesArray[0]?.maxThreadsPerTransaction ?? 50;
 
+    // Green icon for Running / Active; Red icon for Failed / Failed status
+    const isOrchestratorRunning = String(orchestratorStatus).toLowerCase() === "running" || String(orchestratorStatus).toLowerCase() === "active";
+    const orchestratorIndicatorStatus = isOrchestratorRunning ? "success" : "error";
+
     const nodeStatusCell = (props) => {
         const state = props.dataItem?.serverState || props.dataItem?.nodeStatus || "Running";
-        const status = statusMap[state] || (state === "Running" || state === "RUNNING" ? "success" : "error");
+        const isStateRunning = String(state).toLowerCase() === "running";
+        const status = statusMap[state] || (isStateRunning ? "success" : "error");
         return (
             <td>
                 <span style={{ display: "inline-flex", alignItems: "center" }}>
@@ -70,19 +76,19 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
             columnMenu: EQULGridFilterColumnMenu,
         },
         {
-            field: "activeThreadCount",
+            field: "activeThreadsCount",
             title: nls("NodeWiseDetailsColumns.Title.activeThreads"),
         },
         {
-            field: "runningTransactionCount",
+            field: "runningJobsCount",
             title: nls("NodeWiseDetailsColumns.Title.currentRunningThreads"),
         },
         {
-            field: "jobExecutorStatus",
+            field: "schedulingState",
             title: nls("NodeWiseDetailsColumns.Title.jobExecutorStatus"),
         },
         {
-            field: "stoppedReason",
+            field: "schedulingStateReason",
             title: nls("NodeWiseDetailsColumns.Title.stoppedReason"),
             hidden: true,
         },
@@ -101,20 +107,14 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
         return tooltipobject;
     }, []);
 
-    // Safely derive node list array regardless of whether allNodesData is an Array, Object, null, or nested property
+    // Safely derive node list array from nodeExecutionStatusBeans or fallbacks
     const nodesList = React.useMemo(() => {
         if (!allNodesData) return [];
         if (Array.isArray(allNodesData)) return allNodesData;
+        if (Array.isArray(allNodesData.nodeExecutionStatusBeans)) return allNodesData.nodeExecutionStatusBeans;
         if (Array.isArray(allNodesData.nodeWiseDetails)) return allNodesData.nodeWiseDetails;
         if (Array.isArray(allNodesData.nodes)) return allNodesData.nodes;
         if (Array.isArray(allNodesData.allNodesSummary)) return allNodesData.allNodesSummary;
-        if (Array.isArray(allNodesData.allNodesData)) return allNodesData.allNodesData;
-        if (allNodesData.engineMetricsSnapshot?.engineExecutionSummary?.serverDetails) {
-            return Object.values(allNodesData.engineMetricsSnapshot.engineExecutionSummary.serverDetails);
-        }
-        if (allNodesData.engineExecutionSummary?.serverDetails) {
-            return Object.values(allNodesData.engineExecutionSummary.serverDetails);
-        }
         if (typeof allNodesData === "object" && allNodesData !== null) {
             return Object.values(allNodesData).filter((v) => v && typeof v === "object" && (v.serverName || v.nodeName || v.name));
         }
@@ -126,10 +126,10 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
             ...node,
             serverName: node?.serverName || node?.nodeName || node?.name || "",
             serverState: node?.serverState || node?.nodeStatus || node?.status || "Running",
-            activeThreadCount: node?.activeThreadCount ?? node?.activeThreadsCount ?? node?.activeThreads ?? 0,
-            runningTransactionCount: node?.runningTransactionCount ?? node?.runningJobsCount ?? node?.currentRunningThreads ?? 0,
-            jobExecutorStatus: node?.jobExecutorStatus || node?.jobStatus || node?.schedulingState || (node?.serverState === "RUNNING" || node?.serverState === "Running" ? "Running" : "Stopped"),
-            stoppedReason: node?.stoppedReason || node?.schedulingStateReason || node?.failCause || node?.reason || (node?.serverState === "RUNNING" || node?.serverState === "Running" ? "-" : "Node terminated"),
+            activeThreadsCount: node?.activeThreadsCount ?? node?.activeThreadCount ?? node?.activeThreads ?? 0,
+            runningJobsCount: node?.runningJobsCount ?? node?.runningTransactionCount ?? node?.currentRunningThreads ?? 0,
+            schedulingState: node?.schedulingState || node?.jobExecutorStatus || node?.jobStatus || (String(node?.serverState).toLowerCase() === "running" ? "Running" : "Stopped"),
+            schedulingStateReason: node?.schedulingStateReason || node?.stoppedReason || node?.failCause || (String(node?.serverState).toLowerCase() === "running" ? "-" : "Node terminated"),
             stoppedSince: node?.stoppedSince || node?.stoppedTime || "-",
         }));
     }, [nodesList]);
@@ -150,7 +150,7 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                             </EQULTypo>
                             <div style={{ display: "inline-flex", alignItems: "center" }}>
                                 <EQULIndicator
-                                    status="success"
+                                    status={orchestratorIndicatorStatus}
                                     text=""
                                     indicatorSize="sm"
                                 />
@@ -207,7 +207,7 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                         data={gridData}
                         sortable={true}
                         showHideColumns={true}
-                        persistentColumns={["serverName", "serverState", "activeThreadCount", "runningTransactionCount", "jobExecutorStatus"]}
+                        persistentColumns={["serverName", "serverState", "activeThreadsCount", "runningJobsCount", "schedulingState"]}
                         tooltip={tooltip}
                         resizable={true}
                         searchByColumn={"all"}
