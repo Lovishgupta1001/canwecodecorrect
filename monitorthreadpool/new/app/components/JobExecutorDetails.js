@@ -25,6 +25,8 @@ const JobExecutorDetails = function ({ jobDetails }) {
 
     const stoppedReason = jobDetails?.jobExecutorStopped || jobDetails?.stoppedReason || jobDetails?.failCause || jobDetails?.[0]?.stoppedReason || null;
 
+    const labelPadClass = isRunning ? "" : "ul-pad-2x-b";
+
     return (
         <div>
             <div className="ul-pad-1x-y">
@@ -34,12 +36,12 @@ const JobExecutorDetails = function ({ jobDetails }) {
             </div>
             <div className="ul-row ul-pad-2x-y">
                 <div className="ul-col-sm-2">
-                    <div className={!isRunning ? "ul-pad-2x-b" : ""}>
+                    <div className={labelPadClass}>
                         <EQULTypo type="body" size="medium" bold={true}>
                             {nls(["JobExecutorDetails.Status", "JobExecutorDetails_Status"])}
                         </EQULTypo>
                     </div>
-                    {!isRunning && (
+                    {isRunning ? null : (
                         <>
                             <div className="ul-pad-2x-b">
                                 <EQULTypo type="body" size="medium" bold={true}>
@@ -55,12 +57,12 @@ const JobExecutorDetails = function ({ jobDetails }) {
                     )}
                 </div>
                 <div className="ul-col-sm-2">
-                    <div className={!isRunning ? "ul-pad-2x-b" : ""}>
+                    <div className={labelPadClass}>
                         <EQULTypo type="body" size="medium">
                             {status}
                         </EQULTypo>
                     </div>
-                    {!isRunning && (
+                    {isRunning ? null : (
                         <>
                             <div className="ul-pad-2x-b">
                                 <EQULTypo type="body" size="medium">

@@ -84,8 +84,8 @@ function MonitorThreadPoolTabStrip(props) {
         }
 
         // All Nodes Grid Data
-        const nodesData = resData?.nodeExecutionStatusBeans || resData?.allNodesSummary || resData?.nodeWiseDetails || resData;
-        setAllNodesData(nodesData);
+        const nodesData = resData?.nodeExecutionStatusBeans || resData?.allNodesSummary || resData?.nodeWiseDetails;
+        setAllNodesData(nodesData || resData);
 
         // Job Executor Details
         setJobDetails({

@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import PropTypes from 'prop-types';
 import {EQULTypo} from '@uilayer/typography';
 import {EQULGrid, EQULGridFilterColumnMenu} from '@uilayer/grid';
 import {useTrans} from '@uilayer/react-i18n';
@@ -174,4 +175,17 @@ const ThreadDetailsTable = function({
     );
 
 };
+ThreadDetailsTable.propTypes = {
+    detailsList: PropTypes.array,
+    setParentCallback: PropTypes.func,
+    abortFlagforCheckbox: PropTypes.bool,
+    dsURL: PropTypes.string,
+    toolbarIcons: PropTypes.array,
+    abortRef: PropTypes.object,
+    abortThreadIds: PropTypes.array,
+    setAbortFlagCallback: PropTypes.func,
+    setThreadIdsEmptyCallback: PropTypes.func,
+    operationList: PropTypes.array,
+};
+
 export default ThreadDetailsTable;

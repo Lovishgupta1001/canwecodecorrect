@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {abortTransactions} from '../service/MonitorThreadpoolService';
 import {EQULTypo} from '@uilayer/typography';
 import {EQULTooltipOnIcon} from '@uilayer/icons';
@@ -153,5 +154,13 @@ const AbortTransactions = React.forwardRef(function AbortTransactions({abortThre
         </div>
     )
 });
+
+AbortTransactions.propTypes = {
+    abortThreadIds: PropTypes.array.isRequired,
+    OperationList: PropTypes.array,
+    abortFlagCallback: PropTypes.func,
+    emptyThreadIdsCallback: PropTypes.func,
+    hideIcon: PropTypes.bool,
+};
 
 export default AbortTransactions;

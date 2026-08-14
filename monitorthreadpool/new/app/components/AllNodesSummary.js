@@ -37,14 +37,19 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const availableThreadsPerNode = combinedData?.availableThreadsPerNode ?? combinedData?.availableThreads ?? nodesArray[0]?.currentPoolSize ?? nodesArray[0]?.availableThreads ?? 50;
     const maxThreadsPerTxn = combinedData?.maxThreadsPerTransaction ?? combinedData?.maxThreadCountPerTransaction ?? combinedData?.maxThreadsPerTxn ?? nodesArray[0]?.maxThreadCountPerTransaction ?? nodesArray[0]?.maxThreadsPerTransaction ?? 50;
 
-    // Green icon for Running / Active; Red icon for Failed / Failed status
+    // Green icon for Running / Active; Red icon for Failed status
     const isOrchestratorRunning = String(orchestratorStatus).toLowerCase() === "running" || String(orchestratorStatus).toLowerCase() === "active";
     const orchestratorIndicatorStatus = isOrchestratorRunning ? "success" : "error";
 
+    const getNodeStatus = (state) => {
+        const stateStr = String(state).toLowerCase();
+        if (statusMap[state]) return statusMap[state];
+        return stateStr === "running" ? "success" : "error";
+    };
+
     const nodeStatusCell = (props) => {
         const state = props.dataItem?.serverState || props.dataItem?.nodeStatus || "Running";
-        const isStateRunning = String(state).toLowerCase() === "running";
-        const status = statusMap[state] || (isStateRunning ? "success" : "error");
+        const status = getNodeStatus(state);
         return (
             <td>
                 <span style={{ display: "inline-flex", alignItems: "center" }}>
@@ -226,5 +231,13 @@ AllNodesSummary.propTypes = {
     summaryData: PropTypes.object,
     surface: PropTypes.string,
 };
+
+const nodeStatusCellPropTypes = {
+    dataItem: PropTypes.shape({
+        serverState: PropTypes.string,
+        nodeStatus: PropTypes.string,
+    }),
+};
+
 
 export default AllNodesSummary;
