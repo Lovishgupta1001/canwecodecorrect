@@ -289,6 +289,9 @@ function MonitorThreadPoolTabStrip(props) {
           OperationList={operationList}
         />
         <div className="ul-pad-1x-x">
+          <EQULTypo className="refresh-labels" type="body" size="m">
+            {/* Download Icon */}
+          </EQULTypo>
           <EQULTooltipOnIcon
             iconClass="eQ-icon eQ-fonts-download"
             type="action"
@@ -308,7 +311,7 @@ function MonitorThreadPoolTabStrip(props) {
             <EQULTypo className="selectNode-label" type="body" size="m">
               {nls("SelectNode")}
             </EQULTypo>
-            <div className="ul-pad-1x-x">
+            <div className="ul-pad-1x-x" style={{ minWidth: "260px", width: "280px" }}>
               <EQULDropDownList
                 id="dropdownlist"
                 data={dropdownData}
@@ -318,6 +321,7 @@ function MonitorThreadPoolTabStrip(props) {
                 defaultItem={defaultItem}
                 itemRender={itemRender}
                 valueRender={valueRender}
+                style={{ width: "100%", minWidth: "260px" }}
               />
             </div>
             <div className="selectNode-label">
