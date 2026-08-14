@@ -282,7 +282,8 @@ function MonitorThreadPoolTabStrip(props) {
 
     const toolbarIcons = [
       {
-        iconClass: "eQ-icon eQ-fonts-abort-without-border",
+        iconClass: "eQ-icon eQ-fonts-abort-without-border ul-pad-2x",
+        className: "ul-pad-2x",
         title: nls("AbortTransactions_Title"),
         onClick: () => {
           if (abortRef.current) {
@@ -291,7 +292,8 @@ function MonitorThreadPoolTabStrip(props) {
         }
       },
       {
-        iconClass: "eQ-icon eQ-fonts-download",
+        iconClass: "eQ-icon eQ-fonts-download ul-pad-2x",
+        className: "ul-pad-2x",
         title: nls("DownloadThreaddump_Title"),
         onClick: downloadThreadDumpHandler
       }
