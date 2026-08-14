@@ -14,8 +14,16 @@ const JobExecutorDetails = function ({ jobDetails }) {
     const rawStatus = jobDetails?.status || jobDetails?.jobExecutorStatus || jobDetails?.[0]?.status || jobDetails?.[0]?.jobStatus || "Running";
     const isRunning = String(rawStatus).toLowerCase() === "running";
     const status = isRunning ? "Running" : (rawStatus || "Stopped");
-    const stoppedSince = jobDetails?.stoppedSince || jobDetails?.[0]?.stoppedSince || null;
-    const stoppedReason = jobDetails?.stoppedReason || jobDetails?.failCause || jobDetails?.[0]?.stoppedReason || null;
+
+    const rawStoppedSince = jobDetails?.jobExecutorSince || jobDetails?.stoppedSince || jobDetails?.[0]?.stoppedSince || null;
+    let stoppedSince = null;
+    if (Array.isArray(rawStoppedSince) && rawStoppedSince.length >= 6) {
+        stoppedSince = `${rawStoppedSince[0]}-${String(rawStoppedSince[1]).padStart(2, '0')}-${String(rawStoppedSince[2]).padStart(2, '0')} ${String(rawStoppedSince[3]).padStart(2, '0')}:${String(rawStoppedSince[4]).padStart(2, '0')}:${String(rawStoppedSince[5]).padStart(2, '0')}`;
+    } else if (typeof rawStoppedSince === "string") {
+        stoppedSince = rawStoppedSince;
+    }
+
+    const stoppedReason = jobDetails?.jobExecutorStopped || jobDetails?.stoppedReason || jobDetails?.failCause || jobDetails?.[0]?.stoppedReason || null;
 
     return (
         <div>

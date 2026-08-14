@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
 /**
  * AllNodesSummary component renders the "All Nodes" view:
  * 1. Summary section (Job orchestrator node, Ready to run transactions, Available threads per node, Max threads per transaction)
- * 2. Node wise details grid with search placeholder "Search", showHideColumns & persistentColumns
+ * 2. Node wise details grid with search by all columns, showHideColumns & persistentColumns
  */
 const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const nls = useTrans(["mimonitorthreadpool"]);
@@ -31,14 +31,14 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
 
     const nodesArray = Array.isArray(allNodesData) ? allNodesData : [];
 
-    const orchestratorNode = combinedData?.jobOrchestratorNode || combinedData?.orchestratorNode || combinedData?.jobOrchestrator || nodesArray[0]?.serverName || nodesArray[0]?.nodeName || "-";
-    const readyToRunTxns = combinedData?.readyToRunTransactions ?? combinedData?.readyToRunCount ?? combinedData?.readyToRunTxns ?? 20;
+    const orchestratorNode = combinedData?.jobOrchestratorNodes || combinedData?.jobOrchestratorNode || combinedData?.orchestratorNode || combinedData?.jobOrchestrator || nodesArray[0]?.serverName || nodesArray[0]?.nodeName || "-";
+    const readyToRunTxns = combinedData?.readyToRunTransaction ?? combinedData?.readyToRunTransactions ?? combinedData?.readyToRunCount ?? combinedData?.readyToRunTxns ?? 20;
     const availableThreadsPerNode = combinedData?.availableThreadsPerNode ?? combinedData?.availableThreads ?? nodesArray[0]?.currentPoolSize ?? nodesArray[0]?.availableThreads ?? 50;
-    const maxThreadsPerTxn = combinedData?.maxThreadsPerTransaction ?? combinedData?.maxThreadsPerTxn ?? nodesArray[0]?.maxThreadCountPerTransaction ?? nodesArray[0]?.maxThreadsPerTransaction ?? 50;
+    const maxThreadsPerTxn = combinedData?.maxThreadsPerTransaction ?? combinedData?.maxThreadCountPerTransaction ?? combinedData?.maxThreadsPerTxn ?? nodesArray[0]?.maxThreadCountPerTransaction ?? nodesArray[0]?.maxThreadsPerTransaction ?? 50;
 
     const nodeStatusCell = (props) => {
         const state = props.dataItem?.serverState || props.dataItem?.nodeStatus || "Running";
-        const status = statusMap[state] || (state === "Running" ? "success" : "error");
+        const status = statusMap[state] || (state === "Running" || state === "RUNNING" ? "success" : "error");
         return (
             <td>
                 <span style={{ display: "inline-flex", alignItems: "center" }}>
@@ -109,6 +109,12 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
         if (Array.isArray(allNodesData.nodes)) return allNodesData.nodes;
         if (Array.isArray(allNodesData.allNodesSummary)) return allNodesData.allNodesSummary;
         if (Array.isArray(allNodesData.allNodesData)) return allNodesData.allNodesData;
+        if (allNodesData.engineMetricsSnapshot?.engineExecutionSummary?.serverDetails) {
+            return Object.values(allNodesData.engineMetricsSnapshot.engineExecutionSummary.serverDetails);
+        }
+        if (allNodesData.engineExecutionSummary?.serverDetails) {
+            return Object.values(allNodesData.engineExecutionSummary.serverDetails);
+        }
         if (typeof allNodesData === "object" && allNodesData !== null) {
             return Object.values(allNodesData).filter((v) => v && typeof v === "object" && (v.serverName || v.nodeName || v.name));
         }
@@ -120,10 +126,10 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
             ...node,
             serverName: node?.serverName || node?.nodeName || node?.name || "",
             serverState: node?.serverState || node?.nodeStatus || node?.status || "Running",
-            activeThreadCount: node?.activeThreadCount ?? node?.activeThreads ?? 0,
-            runningTransactionCount: node?.runningTransactionCount ?? node?.currentRunningThreads ?? node?.runningTransactions ?? 0,
-            jobExecutorStatus: node?.jobExecutorStatus || node?.jobStatus || node?.executorStatus || (node?.serverState === "Running" ? "Running" : "Stopped"),
-            stoppedReason: node?.stoppedReason || node?.failCause || node?.reason || (node?.serverState === "Running" ? "-" : "Node terminated"),
+            activeThreadCount: node?.activeThreadCount ?? node?.activeThreadsCount ?? node?.activeThreads ?? 0,
+            runningTransactionCount: node?.runningTransactionCount ?? node?.runningJobsCount ?? node?.currentRunningThreads ?? 0,
+            jobExecutorStatus: node?.jobExecutorStatus || node?.jobStatus || node?.schedulingState || (node?.serverState === "RUNNING" || node?.serverState === "Running" ? "Running" : "Stopped"),
+            stoppedReason: node?.stoppedReason || node?.schedulingStateReason || node?.failCause || node?.reason || (node?.serverState === "RUNNING" || node?.serverState === "Running" ? "-" : "Node terminated"),
             stoppedSince: node?.stoppedSince || node?.stoppedTime || "-",
         }));
     }, [nodesList]);
