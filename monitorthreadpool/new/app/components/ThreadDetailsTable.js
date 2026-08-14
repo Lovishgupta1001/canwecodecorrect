@@ -163,6 +163,9 @@ const ThreadDetailsTable = function({
                     tooltip={tooltip}
                     resizable={true}
                     searchByColumn={'all'}
+                    searchPlaceholder={'Search'}
+                    searchByColumnPlaceholder={'Search'}
+                    placeholder={'Search'}
                     toolbarIcons={toolbarIcons}
                 />
             </div>

@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
 /**
  * AllNodesSummary component renders the "All Nodes" view:
  * 1. Summary section (Job orchestrator node, Ready to run transactions, Available threads per node, Max threads per transaction)
- * 2. Node wise details grid with showHideColumns persistent columns (first 5 visible & persistent, last 2 hidden by default)
+ * 2. Node wise details grid with search placeholder "Search", showHideColumns & persistentColumns
  */
 const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const nls = useTrans(["mimonitorthreadpool"]);
@@ -217,6 +217,9 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                         tooltip={tooltip}
                         resizable={true}
                         searchByColumn={"all"}
+                        searchPlaceholder={"Search"}
+                        searchByColumnPlaceholder={"Search"}
+                        placeholder={"Search"}
                     />
                 </div>
             </div>
