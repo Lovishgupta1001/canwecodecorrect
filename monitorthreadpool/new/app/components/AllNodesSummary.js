@@ -8,7 +8,7 @@ import PropTypes from "prop-types";
 
 /**
  * AllNodesSummary component renders the "All Nodes" view:
- * 1. Summary section (Job orchestrator node, Ready to run transactions, Available threads per node, Max threads per transaction)
+ * 1. Summary section with 2 side-by-side columns (Job orchestrator node & Ready to run transactions on left, Available threads per node & Max threads per transaction on right)
  * 2. Node wise details grid with search by all columns, showHideColumns & persistentColumns
  */
 const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
@@ -141,15 +141,14 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                 <EQULTypo type="head" className="ul-header-xxxs-b">
                     {nls("Summary")}
                 </EQULTypo>
-                <div className="ul-row ul-pad-2x-y">
-                    <div className="ul-col-sm-3">
-                        <div className="ul-row ul-pad-1x-b">
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium" bold={true}>
-                                    {nls("JobOrchestratorNode")}
-                                </EQULTypo>
-                            </div>
-                            <div className="ul-col-sm-2" style={{ display: "inline-flex", alignItems: "center" }}>
+                <div className="ul-pad-2x-y" style={{ display: "flex", flexWrap: "wrap" }}>
+                    {/* Left Column */}
+                    <div style={{ flex: "0 0 45%", maxWidth: "45%", paddingRight: "30px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                            <EQULTypo type="body" size="medium" bold={true}>
+                                {nls("JobOrchestratorNode")}
+                            </EQULTypo>
+                            <div style={{ display: "inline-flex", alignItems: "center" }}>
                                 <EQULIndicator
                                     status="success"
                                     text=""
@@ -162,44 +161,33 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                                 </span>
                             </div>
                         </div>
-                        <div className="ul-row">
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium" bold={true}>
-                                    {nls("ReadyToRunTransactions")}
-                                </EQULTypo>
-                            </div>
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium">
-                                    {readyToRunTxns}
-                                </EQULTypo>
-                            </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <EQULTypo type="body" size="medium" bold={true}>
+                                {nls("ReadyToRunTransactions")}
+                            </EQULTypo>
+                            <EQULTypo type="body" size="medium">
+                                {readyToRunTxns}
+                            </EQULTypo>
                         </div>
                     </div>
 
-                    <div className="ul-col-sm-3">
-                        <div className="ul-row ul-pad-1x-b">
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium" bold={true}>
-                                    {nls("AvailableThreadsPerNode")}
-                                </EQULTypo>
-                            </div>
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium">
-                                    {availableThreadsPerNode}
-                                </EQULTypo>
-                            </div>
+                    {/* Right Column */}
+                    <div style={{ flex: "0 0 45%", maxWidth: "45%", paddingLeft: "30px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                            <EQULTypo type="body" size="medium" bold={true}>
+                                {nls("AvailableThreadsPerNode")}
+                            </EQULTypo>
+                            <EQULTypo type="body" size="medium">
+                                {availableThreadsPerNode}
+                            </EQULTypo>
                         </div>
-                        <div className="ul-row">
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium" bold={true}>
-                                    {nls("MaxThreadsPerTransaction")}
-                                </EQULTypo>
-                            </div>
-                            <div className="ul-col-sm-2">
-                                <EQULTypo type="body" size="medium">
-                                    {maxThreadsPerTxn}
-                                </EQULTypo>
-                            </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <EQULTypo type="body" size="medium" bold={true}>
+                                {nls("MaxThreadsPerTransaction")}
+                            </EQULTypo>
+                            <EQULTypo type="body" size="medium">
+                                {maxThreadsPerTxn}
+                            </EQULTypo>
                         </div>
                     </div>
                 </div>
