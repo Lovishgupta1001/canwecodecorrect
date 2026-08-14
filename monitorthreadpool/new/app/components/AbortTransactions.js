@@ -66,7 +66,7 @@ const AbortTransactions = React.forwardRef(function AbortTransactions({abortThre
         })
     }
 
-    var buttonArray = [
+    const buttonArray = [
         {
             uiStyle:"primary",
             label:nls('AbortTransactions.ModalButtonArrayOk'),
@@ -80,7 +80,7 @@ const AbortTransactions = React.forwardRef(function AbortTransactions({abortThre
             onClick:toggleDialog
         }
     ];
-    var confirmationButtonArray = [
+    const confirmationButtonArray = [
         {
             uiStyle:"tertiary",
             label:nls('AbortTransactions.ConfirmationButtonArrayClose'),

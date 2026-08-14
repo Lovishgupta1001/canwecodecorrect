@@ -48,7 +48,8 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     };
 
     const nodeStatusCell = (props) => {
-        const state = props.dataItem?.serverState || props.dataItem?.nodeStatus || "Running";
+        const { dataItem } = props;
+        const state = dataItem?.serverState || dataItem?.nodeStatus || "Running";
         const status = getNodeStatus(state);
         return (
             <td>
@@ -127,16 +128,22 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     }, [allNodesData]);
 
     const gridData = React.useMemo(() => {
-        return nodesList.map((node) => ({
-            ...node,
-            serverName: node?.serverName || node?.nodeName || node?.name || "",
-            serverState: node?.serverState || node?.nodeStatus || node?.status || "Running",
-            activeThreadsCount: node?.activeThreadsCount ?? node?.activeThreadCount ?? node?.activeThreads ?? 0,
-            runningJobsCount: node?.runningJobsCount ?? node?.runningTransactionCount ?? node?.currentRunningThreads ?? 0,
-            schedulingState: node?.schedulingState || node?.jobExecutorStatus || node?.jobStatus || (String(node?.serverState).toLowerCase() === "running" ? "Running" : "Stopped"),
-            schedulingStateReason: node?.schedulingStateReason || node?.stoppedReason || node?.failCause || (String(node?.serverState).toLowerCase() === "running" ? "-" : "Node terminated"),
-            stoppedSince: node?.stoppedSince || node?.stoppedTime || "-",
-        }));
+        return nodesList.map((node) => {
+            const stateStr = String(node?.serverState).toLowerCase();
+            const isNodeRunning = stateStr === "running";
+            const schedulingState = node?.schedulingState || node?.jobExecutorStatus || node?.jobStatus || (isNodeRunning ? "Running" : "Stopped");
+            const schedulingStateReason = node?.schedulingStateReason || node?.stoppedReason || node?.failCause || (isNodeRunning ? "-" : "Node terminated");
+            return {
+                ...node,
+                serverName: node?.serverName || node?.nodeName || node?.name || "",
+                serverState: node?.serverState || node?.nodeStatus || node?.status || "Running",
+                activeThreadsCount: node?.activeThreadsCount ?? node?.activeThreadCount ?? node?.activeThreads ?? 0,
+                runningJobsCount: node?.runningJobsCount ?? node?.runningTransactionCount ?? node?.currentRunningThreads ?? 0,
+                schedulingState,
+                schedulingStateReason,
+                stoppedSince: node?.stoppedSince || node?.stoppedTime || "-",
+            };
+        });
     }, [nodesList]);
 
     return (

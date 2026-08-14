@@ -110,19 +110,19 @@ const ThreadDetailsTable = function({
 
   const onSelectionChange = (event, selectedFields) => {
     setSelectedState(selectedFields);
-    const selectedIDs = Object.keys(selectedFields).filter(
-            (key) => {return selectedFields[key]}
-            );
-        const selectedData = detailsList.filter(item => selectedIDs.includes(item.prtThreadId));
-        setParentCallback(selectedData)
+    const selectedIDs = new Set(
+      Object.keys(selectedFields).filter((key) => selectedFields[key])
+    );
+    const selectedData = detailsList.filter(item => selectedIDs.has(item.prtThreadId));
+    setParentCallback(selectedData);
   };
 
   const onHeaderSelectionChange = (event, selectedFields) => {
-  const selectedIDs = Object.keys(selectedFields).filter(
-        (key) => {return selectedFields[key]}
-        );
-    const selectedData = detailsList.filter(item => selectedIDs.includes(item.prtThreadId));
-    setParentCallback(selectedData)
+    const selectedIDs = new Set(
+      Object.keys(selectedFields).filter((key) => selectedFields[key])
+    );
+    const selectedData = detailsList.filter(item => selectedIDs.has(item.prtThreadId));
+    setParentCallback(selectedData);
     setSelectedState(selectedFields);
   };
   const tooltip = React.useMemo(()=>{
@@ -150,7 +150,7 @@ const ThreadDetailsTable = function({
                 <EQULGrid   
                     id="threadName"
                     columns={columns}
-                    data={detailsList?detailsList:[]}
+                    data={detailsList ?? []}
                     selectableColumn={true}
                     gridConfig={dataConfig}
                     dataItemKey="prtThreadId"

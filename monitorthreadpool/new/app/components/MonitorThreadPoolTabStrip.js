@@ -240,7 +240,7 @@ function MonitorThreadPoolTabStrip(props) {
         const decoder = new TextDecoder('utf-8');
         const decodedText = decoder.decode(generatedText);
         const decodedBase64Text = atob(JSON.parse(decodedText)[serverId]);
-        var blob = new Blob([decodedBase64Text], { type: "text/plain" });
+        const blob = new Blob([decodedBase64Text], { type: "text/plain" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         const contentDisposition = response.headers["content-disposition"];
@@ -259,11 +259,11 @@ function MonitorThreadPoolTabStrip(props) {
     };
     const handleBlur=(event)=>{
         const value = event.syntheticEvent.target.value;
-        if (value===null || value==="" || parseInt(value)<0) {
+        if (value===null || value==="" || Number.parseInt(value)<0) {
             eQULNotify("error", nls('errorMessages.onlyPositiveNumbersAllowedError'));
             return;
         }
-        setTime(parseInt(value));
+        setTime(Number.parseInt(value));
     }
     React.useEffect(() => {
       getExecutionServerNamesHandler();
@@ -283,7 +283,8 @@ function MonitorThreadPoolTabStrip(props) {
         }, time * 1000);
         return () => clearInterval(intervalId);
       } else {
-        if (selectedNode?.id !== "all_nodes") {
+        const shouldFetchThread = selectedNode?.id !== "all_nodes";
+        if (shouldFetchThread) {
           getThreadDetailsHandler();
         }
       }
@@ -395,51 +396,59 @@ function MonitorThreadPoolTabStrip(props) {
           </div>
         </div>
 
-        {isCurrentNodeDown ? (
-          <div style={{ height: "90%" }}>
-            <EQULNoData icon={"eQ-icon eQ-fonts-no-data"} description={nls("NodeDown")}/>
-          </div>
-        ) : isAllNodesSelected ? (
-          /* View 1: All Nodes View */
-          <div className="fullheight ul-pad-2x-t">
-            <AllNodesSummary allNodesData={allNodesData} summaryData={metricsData} surface={props.surface} />
-          </div>
-        ) : (
-          /* View 2: Specific Node View */
-          <div className="fullheight">
-            <div className="ul-row ul-pad-2x-t">
-              <div className="ul-col-sm-2 fullheight">
-                <div>
-                  <TransactionThreadPool stats={data} metrics={metricsData} />
+        {(() => {
+          if (isCurrentNodeDown) {
+            return (
+              <div style={{ height: "90%" }}>
+                <EQULNoData icon={"eQ-icon eQ-fonts-no-data"} description={nls("NodeDown")}/>
+              </div>
+            );
+          }
+          if (isAllNodesSelected) {
+            return (
+              /* View 1: All Nodes View */
+              <div className="fullheight ul-pad-2x-t">
+                <AllNodesSummary allNodesData={allNodesData} summaryData={metricsData} surface={props.surface} />
+              </div>
+            );
+          }
+          return (
+            /* View 2: Specific Node View */
+            <div className="fullheight">
+              <div className="ul-row ul-pad-2x-t">
+                <div className="ul-col-sm-2 fullheight">
+                  <div>
+                    <TransactionThreadPool stats={data} metrics={metricsData} />
+                  </div>
+                </div>
+                <div className="ul-col-sm-2 fullheight">
+                  <div>
+                    <JobExecutorDetails jobDetails={jobDetails} />
+                  </div>
                 </div>
               </div>
-              <div className="ul-col-sm-2 fullheight">
-                <div>
-                  <JobExecutorDetails jobDetails={jobDetails} />
+              <div className="fullheight ul-pad-2x-t">
+                <div className="ul-pad-1x-b">
+                  <EQULTypo type="head" className="ul-header-xxxs-b">
+                    {nls("ThreadDetailsTabTitle")}
+                  </EQULTypo>
                 </div>
+                <ThreadDetailsTable
+                  detailsList={data?.[0]?.usageInfo ?? null}
+                  setParentCallback={setThreadIdsCallback}
+                  abortFlagforCheckbox={abortFlag}
+                  dsURL={dsURL}
+                  toolbarIcons={toolbarIcons}
+                  abortRef={abortRef}
+                  abortThreadIds={threadIds}
+                  setAbortFlagCallback={setAbortFlagCallback}
+                  setThreadIdsEmptyCallback={setThreadIdsEmptyCallback}
+                  operationList={operationList}
+                />
               </div>
             </div>
-            <div className="fullheight ul-pad-2x-t">
-              <div className="ul-pad-1x-b">
-                <EQULTypo type="head" className="ul-header-xxxs-b">
-                  {nls("ThreadDetailsTabTitle")}
-                </EQULTypo>
-              </div>
-              <ThreadDetailsTable
-                detailsList={data?.[0]?.usageInfo ?? null}
-                setParentCallback={setThreadIdsCallback}
-                abortFlagforCheckbox={abortFlag}
-                dsURL={dsURL}
-                toolbarIcons={toolbarIcons}
-                abortRef={abortRef}
-                abortThreadIds={threadIds}
-                setAbortFlagCallback={setAbortFlagCallback}
-                setThreadIdsEmptyCallback={setThreadIdsEmptyCallback}
-                operationList={operationList}
-              />
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     );
   }

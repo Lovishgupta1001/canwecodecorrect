@@ -87,7 +87,8 @@ const AllNodeThreadDetailsTable = function ({ allNodesThreadDetails }) {
                     <EQULGrid
                         id="allNodeThreadDetails"
                         columns={columns}
-                        data={allNodesThreadDetails ? allNodesThreadDetails : []}
+                        data={allNodesThreadDetails ?? []}
+
                         sortable={true}
                         style={{ height: "100%", width: "100%" }}
                         spanColumnWidth={true}
