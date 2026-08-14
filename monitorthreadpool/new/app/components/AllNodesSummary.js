@@ -11,16 +11,54 @@ import PropTypes from "prop-types";
  * 1. Summary section with 2 side-by-side columns (Job orchestrator node & Ready to run transactions on left, Available threads per node & Max threads per transaction on right)
  * 2. Node wise details grid mapping nodeExecutionStatusBeans from API response
  */
+const statusMap = {
+    [constants.SERVER_STATE.RUNNING]: "success",
+    [constants.SERVER_STATE.FAILED]: "error",
+    [constants.SERVER_STATE.PAUSED]: "inactive",
+    [constants.SERVER_STATE.PAUSED_INITIATED]: "inactive",
+    [constants.SERVER_STATE.SUSPENDED]: "suspended",
+};
+
+const getNodeStatus = (state) => {
+    const stateStr = String(state).toLowerCase();
+    if (statusMap[state]) return statusMap[state];
+    return stateStr === "running" ? "success" : "error";
+};
+
+const NodeStatusCell = (props) => {
+    const { dataItem } = props;
+    const state = dataItem?.serverState || dataItem?.nodeStatus || "Running";
+    const status = getNodeStatus(state);
+    return (
+        <td>
+            <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <EQULIndicator
+                    status={status}
+                    text=""
+                    statusTitle={state}
+                    typoSize="small"
+                    indicatorSize="sm"
+                />
+                <span className="ul-pad-sm-x">{state}</span>
+            </span>
+        </td>
+    );
+};
+
+NodeStatusCell.propTypes = {
+    dataItem: PropTypes.shape({
+        serverState: PropTypes.string,
+        nodeStatus: PropTypes.string,
+    }),
+};
+
+/**
+ * AllNodesSummary component renders the "All Nodes" view:
+ * 1. Summary section with 2 side-by-side columns (Job orchestrator node & Ready to run transactions on left, Available threads per node & Max threads per transaction on right)
+ * 2. Node wise details grid mapping nodeExecutionStatusBeans from API response
+ */
 const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const nls = useTrans(["mimonitorthreadpool"]);
-
-    const statusMap = {
-        [constants.SERVER_STATE.RUNNING]: "success",
-        [constants.SERVER_STATE.FAILED]: "error",
-        [constants.SERVER_STATE.PAUSED]: "inactive",
-        [constants.SERVER_STATE.PAUSED_INITIATED]: "inactive",
-        [constants.SERVER_STATE.SUSPENDED]: "suspended",
-    };
 
     // Extract summary values safely from summaryData, allNodesData, or fallback defaults
     let combinedData = {};
@@ -42,38 +80,6 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
     const isOrchestratorRunning = String(orchestratorStatus).toLowerCase() === "running" || String(orchestratorStatus).toLowerCase() === "active";
     const orchestratorIndicatorStatus = isOrchestratorRunning ? "success" : "error";
 
-    const getNodeStatus = (state) => {
-        const stateStr = String(state).toLowerCase();
-        if (statusMap[state]) return statusMap[state];
-        return stateStr === "running" ? "success" : "error";
-    };
-
-    const nodeStatusCell = (props) => {
-        const { dataItem } = props;
-        const state = dataItem?.serverState || dataItem?.nodeStatus || "Running";
-        const status = getNodeStatus(state);
-        return (
-            <td>
-                <span style={{ display: "inline-flex", alignItems: "center" }}>
-                    <EQULIndicator
-                        status={status}
-                        text=""
-                        statusTitle={state}
-                        typoSize="small"
-                        indicatorSize="sm"
-                    />
-                    <span className="ul-pad-sm-x">{state}</span>
-                </span>
-            </td>
-        );
-    };
-    nodeStatusCell.propTypes = {
-        dataItem: PropTypes.shape({
-            serverState: PropTypes.string,
-            nodeStatus: PropTypes.string,
-        }),
-    };
-
     const columns = [
         {
             field: "serverName",
@@ -84,7 +90,7 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
         {
             field: "serverState",
             title: nls("NodeWiseDetailsColumns.Title.nodeStatus"),
-            cell: nodeStatusCell,
+            cell: NodeStatusCell,
             filter: "text",
             columnMenu: EQULGridFilterColumnMenu,
         },
