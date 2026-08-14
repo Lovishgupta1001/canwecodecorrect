@@ -22,10 +22,14 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
         [constants.SERVER_STATE.SUSPENDED]: "suspended",
     };
 
-    const orchestratorNode = summaryData?.jobOrchestratorNode || summaryData?.orchestratorNode || summaryData?.jobOrchestrator || allNodesData?.[0]?.serverName || allNodesData?.[0]?.nodeName || "-";
-    const readyToRunTxns = summaryData?.readyToRunTransactions ?? summaryData?.readyToRunCount ?? summaryData?.readyToRunTxns ?? 20;
-    const availableThreadsPerNode = summaryData?.availableThreadsPerNode ?? summaryData?.availableThreads ?? allNodesData?.[0]?.currentPoolSize ?? allNodesData?.[0]?.availableThreads ?? 50;
-    const maxThreadsPerTxn = summaryData?.maxThreadsPerTransaction ?? summaryData?.maxThreadsPerTxn ?? allNodesData?.[0]?.maxThreadCountPerTransaction ?? allNodesData?.[0]?.maxThreadsPerTransaction ?? 50;
+    // Extract summary values safely from summaryData, allNodesData, or fallback defaults
+    const combinedData = summaryData || (typeof allNodesData === "object" && !Array.isArray(allNodesData) ? allNodesData : {});
+    const nodesArray = Array.isArray(allNodesData) ? allNodesData : [];
+
+    const orchestratorNode = combinedData.jobOrchestratorNode || combinedData.orchestratorNode || combinedData.jobOrchestrator || nodesArray[0]?.serverName || nodesArray[0]?.nodeName || "-";
+    const readyToRunTxns = combinedData.readyToRunTransactions ?? combinedData.readyToRunCount ?? combinedData.readyToRunTxns ?? 20;
+    const availableThreadsPerNode = combinedData.availableThreadsPerNode ?? combinedData.availableThreads ?? nodesArray[0]?.currentPoolSize ?? nodesArray[0]?.availableThreads ?? 50;
+    const maxThreadsPerTxn = combinedData.maxThreadsPerTransaction ?? combinedData.maxThreadsPerTxn ?? nodesArray[0]?.maxThreadCountPerTransaction ?? nodesArray[0]?.maxThreadsPerTransaction ?? 50;
 
     const nodeStatusCell = (props) => {
         const state = props.dataItem.serverState || props.dataItem.nodeStatus || "Running";
@@ -86,9 +90,22 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
         return tooltipobject;
     }, []);
 
-    const gridData = React.useMemo(() => {
+    // Safely derive node list array regardless of whether allNodesData is an Array, Object, or nested property
+    const nodesList = React.useMemo(() => {
         if (!allNodesData) return [];
-        return allNodesData.map((node) => ({
+        if (Array.isArray(allNodesData)) return allNodesData;
+        if (Array.isArray(allNodesData.nodeWiseDetails)) return allNodesData.nodeWiseDetails;
+        if (Array.isArray(allNodesData.nodes)) return allNodesData.nodes;
+        if (Array.isArray(allNodesData.allNodesSummary)) return allNodesData.allNodesSummary;
+        if (Array.isArray(allNodesData.allNodesData)) return allNodesData.allNodesData;
+        if (typeof allNodesData === "object") {
+            return Object.values(allNodesData).filter((v) => v && typeof v === "object" && (v.serverName || v.nodeName || v.name));
+        }
+        return [];
+    }, [allNodesData]);
+
+    const gridData = React.useMemo(() => {
+        return nodesList.map((node) => ({
             ...node,
             serverName: node.serverName || node.nodeName || node.name || "",
             serverState: node.serverState || node.nodeStatus || node.status || "Running",
@@ -97,7 +114,7 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
             jobExecutorStatus: node.jobExecutorStatus || node.jobStatus || node.executorStatus || (node.serverState === "Running" ? "Running" : "Stopped"),
             stoppedReason: node.stoppedReason || node.failCause || node.reason || (node.serverState === "Running" ? "-" : "Node terminated"),
         }));
-    }, [allNodesData]);
+    }, [nodesList]);
 
     return (
         <div className="ul-fluid-container ul-pad-1x-y">
@@ -194,7 +211,7 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
 };
 
 AllNodesSummary.propTypes = {
-    allNodesData: PropTypes.array,
+    allNodesData: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
     summaryData: PropTypes.object,
     surface: PropTypes.string,
 };

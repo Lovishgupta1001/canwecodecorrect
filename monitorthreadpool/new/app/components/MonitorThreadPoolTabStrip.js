@@ -74,9 +74,11 @@ function MonitorThreadPoolTabStrip(props) {
 
     const getAllNodesMetricesHandler = () => {
       getAllNodesMetrices(selectedNode ? selectedNode.name : selectedNode, getThreadDetailErrorHandler).then((response) => {
-        setAllNodesData(response.data?.allNodesSummary || response.data?.allNodesData || response.data);
-        setJobDetails(response.data?.jobExecutorDetails || response.data?.jobDetails || null);
-        setMetricsData(response.data?.metricsData || response.data?.metrics || null);
+        const resData = response.data;
+        const nodesData = resData?.allNodesSummary || resData?.nodeWiseDetails || resData?.nodes || resData;
+        setAllNodesData(nodesData);
+        setJobDetails(resData?.jobExecutorDetails || resData?.jobDetails || resData);
+        setMetricsData(resData?.metricsData || resData?.summaryData || resData?.metrics || resData);
       });
     };
  
