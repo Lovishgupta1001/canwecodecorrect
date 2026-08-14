@@ -84,11 +84,28 @@
       "stoppedSince": "Stopped since"
     }
   },
+  "JobExecutorDetailsTitle": "Job Executor Details",
+  "JobExecutorDetails_Title": "Job Executor Details",
+  "JobExecutorDetails_Status": "Status",
+  "JobExecutorDetails_StoppedSince": "Stopped Since",
+  "JobExecutorDetails_StoppedReason": "Stopped Reason",
   "JobExecutorDetails": {
     "Title": "Job Executor Details",
     "Status": "Status",
     "StoppedSince": "Stopped Since",
     "StoppedReason": "Stopped Reason"
+  },
+  "JobExecutorColumns": {
+    "Title": {
+      "jobName": "Job Name",
+      "jobGroup": "Job Group",
+      "jobStatus": "Job Status",
+      "nextFireTime": "Next Fire Time",
+      "previousFireTime": "Previous Fire Time",
+      "triggerName": "Trigger Name",
+      "triggerGroup": "Trigger Group",
+      "triggerState": "Trigger State"
+    }
   },
   "AllNodesSummaryTitle": "All Nodes Summary",
   "AllNodesSummaryColumns": {

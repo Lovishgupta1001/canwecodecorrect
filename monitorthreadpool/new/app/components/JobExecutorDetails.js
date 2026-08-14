@@ -19,14 +19,14 @@ const JobExecutorDetails = function ({ jobDetails }) {
         <div>
             <div className="ul-pad-1x-y">
                 <EQULTypo type="head" className="ul-header-xxxs-b">
-                    {nls("JobExecutorDetails.Title")}
+                    {nls(["JobExecutorDetails.Title", "JobExecutorDetailsTitle", "JobExecutorDetails_Title"])}
                 </EQULTypo>
             </div>
             <div className="ul-pad-2x-y">
                 <div className="ul-row ul-pad-1x-b">
                     <div className="ul-col-sm-2">
                         <EQULTypo type="body" size="medium" bold={true}>
-                            {nls("JobExecutorDetails.Status")}
+                            {nls(["JobExecutorDetails.Status", "JobExecutorDetails_Status"])}
                         </EQULTypo>
                     </div>
                     <div className="ul-col-sm-2">
@@ -41,7 +41,7 @@ const JobExecutorDetails = function ({ jobDetails }) {
                         <div className="ul-row ul-pad-1x-b">
                             <div className="ul-col-sm-2">
                                 <EQULTypo type="body" size="medium" bold={true}>
-                                    {nls("JobExecutorDetails.StoppedSince")}
+                                    {nls(["JobExecutorDetails.StoppedSince", "JobExecutorDetails_StoppedSince"])}
                                 </EQULTypo>
                             </div>
                             <div className="ul-col-sm-2">
@@ -53,7 +53,7 @@ const JobExecutorDetails = function ({ jobDetails }) {
                         <div className="ul-row ul-pad-1x-b">
                             <div className="ul-col-sm-2">
                                 <EQULTypo type="body" size="medium" bold={true}>
-                                    {nls("JobExecutorDetails.StoppedReason")}
+                                    {nls(["JobExecutorDetails.StoppedReason", "JobExecutorDetails_StoppedReason"])}
                                 </EQULTypo>
                             </div>
                             <div className="ul-col-sm-2">
