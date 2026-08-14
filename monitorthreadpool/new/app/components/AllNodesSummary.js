@@ -31,7 +31,7 @@ const NodeStatusCell = (props) => {
     const status = getNodeStatus(state);
     return (
         <td>
-            <span style={{ display: "inline-flex", alignItems: "center" }}>
+            <span className="inline-flex-center">
                 <EQULIndicator
                     status={status}
                     text=""
@@ -166,14 +166,14 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                 <EQULTypo type="head" className="ul-header-xxxs-b">
                     {nls("Summary")}
                 </EQULTypo>
-                <div className="ul-pad-2x-y" style={{ display: "flex", flexWrap: "wrap" }}>
+                <div className="ul-pad-2x-y summary-row">
                     {/* Left Column */}
-                    <div style={{ flex: "0 0 45%", maxWidth: "45%", paddingRight: "30px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                    <div className="summary-col-left">
+                        <div className="summary-item-between-mb">
                             <EQULTypo type="body" size="medium" bold={true}>
                                 {nls("JobOrchestratorNode")}
                             </EQULTypo>
-                            <div style={{ display: "inline-flex", alignItems: "center" }}>
+                            <div className="inline-flex-center">
                                 <EQULIndicator
                                     status={orchestratorIndicatorStatus}
                                     text=""
@@ -186,7 +186,7 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                                 </span>
                             </div>
                         </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div className="summary-item-between">
                             <EQULTypo type="body" size="medium" bold={true}>
                                 {nls("ReadyToRunTransactions")}
                             </EQULTypo>
@@ -197,8 +197,8 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                     </div>
 
                     {/* Right Column */}
-                    <div style={{ flex: "0 0 45%", maxWidth: "45%", paddingLeft: "30px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                    <div className="summary-col-right">
+                        <div className="summary-item-between-mb">
                             <EQULTypo type="body" size="medium" bold={true}>
                                 {nls("AvailableThreadsPerNode")}
                             </EQULTypo>
@@ -206,7 +206,7 @@ const AllNodesSummary = function ({ allNodesData, summaryData, surface }) {
                                 {availableThreadsPerNode}
                             </EQULTypo>
                         </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div className="summary-item-between">
                             <EQULTypo type="body" size="medium" bold={true}>
                                 {nls("MaxThreadsPerTransaction")}
                             </EQULTypo>

@@ -90,7 +90,7 @@ const AllNodeThreadDetailsTable = function ({ allNodesThreadDetails }) {
                         data={allNodesThreadDetails ?? []}
 
                         sortable={true}
-                        style={{ height: "100%", width: "100%" }}
+                        className="fullheight-fullwidth"
                         spanColumnWidth={true}
                         tooltip={tooltip}
                         resizable={true}

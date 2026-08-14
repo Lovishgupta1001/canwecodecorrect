@@ -166,10 +166,7 @@ function MonitorThreadPoolTabStrip(props) {
       }
       const status = statusMap[dataItem.status] ;
       const content = (
-        <span  style={{
-          display: "inline-flex",
-          alignItems: "center",
-        }}>
+        <span className="inline-flex-center">
           <EQULIndicator
             status ={status}
             text=""
@@ -331,7 +328,7 @@ function MonitorThreadPoolTabStrip(props) {
             <EQULTypo className="selectNode-label" type="body" size="m">
               {nls("SelectNode")}
             </EQULTypo>
-            <div className="ul-pad-1x-x" style={{ minWidth: "260px", width: "280px" }}>
+            <div className="ul-pad-1x-x dropdown-container">
               <EQULDropDownList
                 id="dropdownlist"
                 data={dropdownData}
@@ -341,7 +338,7 @@ function MonitorThreadPoolTabStrip(props) {
                 defaultItem={defaultItem}
                 itemRender={itemRender}
                 valueRender={valueRender}
-                style={{ width: "100%", minWidth: "260px" }}
+                className="dropdown-select"
               />
             </div>
             <div className="selectNode-label">
@@ -399,7 +396,8 @@ function MonitorThreadPoolTabStrip(props) {
         {(() => {
           if (isCurrentNodeDown) {
             return (
-              <div style={{ height: "90%" }}>
+              <div className="nodata-wrapper">
+
                 <EQULNoData icon={"eQ-icon eQ-fonts-no-data"} description={nls("NodeDown")}/>
               </div>
             );
