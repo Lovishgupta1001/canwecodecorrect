@@ -214,7 +214,7 @@ define([
                     e.stopPropagation();
                 });
 
-                var existingDropdown = element.data("kendoDropDownList") || element.data("uilayerDropDownList");
+                var existingDropdown = element.data("uilayerDropDownList");
                 if (existingDropdown) {
                     if (existingDropdown.setDataSource) {
                         existingDropdown.setDataSource(new uilayer.data.DataSource({
