@@ -24,4 +24,5 @@ public final class WriteToOPCUAConstants {
     public static final String TRANSPORT_NAME = "transportName";
     public static final String OPERATION = "operation";
     public static final String EXECUTION_MODE = "executionMode";
+    public static final String OPCUA_TYPE = "OPCUA";
 }

@@ -9,12 +9,21 @@
  */
 package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 
+import com.eqtechnologic.eqube.exception.BusinessException;
+import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
+import com.eqtechnologic.eqube.mi.ui.MIOperation;
+import com.eqtechnologic.eqube.soa.methodauthorization.annotations.Authorize;
+import com.eqtechnologic.eqube.soa.methodauthorization.annotations.OperationNames;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,8 +35,31 @@ import java.util.List;
 @RequestMapping("/writetoopcua")
 public class WriteToOPCUAComponentRestController {
 
-    @GetMapping("/fetchOPCUATransportList")
-    public List<TransportInfo> fetchOPCUATransportList() {
-        return Collections.emptyList();
+    private static final Logger LOGGER = Logger.getLogger(WriteToOPCUAComponentRestController.class.getName());
+    private List<String> operations = Arrays.asList(MIOperation.Process.LIST_PROCESS, MIOperation.Transaction.LIST_TRANSACTIONS);
+
+    @Autowired
+    private WriteToOPCUAComponentServiceHelper opcuaHelper;
+
+    @GetMapping(value = "/fetchTransportListByType")
+    public List<TransportInfo> fetchTransportListByType(@RequestParam("transportType") String transportType) throws BusinessException {
+        checkMultipleOperations(operations);
+        List<TransportInfo> transportInfos = new ArrayList<>();
+        try {
+            transportInfos = opcuaHelper.getWriteToOPCUAService().fetchTransportListByType(transportType);
+        } catch (BusinessException e) {
+            LOGGER.error("Error while fetching Transport", e);
+        }
+        return transportInfos;
+    }
+
+    @GetMapping(value = "/fetchOPCUATransportList")
+    public List<TransportInfo> fetchOPCUATransportList() throws BusinessException {
+        return fetchTransportListByType(WriteToOPCUAConstants.OPCUA_TYPE);
+    }
+
+    @Authorize
+    public void checkMultipleOperations(@OperationNames List<String> operations) {
+        // implementation handled by @Authorize annotation
     }
 }
