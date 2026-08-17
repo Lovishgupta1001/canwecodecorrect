@@ -83,10 +83,16 @@ define(function (require) {
 
             this._initTransportUI();
             this._updateOperationUI();
+            this._renderHelpTooltips();
 
             deferred.resolve();
 
             return deferred.promise();
+        },
+
+        _renderHelpTooltips: function () {
+            GridUtils.initializeHelpTooltip(this, "parallel-mode-help");
+            GridUtils.initializeHelpTooltip(this, "sequential-mode-help");
         },
 
         _initializeControls: function () {

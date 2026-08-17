@@ -73,6 +73,33 @@ define(function (require) {
             return String(val);
         },
 
+        initializeHelpTooltip: function (view, elementId) {
+            if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
+                return uilayer.help({
+                    elem: view.$el.find("#" + elementId).first(),
+                    position: "right",
+                    width: "10%"
+                });
+            }
+            return null;
+        },
+
+        initializeGridHelpTooltips: function (container) {
+            if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
+                container.find(".node-id-help-icon, .sample-value-help-icon").each(function () {
+                    var elem = $(this);
+                    if (!elem.data("help-initialized")) {
+                        elem.data("help-initialized", true);
+                        uilayer.help({
+                            elem: elem,
+                            position: "right",
+                            width: "10%"
+                        });
+                    }
+                });
+            }
+        },
+
         getNodeIdTemplate: function (selectionField, isDynamic) {
             if (isDynamic) {
                 return function () { return ""; };
@@ -90,7 +117,7 @@ define(function (require) {
                     _.escape(nodeId) +
                     "</span>" +
                     (hasSelection
-                        ? "<span class='eQ-icon eQ-fonts-getInformation " +
+                        ? "<span class='eQ-icon eQ-fonts-info " +
                           "writetoopcua-info-icon node-id-help-icon' " +
                           "title='" + _.escape(nodeIdHelpText) + "' " +
                           "data-help='" + _.escape(nodeIdHelpText) + "'></span>"
@@ -157,7 +184,7 @@ define(function (require) {
                     _.escape(sampleValue) +
                     "</span>" +
                     (hasSelection
-                        ? "<span class='eQ-icon eQ-fonts-getInformation " +
+                        ? "<span class='eQ-icon eQ-fonts-info " +
                           "writetoopcua-info-icon sample-value-help-icon' " +
                           "title='" + _.escape(sampleValueHelpText) + "' " +
                           "data-help='" + _.escape(sampleValueHelpText) + "'></span>"

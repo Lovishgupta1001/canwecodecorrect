@@ -191,6 +191,7 @@ define([
 
 
         _initializeDataChangeDropdowns: function (view) {
+            GridUtils.initializeGridHelpTooltips(view.$el);
             view.$(".data-change-name-dropdown").each(function () {
                 var element = $(this);
 
