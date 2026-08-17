@@ -87,6 +87,40 @@ define(function (require) {
             return null;
         },
 
+        _formatNodeDetailsHelpText: function (dataItem, rawHelpText, nodeId) {
+            if (rawHelpText) {
+                if (typeof rawHelpText === "object") {
+                    try {
+                        return JSON.stringify(rawHelpText, null, 2);
+                    } catch (e) {
+                        return String(rawHelpText);
+                    }
+                }
+                return String(rawHelpText);
+            }
+
+            var lines = [];
+            var name = dataItem.name || dataItem.dataChangeName || dataItem.methodName || "";
+            if (name) {
+                lines.push("Node Name: " + name);
+            }
+            if (dataItem.displayName) {
+                lines.push("Display Name: " + dataItem.displayName);
+            } else if (name) {
+                lines.push("Display Name: " + name);
+            }
+            if (dataItem.browseName) {
+                lines.push("Browse Name: " + dataItem.browseName);
+            } else if (name) {
+                lines.push("Browse Name: " + name);
+            }
+            if (nodeId) {
+                lines.push("Node ID: " + nodeId);
+            }
+
+            return lines.join("\n");
+        },
+
         initializeGridHelpTooltips: function (container) {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
                 container.find(".help-container").each(function () {
@@ -96,7 +130,7 @@ define(function (require) {
                         uilayer.help({
                             elem: elem,
                             position: "right",
-                            width: "10%"
+                            width: "250px"
                         });
                     }
                 });
@@ -111,7 +145,7 @@ define(function (require) {
             return function (dataItem) {
                 var nodeId = dataItem.nodeId || "";
                 var rawHelpText = dataItem.nodeIdHelpText || dataItem.nodeIdDetails || dataItem.nodeDetails;
-                var nodeIdHelpText = GridUtils._formatHelpText(rawHelpText, "Node ID: ", nodeId);
+                var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId);
                 var hasSelection = !!dataItem[selectionField];
 
                 return "<div class='writetoopcua-info-cell'>" +
@@ -121,7 +155,7 @@ define(function (require) {
                     "</span>" +
                     (hasSelection
                         ? "<div class='help-container writetoopcua-info-icon'>" +
-                          "<input class='help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'></input>" +
+                          "<input class='help-tooltip node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'></input>" +
                           "</div>"
                         : "") +
                     "</div>";
@@ -177,7 +211,7 @@ define(function (require) {
                 var rawSampleValue = dataItem.sampleValue;
                 var sampleValue = GridUtils.formatSampleValue(rawSampleValue);
                 var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
-                var sampleValueHelpText = GridUtils._formatHelpText(rawHelpText, "Sample Value: ", sampleValue);
+                var sampleValueHelpText = rawHelpText ? GridUtils._formatHelpText(rawHelpText, "Sample Value: ", sampleValue) : sampleValue;
                 var hasSelection = !!dataItem.dataChangeName;
 
                 return "<div class='writetoopcua-info-cell'>" +
@@ -187,7 +221,7 @@ define(function (require) {
                     "</span>" +
                     (hasSelection
                         ? "<div class='help-container writetoopcua-info-icon'>" +
-                          "<input class='help-tooltip' data-help='" + _.escape(sampleValueHelpText) + "'></input>" +
+                          "<input class='help-tooltip sample-value-help-tooltip' data-help='" + _.escape(sampleValueHelpText) + "'></input>" +
                           "</div>"
                         : "") +
                     "</div>";
