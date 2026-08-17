@@ -89,8 +89,8 @@ define(function (require) {
 
         initializeGridHelpTooltips: function (container) {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                container.find(".help-tooltip").each(function () {
-                    var elem = $(this).parent();
+                container.find(".help-container").each(function () {
+                    var elem = $(this);
                     if (!elem.data("help-initialized")) {
                         elem.data("help-initialized", true);
                         uilayer.help({

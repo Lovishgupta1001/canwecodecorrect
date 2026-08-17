@@ -93,12 +93,16 @@ define(function (require) {
 
         _renderHelp: function () {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                this.$el.find(".help-tooltip").each(function () {
-                    uilayer.help({
-                        elem: $(this).parent(),
-                        position: "right",
-                        width: "25%"
-                    });
+                var self = this;
+                ["parallel-mode-help-container", "sequential-mode-help-container"].forEach(function (elementId) {
+                    var elem = self.$el.find("#" + elementId).first();
+                    if (elem.length) {
+                        uilayer.help({
+                            elem: elem,
+                            position: "right",
+                            width: "25%"
+                        });
+                    }
                 });
             }
         },
