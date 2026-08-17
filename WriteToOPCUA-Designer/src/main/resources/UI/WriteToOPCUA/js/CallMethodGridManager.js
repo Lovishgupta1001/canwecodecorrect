@@ -457,7 +457,9 @@ define([
                 elem: $popoverWrapper,
                 anchor: $anchor,
                 pinPopover: false,
-                title: (view.nls.AddMethodCall || "Add Method Call") + " " + (methodName || ""),
+                height: "400px",
+                width: "450px",
+                title: (view.nls.AddMethodCall || "Add Method Call") + ": " + (methodName || ""),
                 size: "large",
                 popupPosition: "right",
                 buttons: [
