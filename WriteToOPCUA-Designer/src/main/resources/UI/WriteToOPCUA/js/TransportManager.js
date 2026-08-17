@@ -207,13 +207,10 @@ define(function (require) {
                 return;
             }
 
-            var relativePath = "transportUIServices/testTransportById?transportId=" + encodeURIComponent(transportId);
-            var requestUrl = typeof uilayer !== "undefined" && typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
-                ? uilayer.rest.serviceUrl(relativePath)
-                : relativePath;
+            var url = "activities/writetoopcua/testTransportById?transportId=" + encodeURIComponent(transportId);
 
             if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
-                var promise = AjaxUtility.commonAjaxRequest("GET", requestUrl, null, "json");
+                var promise = AjaxUtility.commonAjaxRequest("GET", url, null, "json");
                 promise.done(function (data) {
                     if (data === false || (data && data.success === false)) {
                         if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
@@ -221,12 +218,19 @@ define(function (require) {
                         }
                     }
                 });
-                promise.fail(function () {
+                promise.fail(function (err) {
+                    if (typeof logger !== "undefined" && typeof logger.error === "function") {
+                        logger.error("testTransportById request failed:", err);
+                    }
                     if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
                         uilayer.notifier("warning", view.nls.TransportTestFailed);
                     }
                 });
             } else {
+                var requestUrl = typeof uilayer !== "undefined" && typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
+                    ? uilayer.rest.serviceUrl(url)
+                    : url;
+
                 $.ajax({
                     url: requestUrl,
                     type: "GET",
@@ -238,7 +242,10 @@ define(function (require) {
                             }
                         }
                     },
-                    error: function () {
+                    error: function (xhr, status, error) {
+                        if (typeof logger !== "undefined" && typeof logger.error === "function") {
+                            logger.error("testTransportById request failed:", error || status);
+                        }
                         if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
                             uilayer.notifier("warning", view.nls.TransportTestFailed);
                         }

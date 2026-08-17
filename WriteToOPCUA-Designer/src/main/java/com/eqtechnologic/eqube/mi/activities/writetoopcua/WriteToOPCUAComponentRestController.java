@@ -58,6 +58,17 @@ public class WriteToOPCUAComponentRestController {
         return fetchTransportListByType(WriteToOPCUAConstants.OPCUA_TYPE);
     }
 
+    @GetMapping(value = "/testTransportById")
+    public boolean testTransportById(@RequestParam("transportId") Long transportId) {
+        checkMultipleOperations(operations);
+        try {
+            return opcuaHelper.testTransportById(transportId);
+        } catch (Exception e) {
+            LOGGER.error("Error testing transport ID: " + transportId, e);
+            return false;
+        }
+    }
+
     @Authorize
     public void checkMultipleOperations(@OperationNames List<String> operations) {
         // implementation handled by @Authorize annotation

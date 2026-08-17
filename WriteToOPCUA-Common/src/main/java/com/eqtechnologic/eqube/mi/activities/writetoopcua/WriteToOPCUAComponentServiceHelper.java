@@ -23,6 +23,7 @@ import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaArgumentInfo;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaDataChangeWriteItem;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaWriteItem;
+import com.eqtechnologic.eqube.transport.uiservice.TransportRESTServiceHelper;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -99,5 +100,18 @@ public class WriteToOPCUAComponentServiceHelper {
 
     public WriteToOPCUAComponentService getWriteToOPCUAService() {
         return ServiceRegistry.getInstance().getService(WriteToOPCUAConstants.WRITE_TO_OPCUA);
+    }
+
+    public boolean testTransportById(Long transportId) {
+        if (transportId == null) {
+            return false;
+        }
+        try {
+            TransportRESTServiceHelper.testTransportByID(transportId);
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Error testing transport by ID: " + transportId, e);
+            return false;
+        }
     }
 }
