@@ -93,15 +93,12 @@ define(function (require) {
 
         _renderHelp: function () {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                uilayer.help({
-                    elem: this.$el.find("#parallel-mode-help").first(),
-                    position: "right",
-                    width: "10%"
-                });
-                uilayer.help({
-                    elem: this.$el.find("#sequential-mode-help").first(),
-                    position: "right",
-                    width: "10%"
+                this.$el.find(".help-container").each(function () {
+                    uilayer.help({
+                        elem: $(this),
+                        position: "right",
+                        width: "10%"
+                    });
                 });
             }
         },

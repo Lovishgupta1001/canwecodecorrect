@@ -89,7 +89,7 @@ define(function (require) {
 
         initializeGridHelpTooltips: function (container) {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                container.find(".node-id-help-icon, .sample-value-help-icon").each(function () {
+                container.find(".help-container").each(function () {
                     var elem = $(this);
                     if (!elem.data("help-initialized")) {
                         elem.data("help-initialized", true);
@@ -120,9 +120,9 @@ define(function (require) {
                     _.escape(nodeId) +
                     "</span>" +
                     (hasSelection
-                        ? "<span class='eQ-icon eQ-fonts-info " +
-                          "writetoopcua-info-icon node-id-help-icon' " +
-                          "data-help='" + _.escape(nodeIdHelpText) + "'></span>"
+                        ? "<div class='help-container writetoopcua-info-icon'>" +
+                          "<input class='help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'></input>" +
+                          "</div>"
                         : "") +
                     "</div>";
             };
@@ -186,9 +186,9 @@ define(function (require) {
                     _.escape(sampleValue) +
                     "</span>" +
                     (hasSelection
-                        ? "<span class='eQ-icon eQ-fonts-info " +
-                          "writetoopcua-info-icon sample-value-help-icon' " +
-                          "data-help='" + _.escape(sampleValueHelpText) + "'></span>"
+                        ? "<div class='help-container writetoopcua-info-icon'>" +
+                          "<input class='help-tooltip' data-help='" + _.escape(sampleValueHelpText) + "'></input>" +
+                          "</div>"
                         : "") +
                     "</div>";
             };
