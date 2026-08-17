@@ -89,7 +89,7 @@ define(function (require) {
 
         initializeGridHelpTooltips: function (container) {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                container.find(".help-container").each(function () {
+                container.find(".node-id-help-icon, .sample-value-help-icon").each(function () {
                     var elem = $(this);
                     if (!elem.data("help-initialized")) {
                         elem.data("help-initialized", true);
@@ -120,10 +120,9 @@ define(function (require) {
                     _.escape(nodeId) +
                     "</span>" +
                     (hasSelection
-                        ? "<div class='help-container writetoopcua-info-icon'>" +
-                          "<input class='help-tooltip node-id-help-tooltip' " +
-                          "data-help='" + _.escape(nodeIdHelpText) + "'></input>" +
-                          "</div>"
+                        ? "<span class='eQ-icon eQ-fonts-info " +
+                          "writetoopcua-info-icon node-id-help-icon' " +
+                          "data-help='" + _.escape(nodeIdHelpText) + "'></span>"
                         : "") +
                     "</div>";
             };
@@ -187,10 +186,9 @@ define(function (require) {
                     _.escape(sampleValue) +
                     "</span>" +
                     (hasSelection
-                        ? "<div class='help-container writetoopcua-info-icon'>" +
-                          "<input class='help-tooltip sample-value-help-tooltip' " +
-                          "data-help='" + _.escape(sampleValueHelpText) + "'></input>" +
-                          "</div>"
+                        ? "<span class='eQ-icon eQ-fonts-info " +
+                          "writetoopcua-info-icon sample-value-help-icon' " +
+                          "data-help='" + _.escape(sampleValueHelpText) + "'></span>"
                         : "") +
                     "</div>";
             };

@@ -93,16 +93,15 @@ define(function (require) {
 
         _renderHelp: function () {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                var self = this;
-                ["parallel-mode-help-container", "sequential-mode-help-container"].forEach(function (elementId) {
-                    var elem = self.$el.find("#" + elementId).first();
-                    if (elem.length) {
-                        uilayer.help({
-                            elem: elem,
-                            position: "right",
-                            width: "25%"
-                        });
-                    }
+                uilayer.help({
+                    elem: this.$el.find("#parallel-mode-help").first(),
+                    position: "right",
+                    width: "10%"
+                });
+                uilayer.help({
+                    elem: this.$el.find("#sequential-mode-help").first(),
+                    position: "right",
+                    width: "10%"
                 });
             }
         },
