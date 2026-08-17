@@ -277,100 +277,18 @@ define(function (require) {
                 this.$(".data-change-write-container").show();
                 this.$(".call-method-container").hide();
 
-                // ─── SAMPLE DATA FALLBACK — remove this block when API is ready ──
-                if (!this.model.getKey("dataChangeWrite") ||
-                    this.model.getKey("dataChangeWrite").length === 0) {
-                    this.model.setKey("dataChangeWrite", [
-                        { dataChangeName: "Temperature Sensor", nodeId: "ns=2;i=1001", sampleValue: "25.6", newValue: "", nodeIdHelpText: "Node ns=2;i=1001: Temperature Sensor (Range: -40 to 125 °C)", sampleValueHelpText: "Live reading: 25.6 °C" },
-                        { dataChangeName: "Pressure Gauge",     nodeId: "ns=2;i=1002", sampleValue: "101.3", newValue: "", nodeIdHelpText: "Node ns=2;i=1002: Pressure Gauge (Unit: kPa)", sampleValueHelpText: "Live reading: 101.3 kPa" },
-                        { dataChangeName: "Flow Rate",          nodeId: "ns=2;i=1003", sampleValue: "15.0", newValue: "", nodeIdHelpText: "Node ns=2;i=1003: Flow Rate (Unit: L/min)", sampleValueHelpText: "Live reading: 15.0 L/min" }
-                    ]);
-                }
-                // ─── END SAMPLE DATA FALLBACK ─────────────────────────────────────
-
                 DataChangeGridManager.renderDataChangeWriteComponent(this);
             } else {
                 this.$(".data-change-write-container").hide();
                 this.$(".call-method-container").show();
 
-                // ─── SAMPLE DATA FALLBACK — remove this block when API is ready ──
-                if (!this.model.getKey("callMethod") ||
-                    this.model.getKey("callMethod").length === 0) {
-                    this.model.setKey("callMethod", [
-                        {
-                            methodName: "StartProcess", nodeId: "ns=2;i=2001",
-                            inputParameters: [
-                                { name: "Speed", dataType: "Int32", value: "" },
-                                { name: "Direction", dataType: "String", value: "" }
-                            ],
-                            outputValue: "", nodeIdHelpText: "Method Node ns=2;i=2001: StartProcess execution handler"
-                        },
-                        {
-                            methodName: "StopProcess", nodeId: "ns=2;i=2002",
-                            inputParameters: [
-                                { name: "EmergencyStop", dataType: "Boolean", value: "" }
-                            ],
-                            outputValue: "", nodeIdHelpText: "Method Node ns=2;i=2002: StopProcess execution handler"
-                        },
-                        {
-                            methodName: "ResetAlarm", nodeId: "ns=2;i=2003",
-                            inputParameters: [
-                                { name: "AlarmId", dataType: "Int32", value: "" }
-                            ], outputValue: "", nodeIdHelpText: "Method Node ns=2;i=2003: ResetAlarm execution handler"
-                        }
-                    ]);
-                }
-                // ─── END SAMPLE DATA FALLBACK ─────────────────────────────────────
-
                 CallMethodGridManager.renderCallMethodComponent(this);
             }
         },
 
-
         _onInputParameterBadgeClick: function (event) {
             CallMethodGridManager.onInputParameterBadgeClick(event, this);
         },
-
-        /*
-         * TODO [API]: _fetchOptions
-         * ─────────────────────────────────────────────────────────────────────
-         * Implement this method to load dataChangeOptions and callMethodOptions
-         * from the server once a transport is selected.
-         *
-         * Suggested call site:
-         *   - After transport dropdown `change` fires (TransportManager),
-         *     retrieve options filtered by the selected transportId.
-         *
-         * Expected API contracts:
-         *   GET /api/dataChangeOptions?transportId={id}
-         *     Response: [ { dataChangeName, nodeId, sampleValue }, ... ]
-         *
-         *   GET /api/callMethodOptions?transportId={id}
-         *     Response: [ { methodName, nodeId, inputParameters: [ { name, dataType, value } ] }, ... ]
-         *
-         * After the call resolves:
-         *   1. Set this.dataChangeOptions = <response>;
-         *   2. Set this.callMethodOptions = <response>;
-         *   3. If the grid is already rendered, rebuild its dropdown DataSources:
-         *      DataChangeGridManager.refreshGridMode(this, isDynamicTransport);
-         *      CallMethodGridManager.refreshGridMode(this, isDynamicTransport);
-         *
-         * _fetchOptions: function (transportId) {
-         *     var self = this;
-         *     return AjaxUtility.ajaxCall({
-         *         url: "/api/dataChangeOptions?transportId=" + transportId,
-         *         method: "GET"
-         *     }).then(function (dataChangeResponse) {
-         *         self.dataChangeOptions = dataChangeResponse;
-         *         return AjaxUtility.ajaxCall({
-         *             url: "/api/callMethodOptions?transportId=" + transportId,
-         *             method: "GET"
-         *         });
-         *     }).then(function (callMethodResponse) {
-         *         self.callMethodOptions = callMethodResponse;
-         *     });
-         * }
-         */
 
         getData: function () {
             this.model.setKey(

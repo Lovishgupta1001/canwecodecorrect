@@ -6,7 +6,9 @@ define(function (require) {
 
     var uilayer = require("uilayer"),
         Constants = require("./constants"),
-        ExpressionBuilderManager = require("./ExpressionBuilderManager");
+        ExpressionBuilderManager = require("./ExpressionBuilderManager"),
+        DataChangeGridManager = require("./DataChangeGridManager"),
+        CallMethodGridManager = require("./CallMethodGridManager");
 
     var TransportManager = {
 
@@ -91,52 +93,36 @@ define(function (require) {
                 return;
             }
 
-            /*
-             * TODO [API]: Replace hardcoded sample data with a real API call.
-             * ─────────────────────────────────────────────────────────────────────
-             * Expected API: GET /api/transports  (or Constants.CREATE_TRANSPORT_URL equivalent)
-             * Expected response shape:
-             *   [ { transportId: number, transportName: string }, ... ]
-             *
-             * Replace the static `data` array and `DataSource` below with:
-             *   var dataSource = new uilayer.data.DataSource({
-             *       transport: {
-             *           read: {
-             *               url: "/api/transports",
-             *               dataType: "json"
-             *           }
-             *       },
-             *       schema: {
-             *           data: "data"   // adjust to match actual response envelope
-             *       }
-             *   });
-             * ─────────────────────────────────────────────────────────────────────
-             * Also: after a transport is selected in the dropdown `change` handler,
-             * call view._fetchOptions(selectedTransportId) to reload
-             * dataChangeOptions and callMethodOptions for the new transport.
-             */
-            // ─── SAMPLE DATA — comment this block out when API is ready ──────────
             var dataSource = new uilayer.data.DataSource({
-                data: [
-                    { transportId: 1, transportName: "Test OPCUA Transport" },
-                    { transportId: 2, transportName: "Production OPCUA Server" }
-                ]
-            });
-            // ─── END SAMPLE DATA ─────────────────────────────────────────────────
+                transport: {
+                    read: function (options) {
+                        if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
+                            AjaxUtility.commonAjaxRequest("GET", "activities/writetoopcua/fetchOPCUATransportList", null, "json")
+                                .done(function (data) {
+                                    options.success(data || []);
+                                })
+                                .fail(function (err) {
+                                    options.error(err);
+                                });
+                        } else {
+                            var requestUrl = typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
+                                ? uilayer.rest.serviceUrl("activities/writetoopcua/fetchOPCUATransportList")
+                                : "activities/writetoopcua/fetchOPCUATransportList";
 
-            // ─── API DATA SOURCE — uncomment this block when API is ready ────────
-            // var dataSource = new uilayer.data.DataSource({
-            //     transport: {
-            //         read: {
-            //             url: "/api/transports",
-            //             dataType: "json"
-            //         }
-            //     },
-            //     schema: {
-            //         data: "data"   // adjust to match actual response envelope
-            //     }
-            // });
-            // ─── END API DATA SOURCE ─────────────────────────────────────────────
+                            $.ajax({
+                                url: requestUrl,
+                                dataType: "json",
+                                success: function (data) {
+                                    options.success(data || []);
+                                },
+                                error: function (err) {
+                                    options.error(err);
+                                }
+                            });
+                        }
+                    }
+                }
+            });
 
             view.transportDropdown = uilayer.dropDownList({
                 elem: view.$(".transport-selector-dropdown"),
@@ -147,6 +133,27 @@ define(function (require) {
                 optionLabel: {
                     transportId: "",
                     transportName: view.nls.SelectTransport
+                },
+                dataBound: function () {
+                    var savedTransportName = view.model.getKey("transportName");
+                    if (savedTransportName && this.dataSource) {
+                        var items = this.dataSource.data();
+                        for (var i = 0; i < items.length; i++) {
+                            var item = items[i];
+                            var tName = item.transportName || item.name;
+                            if (tName === savedTransportName) {
+                                this.value(item.transportId);
+
+                                var transport = item.toJSON ? item.toJSON() : item;
+                                view.dataChangeOptions = transport.dataChangeOptions || transport.dataChangeWriteOptions || [];
+                                view.callMethodOptions = transport.callMethodOptions || [];
+
+                                DataChangeGridManager.refreshGridMode(view);
+                                CallMethodGridManager.refreshGridMode(view);
+                                break;
+                            }
+                        }
+                    }
                 },
                 change: function () {
                     var selectedItem = this.dataItem();
@@ -161,19 +168,11 @@ define(function (require) {
                             transport.transportName || ""
                         );
 
-                        // TODO [API]: After selecting a transport, fetch the
-                        // available data-change and call-method options for it.
-                        // Uncomment and implement _fetchOptions in the view:
-                        //
-                        // view._fetchOptions(transport.transportId);
-                        //
-                        // _fetchOptions should:
-                        //   1. Call GET /api/dataChangeOptions?transportId=<id>
-                        //      → set view.dataChangeOptions = response
-                        //   2. Call GET /api/callMethodOptions?transportId=<id>
-                        //      → set view.callMethodOptions = response
-                        //   3. Then call refreshGridMode on both managers so
-                        //      existing grid dropdowns reload with new options.
+                        view.dataChangeOptions = transport.dataChangeOptions || transport.dataChangeWriteOptions || [];
+                        view.callMethodOptions = transport.callMethodOptions || [];
+
+                        DataChangeGridManager.refreshGridMode(view);
+                        CallMethodGridManager.refreshGridMode(view);
                     }
                 }
             });
