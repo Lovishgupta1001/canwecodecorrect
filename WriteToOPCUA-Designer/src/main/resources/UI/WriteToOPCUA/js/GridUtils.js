@@ -99,19 +99,60 @@ define(function (require) {
             };
         },
 
+        formatSampleValue: function (rawSampleValue) {
+            if (rawSampleValue === null || rawSampleValue === undefined || rawSampleValue === "") {
+                return "";
+            }
+
+            var valueToFormat = rawSampleValue;
+
+            if (typeof rawSampleValue === "string") {
+                var trimmed = rawSampleValue.trim();
+                if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+                    try {
+                        var parsed = JSON.parse(trimmed);
+                        if (parsed && typeof parsed === "object" && parsed.hasOwnProperty("Value")) {
+                            valueToFormat = parsed.Value;
+                        } else {
+                            valueToFormat = parsed;
+                        }
+                    } catch (e) {
+                        valueToFormat = rawSampleValue;
+                    }
+                } else {
+                    valueToFormat = rawSampleValue;
+                }
+            } else if (typeof rawSampleValue === "object" && rawSampleValue !== null) {
+                if (rawSampleValue.hasOwnProperty("Value")) {
+                    valueToFormat = rawSampleValue.Value;
+                }
+            }
+
+            if (typeof valueToFormat === "object" && valueToFormat !== null) {
+                try {
+                    return JSON.stringify(valueToFormat, null, 2);
+                } catch (e) {
+                    return String(valueToFormat);
+                }
+            }
+
+            return String(valueToFormat);
+        },
+
         getSampleValueTemplate: function (isDynamic) {
             if (isDynamic) {
                 return function () { return ""; };
             }
 
             return function (dataItem) {
-                var sampleValue = dataItem.sampleValue || "";
+                var rawSampleValue = dataItem.sampleValue;
+                var sampleValue = GridUtils.formatSampleValue(rawSampleValue);
                 var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
                 var sampleValueHelpText = GridUtils._formatHelpText(rawHelpText, "Sample Value: ", sampleValue);
                 var hasSelection = !!dataItem.dataChangeName;
 
                 return "<div class='writetoopcua-info-cell'>" +
-                    "<span class='writetoopcua-info-cell-value' " +
+                    "<span class='writetoopcua-info-cell-value' style='white-space: pre-wrap;' " +
                     "title='" + _.escape(sampleValue) + "'>" +
                     _.escape(sampleValue) +
                     "</span>" +

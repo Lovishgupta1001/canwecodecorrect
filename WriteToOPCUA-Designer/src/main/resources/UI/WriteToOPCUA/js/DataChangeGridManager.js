@@ -248,7 +248,7 @@ define([
                         // a full row re-render, destroying the DropDownList widget.
                         dataItem["dataChangeName"] = selectedData.dataChangeName || selectedData.name || "";
                         dataItem["nodeId"]         = selectedData.nodeId         || "";
-                        dataItem["sampleValue"]    = selectedData.sampleValue    || "";
+                        dataItem["sampleValue"]    = GridUtils.formatSampleValue(selectedData.sampleValue);
 
                         // Refresh only the adjacent read-only cells (nodeId, sampleValue)
                         // so their template output updates without touching the dropdown cell.
