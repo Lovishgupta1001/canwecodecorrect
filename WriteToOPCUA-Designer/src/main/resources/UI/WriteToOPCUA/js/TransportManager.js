@@ -160,6 +160,7 @@ define(function (require) {
 
                                 DataChangeGridManager.refreshGridMode(view);
                                 CallMethodGridManager.refreshGridMode(view);
+                                TransportManager.testTransportById(item.transportId, view);
                                 break;
                             }
                         }
@@ -193,11 +194,58 @@ define(function (require) {
 
                         DataChangeGridManager.refreshGridMode(view);
                         CallMethodGridManager.refreshGridMode(view);
+                        TransportManager.testTransportById(transport.transportId, view);
                     }
                 }
             });
 
             this.renderTransportButtons(view);
+        },
+
+        testTransportById: function (transportId, view) {
+            if (!transportId) {
+                return;
+            }
+
+            var url = "transportUIServices/testTransportById?transportId=" + encodeURIComponent(transportId);
+
+            if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
+                var promise = AjaxUtility.commonAjaxRequest("GET", url, null, "json");
+                promise.done(function (data) {
+                    if (data === false || (data && data.success === false)) {
+                        if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
+                            uilayer.notifier("warning", view.nls.TransportTestFailed);
+                        }
+                    }
+                });
+                promise.fail(function () {
+                    if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
+                        uilayer.notifier("warning", view.nls.TransportTestFailed);
+                    }
+                });
+            } else {
+                var requestUrl = typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
+                    ? uilayer.rest.serviceUrl(url)
+                    : url;
+
+                $.ajax({
+                    url: requestUrl,
+                    type: "GET",
+                    dataType: "json",
+                    success: function (data) {
+                        if (data === false || (data && data.success === false)) {
+                            if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
+                                uilayer.notifier("warning", view.nls.TransportTestFailed);
+                            }
+                        }
+                    },
+                    error: function () {
+                        if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
+                            uilayer.notifier("warning", view.nls.TransportTestFailed);
+                        }
+                    }
+                });
+            }
         }
     };
 

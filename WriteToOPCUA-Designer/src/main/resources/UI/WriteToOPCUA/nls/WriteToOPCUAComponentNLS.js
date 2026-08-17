@@ -43,6 +43,7 @@ define({
         "writetoopcua.outputSkippedWriteItems": "Skipped Write items",
         "writetoopcua.selTransport": "Please select a Transport Name.",
         "writetoopcua.emptyDataChangeWrite": "At least one Data Change Write item must be configured.",
-        "writetoopcua.emptyCallMethod": "At least one Call Method item must be configured."
+        "writetoopcua.emptyCallMethod": "At least one Call Method item must be configured.",
+        "TransportTestFailed": "Failed to connect to the selected transport."
     }
 });
