@@ -11,12 +11,18 @@ package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 
 import com.eqtechnologic.eqube.exception.BusinessException;
 import com.eqtechnologic.eqube.logging.Logger;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.CallMethodItem;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.DataChangeWriteItem;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.InputParameterItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
+import com.eqtechnologic.eqube.platform.transport.client.beans.OpcUaTransportClientInfoBean;
 import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
-import com.eqtechnologic.eqube.platform.transport.client.constants.TransportClientConstants;
-import com.eqtechnologic.eqube.platform.transport.client.service.TransportClientService;
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
+import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaArgumentInfo;
+import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaDataChangeWriteItem;
+import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
+import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaWriteItem;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -45,7 +51,42 @@ public class WriteToOPCUAComponentServiceHelper {
                     transportInfo.setTransportId(transportClientBean.getTransportId());
 
                     if (WriteToOPCUAConstants.OPCUA_TYPE.equalsIgnoreCase(transportType)) {
-                        // OPC UA specific transport details mapping
+                        OpcUaTransportClientInfoBean opcUaInfo = transportClientBean.getOpcUaTransportClientInfoBean();
+                        if (opcUaInfo != null && opcUaInfo.getWriteItems() != null) {
+                            List<DataChangeWriteItem> dataChangeOptions = new ArrayList<>();
+                            List<CallMethodItem> callMethodOptions = new ArrayList<>();
+
+                            for (OpcUaWriteItem item : opcUaInfo.getWriteItems()) {
+                                if (item instanceof OpcUaDataChangeWriteItem) {
+                                    OpcUaDataChangeWriteItem dataChangeItem = (OpcUaDataChangeWriteItem) item;
+                                    DataChangeWriteItem dataChangeOption = new DataChangeWriteItem();
+                                    dataChangeOption.setDataChangeName(dataChangeItem.getName());
+                                    dataChangeOption.setNodeId(dataChangeItem.getNodeId());
+                                    dataChangeOption.setSampleValue(dataChangeItem.getSampleValue());
+                                    dataChangeOptions.add(dataChangeOption);
+                                } else if (item instanceof OpcUaMethodWriteItem) {
+                                    OpcUaMethodWriteItem methodItem = (OpcUaMethodWriteItem) item;
+                                    CallMethodItem callMethodOption = new CallMethodItem();
+                                    callMethodOption.setMethodName(methodItem.getName());
+                                    callMethodOption.setNodeId(methodItem.getNodeId());
+
+                                    if (methodItem.getInputArguments() != null) {
+                                        List<InputParameterItem> inputParams = new ArrayList<>();
+                                        for (OpcUaArgumentInfo arg : methodItem.getInputArguments()) {
+                                            InputParameterItem param = new InputParameterItem();
+                                            param.setName(arg.getName());
+                                            param.setDataType(arg.getDataTypeName());
+                                            param.setValue("");
+                                            inputParams.add(param);
+                                        }
+                                        callMethodOption.setInputParameters(inputParams);
+                                    }
+                                    callMethodOptions.add(callMethodOption);
+                                }
+                            }
+                            transportInfo.setDataChangeOptions(dataChangeOptions);
+                            transportInfo.setCallMethodOptions(callMethodOptions);
+                        }
                     }
                     return transportInfo;
                 })

@@ -9,6 +9,8 @@
  */
 package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
 
+import java.util.List;
+
 /**
  * Bean to hold Write To OPC UA Transport Info
  *
@@ -18,6 +20,8 @@ public class TransportInfo {
 
     private String transportName;
     private Long transportId;
+    private List<DataChangeWriteItem> dataChangeOptions;
+    private List<CallMethodItem> callMethodOptions;
 
     public String getTransportName() {
         return transportName;
@@ -33,5 +37,21 @@ public class TransportInfo {
 
     public void setTransportId(Long transportId) {
         this.transportId = transportId;
+    }
+
+    public List<DataChangeWriteItem> getDataChangeOptions() {
+        return dataChangeOptions;
+    }
+
+    public void setDataChangeOptions(List<DataChangeWriteItem> dataChangeOptions) {
+        this.dataChangeOptions = dataChangeOptions;
+    }
+
+    public List<CallMethodItem> getCallMethodOptions() {
+        return callMethodOptions;
+    }
+
+    public void setCallMethodOptions(List<CallMethodItem> callMethodOptions) {
+        this.callMethodOptions = callMethodOptions;
     }
 }
