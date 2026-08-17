@@ -10,7 +10,7 @@
 package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
 
 /**
- * Bean to hold Input Parameter item details inside Call Method
+ * Bean to hold Input Parameter item details aligned with OpcUaArgumentInfo
  *
  * @author Lovish
  */
@@ -18,6 +18,7 @@ public class InputParameterItem {
 
     private String name;
     private String dataType;
+    private String dataTypeName;
     private String value;
 
     public String getName() {
@@ -29,11 +30,21 @@ public class InputParameterItem {
     }
 
     public String getDataType() {
-        return dataType;
+        return dataType != null ? dataType : dataTypeName;
     }
 
     public void setDataType(String dataType) {
         this.dataType = dataType;
+        this.dataTypeName = dataType;
+    }
+
+    public String getDataTypeName() {
+        return dataTypeName != null ? dataTypeName : dataType;
+    }
+
+    public void setDataTypeName(String dataTypeName) {
+        this.dataTypeName = dataTypeName;
+        this.dataType = dataTypeName;
     }
 
     public String getValue() {

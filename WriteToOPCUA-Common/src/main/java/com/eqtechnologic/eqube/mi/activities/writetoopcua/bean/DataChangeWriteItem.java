@@ -10,25 +10,35 @@
 package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
 
 /**
- * Bean to hold Data Change Write grid item details
+ * Bean to hold Data Change Write grid item details aligned with OpcUaDataChangeWriteItem
  *
  * @author Lovish
  */
 public class DataChangeWriteItem {
 
-    private String dataChangeName;
+    private String name;
     private String nodeId;
+    private String dataTypeName;
+    private String dataTypeNodeId;
     private String sampleValue;
     private String newValue;
     private String nodeIdHelpText;
     private String sampleValueHelpText;
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getDataChangeName() {
-        return dataChangeName;
+        return name;
     }
 
     public void setDataChangeName(String dataChangeName) {
-        this.dataChangeName = dataChangeName;
+        this.name = dataChangeName;
     }
 
     public String getNodeId() {
@@ -37,6 +47,22 @@ public class DataChangeWriteItem {
 
     public void setNodeId(String nodeId) {
         this.nodeId = nodeId;
+    }
+
+    public String getDataTypeName() {
+        return dataTypeName;
+    }
+
+    public void setDataTypeName(String dataTypeName) {
+        this.dataTypeName = dataTypeName;
+    }
+
+    public String getDataTypeNodeId() {
+        return dataTypeNodeId;
+    }
+
+    public void setDataTypeNodeId(String dataTypeNodeId) {
+        this.dataTypeNodeId = dataTypeNodeId;
     }
 
     public String getSampleValue() {

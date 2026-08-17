@@ -60,26 +60,30 @@ public class WriteToOPCUAComponentServiceHelper {
                                 if (item instanceof OpcUaDataChangeWriteItem) {
                                     OpcUaDataChangeWriteItem dataChangeItem = (OpcUaDataChangeWriteItem) item;
                                     DataChangeWriteItem dataChangeOption = new DataChangeWriteItem();
-                                    dataChangeOption.setDataChangeName(dataChangeItem.getName());
+                                    dataChangeOption.setName(dataChangeItem.getName());
                                     dataChangeOption.setNodeId(dataChangeItem.getNodeId());
+                                    dataChangeOption.setDataTypeName(dataChangeItem.getDataTypeName());
+                                    dataChangeOption.setDataTypeNodeId(dataChangeItem.getDataTypeNodeId());
                                     dataChangeOption.setSampleValue(dataChangeItem.getSampleValue());
                                     dataChangeOptions.add(dataChangeOption);
                                 } else if (item instanceof OpcUaMethodWriteItem) {
                                     OpcUaMethodWriteItem methodItem = (OpcUaMethodWriteItem) item;
                                     CallMethodItem callMethodOption = new CallMethodItem();
-                                    callMethodOption.setMethodName(methodItem.getName());
+                                    callMethodOption.setName(methodItem.getName());
                                     callMethodOption.setNodeId(methodItem.getNodeId());
+                                    callMethodOption.setObjectNodeId(methodItem.getObjectNodeId());
 
                                     if (methodItem.getInputArguments() != null) {
                                         List<InputParameterItem> inputParams = new ArrayList<>();
                                         for (OpcUaArgumentInfo arg : methodItem.getInputArguments()) {
                                             InputParameterItem param = new InputParameterItem();
                                             param.setName(arg.getName());
-                                            param.setDataType(arg.getDataTypeName());
+                                            param.setDataTypeName(arg.getDataTypeName());
                                             param.setValue("");
                                             inputParams.add(param);
                                         }
                                         callMethodOption.setInputParameters(inputParams);
+                                        callMethodOption.setInputArguments(inputParams);
                                     }
                                     callMethodOptions.add(callMethodOption);
                                 }
