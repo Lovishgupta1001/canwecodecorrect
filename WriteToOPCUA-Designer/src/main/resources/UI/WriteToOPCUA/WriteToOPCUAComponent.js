@@ -93,7 +93,7 @@ define(function (require) {
 
         _renderHelp: function () {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                this.$el.find(".writetoopcua-help-tooltip").each(function () {
+                this.$el.find(".help-tooltip").each(function () {
                     uilayer.help({
                         elem: $(this).parent(),
                         position: "right",

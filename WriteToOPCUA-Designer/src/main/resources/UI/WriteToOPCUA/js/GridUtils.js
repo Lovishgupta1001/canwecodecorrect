@@ -89,14 +89,14 @@ define(function (require) {
 
         initializeGridHelpTooltips: function (container) {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                container.find(".writetoopcua-help-tooltip").each(function () {
+                container.find(".help-tooltip").each(function () {
                     var elem = $(this).parent();
                     if (!elem.data("help-initialized")) {
                         elem.data("help-initialized", true);
                         uilayer.help({
                             elem: elem,
                             position: "right",
-                            width: "25%"
+                            width: "10%"
                         });
                     }
                 });
@@ -121,7 +121,7 @@ define(function (require) {
                     "</span>" +
                     (hasSelection
                         ? "<div class='help-container writetoopcua-info-icon'>" +
-                          "<input class='writetoopcua-help-tooltip' " +
+                          "<input class='help-tooltip node-id-help-tooltip' " +
                           "data-help='" + _.escape(nodeIdHelpText) + "'></input>" +
                           "</div>"
                         : "") +
@@ -188,7 +188,7 @@ define(function (require) {
                     "</span>" +
                     (hasSelection
                         ? "<div class='help-container writetoopcua-info-icon'>" +
-                          "<input class='writetoopcua-help-tooltip' " +
+                          "<input class='help-tooltip sample-value-help-tooltip' " +
                           "data-help='" + _.escape(sampleValueHelpText) + "'></input>" +
                           "</div>"
                         : "") +
