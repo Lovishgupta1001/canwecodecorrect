@@ -207,10 +207,13 @@ define(function (require) {
                 return;
             }
 
-            var url = "transportUIServices/testTransportById?transportId=" + encodeURIComponent(transportId);
+            var relativePath = "transportUIServices/testTransportById?transportId=" + encodeURIComponent(transportId);
+            var requestUrl = typeof uilayer !== "undefined" && typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
+                ? uilayer.rest.serviceUrl(relativePath)
+                : relativePath;
 
             if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
-                var promise = AjaxUtility.commonAjaxRequest("GET", url, null, "json");
+                var promise = AjaxUtility.commonAjaxRequest("GET", requestUrl, null, "json");
                 promise.done(function (data) {
                     if (data === false || (data && data.success === false)) {
                         if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
@@ -224,10 +227,6 @@ define(function (require) {
                     }
                 });
             } else {
-                var requestUrl = typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
-                    ? uilayer.rest.serviceUrl(url)
-                    : url;
-
                 $.ajax({
                     url: requestUrl,
                     type: "GET",
