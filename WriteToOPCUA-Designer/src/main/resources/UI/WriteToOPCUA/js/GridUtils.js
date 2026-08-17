@@ -51,8 +51,11 @@ define(function (require) {
                 uiStyle: "",
                 dataSource: grid.widget.dataSource,
                 filter: {
-                    field: field,
-                    operator: "contains"
+                    logic: "or",
+                    filters: [
+                        { field: field, operator: "contains" },
+                        { field: "nodeId", operator: "contains" }
+                    ]
                 },
                 placeholder: nls.Search,
                 filterAfter: 3
