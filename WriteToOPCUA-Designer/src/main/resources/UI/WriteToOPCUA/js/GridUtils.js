@@ -89,14 +89,14 @@ define(function (require) {
 
         initializeGridHelpTooltips: function (container) {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                container.find(".node-id-help-icon, .sample-value-help-icon").each(function () {
-                    var elem = $(this);
+                container.find(".writetoopcua-help-tooltip").each(function () {
+                    var elem = $(this).parent();
                     if (!elem.data("help-initialized")) {
                         elem.data("help-initialized", true);
                         uilayer.help({
                             elem: elem,
                             position: "right",
-                            width: "10%"
+                            width: "25%"
                         });
                     }
                 });
@@ -120,10 +120,10 @@ define(function (require) {
                     _.escape(nodeId) +
                     "</span>" +
                     (hasSelection
-                        ? "<span class='eQ-icon eQ-fonts-info " +
-                          "writetoopcua-info-icon node-id-help-icon' " +
-                          "title='" + _.escape(nodeIdHelpText) + "' " +
-                          "data-help='" + _.escape(nodeIdHelpText) + "'></span>"
+                        ? "<div class='help-container writetoopcua-info-icon'>" +
+                          "<input class='writetoopcua-help-tooltip' " +
+                          "data-help='" + _.escape(nodeIdHelpText) + "'></input>" +
+                          "</div>"
                         : "") +
                     "</div>";
             };
@@ -187,10 +187,10 @@ define(function (require) {
                     _.escape(sampleValue) +
                     "</span>" +
                     (hasSelection
-                        ? "<span class='eQ-icon eQ-fonts-info " +
-                          "writetoopcua-info-icon sample-value-help-icon' " +
-                          "title='" + _.escape(sampleValueHelpText) + "' " +
-                          "data-help='" + _.escape(sampleValueHelpText) + "'></span>"
+                        ? "<div class='help-container writetoopcua-info-icon'>" +
+                          "<input class='writetoopcua-help-tooltip' " +
+                          "data-help='" + _.escape(sampleValueHelpText) + "'></input>" +
+                          "</div>"
                         : "") +
                     "</div>";
             };

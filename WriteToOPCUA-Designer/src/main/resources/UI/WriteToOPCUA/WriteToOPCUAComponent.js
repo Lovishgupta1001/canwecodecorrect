@@ -84,16 +84,23 @@ define(function (require) {
 
             this._initTransportUI();
             this._updateOperationUI();
-            this._renderHelpTooltips();
+            this._renderHelp();
 
             deferred.resolve();
 
             return deferred.promise();
         },
 
-        _renderHelpTooltips: function () {
-            GridUtils.initializeHelpTooltip(this, "parallel-mode-help");
-            GridUtils.initializeHelpTooltip(this, "sequential-mode-help");
+        _renderHelp: function () {
+            if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
+                this.$el.find(".writetoopcua-help-tooltip").each(function () {
+                    uilayer.help({
+                        elem: $(this).parent(),
+                        position: "right",
+                        width: "25%"
+                    });
+                });
+            }
         },
 
         _initializeControls: function () {
