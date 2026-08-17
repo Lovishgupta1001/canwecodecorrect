@@ -8,6 +8,7 @@ define(function (require) {
         model = require("./model/WriteToOPCUAComponentModel"),
         nls = require("i18n!./nls/WriteToOPCUAComponentNLS"),
         Constants = require("./js/constants"),
+        GridUtils = require("./js/GridUtils"),
         TransportManager = require("./js/TransportManager"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
         CallMethodGridManager = require("./js/CallMethodGridManager"),
