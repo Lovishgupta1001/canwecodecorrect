@@ -483,6 +483,16 @@ define([
                     manager._destroyInputParametersModal(view, true);
                 }
             });
+
+            if (view.inputParametersModal) {
+                if (typeof view.inputParametersModal.open === "function") {
+                    view.inputParametersModal.open($anchor);
+                } else if (view.inputParametersModal.widget && typeof view.inputParametersModal.widget.open === "function") {
+                    view.inputParametersModal.widget.open($anchor);
+                } else if (typeof view.inputParametersModal.show === "function") {
+                    view.inputParametersModal.show();
+                }
+            }
         },
 
         _destroyInputParametersModal: function (view, isFromCloseCallback) {
