@@ -145,8 +145,18 @@ define(function (require) {
                                 this.value(item.transportId);
 
                                 var transport = item.toJSON ? item.toJSON() : item;
-                                view.dataChangeOptions = transport.dataChangeOptions || transport.dataChangeWriteOptions || [];
-                                view.callMethodOptions = transport.callMethodOptions || [];
+                                view.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
+                                    if (opt && !opt.dataChangeName && opt.name) {
+                                        opt.dataChangeName = opt.name;
+                                    }
+                                    return opt;
+                                });
+                                view.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
+                                    if (opt && !opt.methodName && opt.name) {
+                                        opt.methodName = opt.name;
+                                    }
+                                    return opt;
+                                });
 
                                 DataChangeGridManager.refreshGridMode(view);
                                 CallMethodGridManager.refreshGridMode(view);
@@ -168,8 +178,18 @@ define(function (require) {
                             transport.transportName || ""
                         );
 
-                        view.dataChangeOptions = transport.dataChangeOptions || transport.dataChangeWriteOptions || [];
-                        view.callMethodOptions = transport.callMethodOptions || [];
+                        view.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
+                            if (opt && !opt.dataChangeName && opt.name) {
+                                opt.dataChangeName = opt.name;
+                            }
+                            return opt;
+                        });
+                        view.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
+                            if (opt && !opt.methodName && opt.name) {
+                                opt.methodName = opt.name;
+                            }
+                            return opt;
+                        });
 
                         DataChangeGridManager.refreshGridMode(view);
                         CallMethodGridManager.refreshGridMode(view);

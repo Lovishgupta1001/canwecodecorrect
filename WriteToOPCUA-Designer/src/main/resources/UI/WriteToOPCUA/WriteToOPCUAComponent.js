@@ -138,20 +138,25 @@ define(function (require) {
         },
 
         _onAddDataChangeRow: function () {
-            if (this.dataChangeWriteGrid && this.dataChangeWriteGrid.widget) {
-                this.dataChangeWriteGrid.widget.addRow();
-                setTimeout(function () {
-                    DataChangeGridManager._initializeDataChangeDropdowns(this);
-                }.bind(this), 50);
+            if (this.dataChangeWriteGrid && this.dataChangeWriteGrid.widget && this.dataChangeWriteGrid.widget.dataSource) {
+                this.dataChangeWriteGrid.widget.dataSource.add({
+                    dataChangeName: "",
+                    nodeId: "",
+                    sampleValue: "",
+                    newValue: ""
+                });
             }
         },
 
         _onAddCallMethodRow: function () {
-            if (this.callMethodGrid && this.callMethodGrid.widget) {
-                this.callMethodGrid.widget.addRow();
-                setTimeout(function () {
-                    CallMethodGridManager._initializeMethodDropdowns(this);
-                }.bind(this), 50);
+            if (this.callMethodGrid && this.callMethodGrid.widget && this.callMethodGrid.widget.dataSource) {
+                this.callMethodGrid.widget.dataSource.add({
+                    methodName: "",
+                    nodeId: "",
+                    objectNodeId: "",
+                    inputParameters: [],
+                    outputValue: ""
+                });
             }
         },
 
