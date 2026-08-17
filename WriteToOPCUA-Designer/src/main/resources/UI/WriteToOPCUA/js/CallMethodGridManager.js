@@ -462,6 +462,7 @@ define([
                 title: (view.nls.AddMethodCall || "Add Method Call") + ": " + (methodName || ""),
                 size: "large",
                 popupPosition: "right",
+                actions: [],
                 buttons: [
                     {
                         label: view.nls.Cancel || "Cancel",
