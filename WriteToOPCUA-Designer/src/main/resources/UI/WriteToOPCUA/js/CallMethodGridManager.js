@@ -204,35 +204,49 @@ define([
 
         _initializeMethodDropdowns: function (view) {
             var manager = this;
+            GridUtils.initializeGridHelpTooltips(view.$el);
 
             view.$(".method-name-dropdown").each(function () {
                 var element = $(this);
+                var row = element.closest("tr");
+                var grid = view.callMethodGrid ? view.callMethodGrid.widget : null;
 
-                if (element.data("method-dropdown-initialized")) {
+                if (!grid) {
                     return;
                 }
 
-                var row = element.closest("tr");
-                var grid = view.callMethodGrid.widget;
                 var dataItem = grid.dataItem(row);
-
                 if (!dataItem) {
                     return;
                 }
 
-                element.data("method-dropdown-initialized", true);
-
-                // Prevent Kendo's incell edit handler from seeing clicks on this
-                // cell. Without this, Kendo replaces the cell content with a default
-                // text editor, destroying the DropDownList widget.
-                element.on("click.prevent-incell-edit", function (e) {
+                var cell = element.closest("td");
+                cell.off("click.prevent-incell-edit").on("click.prevent-incell-edit", function (e) {
                     e.stopPropagation();
                 });
+                element.off("click.prevent-incell-edit").on("click.prevent-incell-edit", function (e) {
+                    e.stopPropagation();
+                });
+
+                var existingDropdown = element.data("kendoDropDownList") || element.data("uilayerDropDownList");
+                if (existingDropdown) {
+                    if (existingDropdown.setDataSource) {
+                        existingDropdown.setDataSource(new uilayer.data.DataSource({
+                            data: view.callMethodOptions || []
+                        }));
+                    }
+                    return;
+                }
+
+                if (element.data("method-dropdown-initialized")) {
+                    return;
+                }
+                element.data("method-dropdown-initialized", true);
 
                 var dropdown = uilayer.dropDownList({
                     elem: element,
                     dataSource: new uilayer.data.DataSource({
-                        data: view.callMethodOptions
+                        data: view.callMethodOptions || []
                     }),
                     dataTextField: "methodName",
                     dataValueField: "methodName",
@@ -240,9 +254,6 @@ define([
                         methodName: view.nls.SelectMethod
                     },
                     change: function () {
-                        // If user opens the dropdown and clicks outside without
-                        // selecting anything, this.value() is empty string (the
-                        // optionLabel). Do NOT write back or refresh in that case.
                         var selectedValue = this.value();
                         if (!selectedValue) {
                             return;
@@ -257,30 +268,28 @@ define([
                             ? selectedItem.toJSON()
                             : selectedItem;
 
-                        // Use direct property assignment instead of dataItem.set().
-                        // dataItem.set() triggers Kendo change-tracking which causes
                         dataItem["methodName"]      = selectedData.methodName || selectedData.name || "";
                         dataItem["nodeId"]          = selectedData.nodeId     || "";
                         dataItem["objectNodeId"]    = selectedData.objectNodeId || "";
                         dataItem["inputParameters"] = manager._copyInputParameters(selectedData.inputParameters || selectedData.inputArguments);
 
-                        // Refresh only the adjacent read-only cells (nodeId, inputParameters)
-                        // so their template output updates without touching the dropdown cell.
                         var nodeIdCell = row.find("td:eq(2)");
                         var inputParamsCell = row.find("td:eq(3)");
-                        if (nodeIdCell.length) {
+                        if (nodeIdCell.length && grid.columns[2].template) {
                             nodeIdCell.html(grid.columns[2].template(dataItem));
                         }
-                        if (inputParamsCell.length) {
+                        if (inputParamsCell.length && grid.columns[3].template) {
                             inputParamsCell.html(grid.columns[3].template(dataItem));
                         }
+                        GridUtils.initializeGridHelpTooltips(row);
                     }
                 });
 
+                var initialVal = dataItem.get ? dataItem.get("methodName") : dataItem.methodName;
                 if (dropdown && dropdown.value) {
-                    dropdown.value(dataItem.get("methodName") || "");
+                    dropdown.value(initialVal || "");
                 } else if (dropdown && dropdown.widget && dropdown.widget.value) {
-                    dropdown.widget.value(dataItem.get("methodName") || "");
+                    dropdown.widget.value(initialVal || "");
                 }
             });
         },

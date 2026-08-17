@@ -140,21 +140,18 @@ define(function (require) {
         _onAddDataChangeRow: function () {
             if (this.dataChangeWriteGrid && this.dataChangeWriteGrid.widget) {
                 this.dataChangeWriteGrid.widget.addRow();
-                // dataBound does NOT fire for addRow() — initialize the new row's
-                // dropdown explicitly so it is not left as a blank placeholder.
-                DataChangeGridManager._initializeDataChangeDropdowns(
-                    this,
-                    this.dataChangeWriteGrid.widget
-                );
+                setTimeout(function () {
+                    DataChangeGridManager._initializeDataChangeDropdowns(this);
+                }.bind(this), 50);
             }
         },
 
         _onAddCallMethodRow: function () {
             if (this.callMethodGrid && this.callMethodGrid.widget) {
                 this.callMethodGrid.widget.addRow();
-                // dataBound does NOT fire for addRow() — initialize the new row's
-                // dropdown explicitly so it is not left as a blank placeholder.
-                CallMethodGridManager._initializeMethodDropdowns(this);
+                setTimeout(function () {
+                    CallMethodGridManager._initializeMethodDropdowns(this);
+                }.bind(this), 50);
             }
         },
 
