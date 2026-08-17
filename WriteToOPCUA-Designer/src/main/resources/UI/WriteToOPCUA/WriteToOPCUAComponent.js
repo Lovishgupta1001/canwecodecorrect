@@ -35,103 +35,16 @@ define(function (require) {
             this.designerReqres = options.reqres;
             this.processModel = this.designerReqres.request("getCurrentActiveEntityModelFromDataStore");
 
-            // ─── SAMPLE DATA — comment this block out when API is ready ──────────
+            this.dataChangeOptions = [];
+            this.callMethodOptions = [];
 
-            // Dropdown option lists (what appears inside each row's picker)
-            this.dataChangeOptions = [
-                { dataChangeName: "Temperature Sensor", nodeId: "ns=2;i=1001", sampleValue: "25.6" },
-                { dataChangeName: "Pressure Gauge",     nodeId: "ns=2;i=1002", sampleValue: "101.3" },
-                { dataChangeName: "Flow Rate",          nodeId: "ns=2;i=1003", sampleValue: "15.0" }
-            ];
-
-            this.callMethodOptions = [
-                {
-                    methodName: "StartProcess",
-                    nodeId: "ns=2;i=2001",
-                    inputParameters: [
-                        { name: "Speed", dataType: "Int32", value: "" },
-                        { name: "Direction", dataType: "String", value: "" }
-                    ]
-                },
-                {
-                    methodName: "StopProcess",
-                    nodeId: "ns=2;i=2002",
-                    inputParameters: [
-                        { name: "EmergencyStop", dataType: "Boolean", value: "" }
-                    ]
-                },
-                {
-                    methodName: "ResetCounter",
-                    nodeId: "ns=2;i=2003",
-                    inputParameters: []
-                }
-            ];
-
-            // Pre-populate grid rows (guard: only when no previously saved data)
-            if (!this.model.getKey("dataChangeWrite") ||
-                this.model.getKey("dataChangeWrite").length === 0) {
-                this.model.setKey("dataChangeWrite", [
-                    { dataChangeName: "Temperature Sensor", nodeId: "ns=2;i=1001", sampleValue: "25.6", newValue: "" },
-                    { dataChangeName: "Pressure Gauge",     nodeId: "ns=2;i=1002", sampleValue: "101.3", newValue: "" },
-                    { dataChangeName: "Flow Rate",          nodeId: "ns=2;i=1003", sampleValue: "15.0",  newValue: "" }
-                ]);
+            if (!this.model.getKey("dataChangeWrite")) {
+                this.model.setKey("dataChangeWrite", []);
             }
 
-            if (!this.model.getKey("callMethod") ||
-                this.model.getKey("callMethod").length === 0) {
-                this.model.setKey("callMethod", [
-                    {
-                        methodName: "StartProcess", nodeId: "ns=2;i=2001",
-                        inputParameters: [
-                            { name: "Speed", dataType: "Int32", value: "" },
-                            { name: "Direction", dataType: "String", value: "" }
-                        ],
-                        outputValue: ""
-                    },
-                    {
-                        methodName: "StopProcess", nodeId: "ns=2;i=2002",
-                        inputParameters: [
-                            { name: "EmergencyStop", dataType: "Boolean", value: "" }
-                        ],
-                        outputValue: ""
-                    },
-                    {
-                        methodName: "ResetCounter", nodeId: "ns=2;i=2003",
-                        inputParameters: [],
-                        outputValue: ""
-                    }
-                ]);
+            if (!this.model.getKey("callMethod")) {
+                this.model.setKey("callMethod", []);
             }
-
-            // ─── END SAMPLE DATA ─────────────────────────────────────────────────
-
-            // ─── API CALL — uncomment this block when API is ready ───────────────
-            // var self = this;
-            // this.dataChangeOptions = [];
-            // this.callMethodOptions = [];
-            // this.model.setKey("dataChangeWrite", []);
-            // this.model.setKey("callMethod", []);
-            // AjaxUtility.ajaxCall({
-            //     url: "/api/dataChangeOptions?transportId=" + this.model.getKey("transportId"),
-            //     method: "GET"
-            // }).then(function (response) {
-            //     self.dataChangeOptions = response;
-            //     self.model.setKey("dataChangeWrite", response.map(function (item) {
-            //         return { dataChangeName: item.dataChangeName, nodeId: item.nodeId,
-            //                  sampleValue: item.sampleValue, newValue: "" };
-            //     }));
-            // });
-            // AjaxUtility.ajaxCall({
-            //     url: "/api/callMethodOptions?transportId=" + this.model.getKey("transportId"),
-            //     method: "GET"
-            // }).then(function (response) {
-            //     self.callMethodOptions = response;
-            //     self.model.setKey("callMethod", response.map(function (item) {
-            //         return { methodName: item.methodName, nodeId: item.nodeId,
-            //                  inputParameters: item.inputParameters, outputValue: "" };
-            //     }));
-            // });
-            // ─── END API CALL ────────────────────────────────────────────────────
         },
 
 
@@ -420,3 +333,4 @@ define(function (require) {
 
     return WriteToOPCUAUIComponent;
 });
+    

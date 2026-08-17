@@ -246,7 +246,7 @@ define([
                         // Use direct property assignment instead of dataItem.set().
                         // dataItem.set() triggers Kendo change-tracking which causes
                         // a full row re-render, destroying the DropDownList widget.
-                        dataItem["dataChangeName"] = selectedData.dataChangeName || "";
+                        dataItem["dataChangeName"] = selectedData.dataChangeName || selectedData.name || "";
                         dataItem["nodeId"]         = selectedData.nodeId         || "";
                         dataItem["sampleValue"]    = selectedData.sampleValue    || "";
 

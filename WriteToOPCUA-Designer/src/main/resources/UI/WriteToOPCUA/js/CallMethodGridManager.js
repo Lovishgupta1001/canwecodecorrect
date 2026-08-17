@@ -259,10 +259,10 @@ define([
 
                         // Use direct property assignment instead of dataItem.set().
                         // dataItem.set() triggers Kendo change-tracking which causes
-                        // a full row re-render, destroying the DropDownList widget.
-                        dataItem["methodName"] = selectedData.methodName || "";
-                        dataItem["nodeId"]     = selectedData.nodeId     || "";
-                        dataItem["inputParameters"] = manager._copyInputParameters(selectedData.inputParameters);
+                        dataItem["methodName"]      = selectedData.methodName || selectedData.name || "";
+                        dataItem["nodeId"]          = selectedData.nodeId     || "";
+                        dataItem["objectNodeId"]    = selectedData.objectNodeId || "";
+                        dataItem["inputParameters"] = manager._copyInputParameters(selectedData.inputParameters || selectedData.inputArguments);
 
                         // Refresh only the adjacent read-only cells (nodeId, inputParameters)
                         // so their template output updates without touching the dropdown cell.
