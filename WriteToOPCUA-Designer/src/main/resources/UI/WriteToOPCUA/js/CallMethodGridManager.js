@@ -316,7 +316,7 @@ define([
             }
 
             view.selectedCallMethodRow = dataItem;
-            this.openInputParametersModal(view, dataItem);
+            this.openInputParametersModal(view, dataItem, badge);
         },
 
         _createInputParametersModalGrid: function (gridElement, inputParameters, view) {
@@ -381,7 +381,7 @@ define([
             });
         },
 
-        openInputParametersModal: function (view, dataItem) {
+        openInputParametersModal: function (view, dataItem, anchorElem) {
             var manager = this;
 
             var methodName = dataItem.get
@@ -396,7 +396,7 @@ define([
 
             this._destroyInputParametersModal(view);
 
-            var $modalWrapper = $(
+            var $popoverWrapper = $(
                 "<div class='input-parameters-modal-wrapper'>" +
                     "<div class='ul-pad-2x-b'>" +
                         "<label class='ul-body-m-b'>" + (view.nls.InputParameters || "Input Parameters") + "</label>" +
@@ -404,36 +404,40 @@ define([
                     "<div class='input-parameters-modal-grid'></div>" +
                 "</div>"
             );
-            view.$el.append($modalWrapper);
-            view._inputParametersModalWrapper = $modalWrapper;
+            view.$el.append($popoverWrapper);
+            view._inputParametersModalWrapper = $popoverWrapper;
 
-            var gridElement = $modalWrapper.find(".input-parameters-modal-grid");
+            var gridElement = $popoverWrapper.find(".input-parameters-modal-grid");
             view.inputParametersModalGrid = this._createInputParametersModalGrid(gridElement, inputParameters, view);
 
-            view.inputParametersModal = uilayer.modal({
-                elem: $modalWrapper,
-                title: view.nls.AddMethodCall + " " + (methodName || ""),
-                modalSize: "medium",
-                width: "40rem",
-                actions: [],
+            var $anchor = anchorElem ? $(anchorElem) : view.$el;
+
+            view.inputParametersModal = uilayer.popOver({
+                elem: $popoverWrapper,
+                anchor: $anchor,
+                pinPopover: false,
+                title: (view.nls.AddMethodCall || "Add Method Call") + " " + (methodName || ""),
+                size: "large",
+                popupPosition: "right",
                 buttons: [
                     {
-                        label: view.nls.Cancel,
+                        label: view.nls.Cancel || "Cancel",
                         action: "cancel",
-                        uiStyle: "tertiary",
-                        position: "right"
+                        uiStyle: "tertiary"
                     },
                     {
-                        label: view.nls.Save,
+                        label: view.nls.Save || "Save",
                         action: "save",
-                        uiStyle: "primary",
-                        position: "right"
+                        uiStyle: "primary"
                     }
                 ],
-                cancel: function () {
+                cancel: function (e) {
+                    if (e && e.sender && typeof e.sender.close === "function") {
+                        e.sender.close();
+                    }
                     manager._destroyInputParametersModal(view);
                 },
-                save: function () {
+                save: function (e) {
                     var updatedParameters = [];
 
                     if (view.inputParametersModalGrid &&
@@ -453,13 +457,15 @@ define([
                         view.callMethodGrid.widget.refresh();
                     }
 
+                    if (e && e.sender && typeof e.sender.close === "function") {
+                        e.sender.close();
+                    }
+                    manager._destroyInputParametersModal(view);
+                },
+                close: function () {
                     manager._destroyInputParametersModal(view);
                 }
             });
-
-            if (view.inputParametersModal && view.inputParametersModal.widget) {
-                view.inputParametersModal.widget.center().open();
-            }
         },
 
         _destroyInputParametersModal: function (view) {
@@ -469,6 +475,13 @@ define([
             }
 
             if (view.inputParametersModal) {
+                if (typeof view.inputParametersModal.close === "function") {
+                    try {
+                        view.inputParametersModal.close();
+                    } catch (e) {
+                        // ignore if already closed
+                    }
+                }
                 view._destroyComponent(view.inputParametersModal);
                 view.inputParametersModal = null;
             }
