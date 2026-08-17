@@ -410,7 +410,48 @@ define([
             var gridElement = $popoverWrapper.find(".input-parameters-modal-grid");
             view.inputParametersModalGrid = this._createInputParametersModalGrid(gridElement, inputParameters, view);
 
-            var $anchor = anchorElem ? $(anchorElem) : view.$el;
+            var $anchor = (anchorElem && $(anchorElem).length) ? $(anchorElem) : view.$el;
+
+            var saveHandler = function (e) {
+                var updatedParameters = [];
+
+                if (view.inputParametersModalGrid &&
+                    view.inputParametersModalGrid.widget &&
+                    view.inputParametersModalGrid.widget.dataSource) {
+                    updatedParameters = view.inputParametersModalGrid
+                        .widget.dataSource.data().toJSON();
+                }
+
+                if (dataItem.set) {
+                    dataItem.set("inputParameters", updatedParameters);
+                } else {
+                    dataItem.inputParameters = updatedParameters;
+                }
+
+                if (view.callMethodGrid && view.callMethodGrid.widget) {
+                    view.callMethodGrid.widget.refresh();
+                }
+
+                if (e && e.sender && typeof e.sender.close === "function") {
+                    try {
+                        e.sender.close();
+                    } catch (err) {
+                        // ignore
+                    }
+                }
+                manager._destroyInputParametersModal(view, true);
+            };
+
+            var cancelHandler = function (e) {
+                if (e && e.sender && typeof e.sender.close === "function") {
+                    try {
+                        e.sender.close();
+                    } catch (err) {
+                        // ignore
+                    }
+                }
+                manager._destroyInputParametersModal(view, true);
+            };
 
             view.inputParametersModal = uilayer.popOver({
                 elem: $popoverWrapper,
@@ -431,64 +472,46 @@ define([
                         uiStyle: "primary"
                     }
                 ],
-                cancel: function (e) {
-                    if (e && e.sender && typeof e.sender.close === "function") {
-                        e.sender.close();
-                    }
-                    manager._destroyInputParametersModal(view);
-                },
-                save: function (e) {
-                    var updatedParameters = [];
-
-                    if (view.inputParametersModalGrid &&
-                        view.inputParametersModalGrid.widget &&
-                        view.inputParametersModalGrid.widget.dataSource) {
-                        updatedParameters = view.inputParametersModalGrid
-                            .widget.dataSource.data().toJSON();
-                    }
-
-                    if (dataItem.set) {
-                        dataItem.set("inputParameters", updatedParameters);
-                    } else {
-                        dataItem.inputParameters = updatedParameters;
-                    }
-
-                    if (view.callMethodGrid && view.callMethodGrid.widget) {
-                        view.callMethodGrid.widget.refresh();
-                    }
-
-                    if (e && e.sender && typeof e.sender.close === "function") {
-                        e.sender.close();
-                    }
-                    manager._destroyInputParametersModal(view);
+                cancel: cancelHandler,
+                save: saveHandler,
+                ok: saveHandler,
+                messages: {
+                    ok: view.nls.Save || "Save",
+                    cancel: view.nls.Cancel || "Cancel"
                 },
                 close: function () {
-                    manager._destroyInputParametersModal(view);
+                    manager._destroyInputParametersModal(view, true);
                 }
             });
         },
 
-        _destroyInputParametersModal: function (view) {
+        _destroyInputParametersModal: function (view, isFromCloseCallback) {
             if (view.inputParametersModalGrid) {
                 view._destroyComponent(view.inputParametersModalGrid);
                 view.inputParametersModalGrid = null;
             }
 
             if (view.inputParametersModal) {
-                if (typeof view.inputParametersModal.close === "function") {
+                var popover = view.inputParametersModal;
+                view.inputParametersModal = null;
+
+                if (!isFromCloseCallback && typeof popover.close === "function") {
                     try {
-                        view.inputParametersModal.close();
+                        popover.close();
                     } catch (e) {
                         // ignore if already closed
                     }
                 }
-                view._destroyComponent(view.inputParametersModal);
-                view.inputParametersModal = null;
             }
 
             if (view._inputParametersModalWrapper) {
-                view._inputParametersModalWrapper.remove();
+                var $wrapper = view._inputParametersModalWrapper;
                 view._inputParametersModalWrapper = null;
+                try {
+                    $wrapper.remove();
+                } catch (e) {
+                    // ignore
+                }
             }
         }
     };
