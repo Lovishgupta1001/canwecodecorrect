@@ -171,9 +171,7 @@ define([
                 sortable: true,
                 filterable: true,
                 scrollable: true,
-                // Toolbar is now outside the grid (static div in template).
-                // Height = header(~2.2rem) + 3 rows(~6.6rem) + border(~0.2rem) = ~9rem
-                height: "10rem",
+                height: "14.5rem",
                 columns: this._getCallMethodColumns(view),
                 dataSource: this._getCallMethodDataSource(data)
             });

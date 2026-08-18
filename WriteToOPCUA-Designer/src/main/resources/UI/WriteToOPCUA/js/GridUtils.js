@@ -21,10 +21,28 @@ define(function (require) {
                 return null;
             }
 
+            var ds = grid.widget.dataSource;
+
+            searchElement.off("keyup.gridSearch input.gridSearch").on("keyup.gridSearch input.gridSearch", function () {
+                var val = $(this).val();
+                if (!val || val.trim() === "") {
+                    ds.filter([]);
+                } else {
+                    var query = val.trim();
+                    ds.filter({
+                        logic: "or",
+                        filters: [
+                            { field: field, operator: "contains", value: query },
+                            { field: "nodeId", operator: "contains", value: query }
+                        ]
+                    });
+                }
+            });
+
             return uilayer.searchBar({
                 elem: searchElement,
                 uiStyle: "",
-                dataSource: grid.widget.dataSource,
+                dataSource: ds,
                 filter: {
                     logic: "or",
                     filters: [
@@ -33,7 +51,7 @@ define(function (require) {
                     ]
                 },
                 placeholder: nls.Search,
-                filterAfter: 3
+                filterAfter: 1
             });
         },
 
