@@ -125,8 +125,7 @@ define(function (require) {
                     var savedTransportName = globalSelf.model.getKey("transportName");
                     if (savedTransportName && this.dataSource) {
                         var items = this.dataSource.data();
-                        for (var i = 0; i < items.length; i++) {
-                            var item = items[i];
+                        for (var item of items) {
                             var tName = item.transportName || item.name;
 
                             if (tName === savedTransportName) {
@@ -201,7 +200,7 @@ define(function (require) {
             if (typeof AjaxUtility !== "undefined" && AjaxUtility.commonAjaxRequest) {
                 var promise = AjaxUtility.commonAjaxRequest("GET", url, null, "json");
                 promise.done(function (data) {
-                    if (data === false || (data && data.success === false)) {
+                    if (data === false || (data?.success === false)) {
                         uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
                     }
                 });
@@ -221,7 +220,7 @@ define(function (require) {
                     type: "GET",
                     dataType: "json",
                     success: function (data) {
-                        if (data === false || (data && data.success === false)) {
+                        if (data === false || (data?.success === false)) {
                             uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
                         }
                     },

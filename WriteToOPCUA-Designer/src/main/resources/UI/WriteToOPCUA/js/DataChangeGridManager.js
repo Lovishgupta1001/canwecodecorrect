@@ -122,7 +122,7 @@ define([
         },
 
         _resizeGridIfExists: function (grid) {
-            if (grid && grid.widget) {
+            if (grid?.widget) {
                 grid.widget.resize();
                 return true;
             }
@@ -155,7 +155,7 @@ define([
                 dataSource: this._getDataChangeWriteDataSource(data)
             });
 
-            if (view.dataChangeWriteGrid && view.dataChangeWriteGrid.widget) {
+            if (view.dataChangeWriteGrid?.widget) {
                 view.dataChangeWriteGrid.widget.bind(
                     "dataBound",
                     this._initializeDataChangeDropdowns.bind(this, view)
@@ -256,9 +256,9 @@ define([
                 });
 
                 var initialVal = dataItem.get ? dataItem.get("dataChangeName") : dataItem.dataChangeName;
-                if (dropdown && dropdown.value) {
+                if (dropdown?.value) {
                     dropdown.value(initialVal || "");
-                } else if (dropdown && dropdown.widget && dropdown.widget.value) {
+                } else if (dropdown?.widget?.value) {
                     dropdown.widget.value(initialVal || "");
                 }
             });

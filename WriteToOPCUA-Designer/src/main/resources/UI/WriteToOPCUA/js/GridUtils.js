@@ -45,7 +45,7 @@ define(function (require) {
             var globalSelf = view;
             var searchElement = globalSelf.$("." + searchClass);
 
-            if (!searchElement.length || !grid || !grid.widget || !grid.widget.dataSource) {
+            if (!searchElement.length || !grid?.widget?.dataSource) {
                 return null;
             }
 
@@ -298,7 +298,7 @@ define(function (require) {
         },
 
         getInputParametersTemplate: function (viewOrDataItem) {
-            var dataItem = viewOrDataItem && viewOrDataItem.model ? null : (viewOrDataItem || {});
+            var dataItem = viewOrDataItem?.model ? null : (viewOrDataItem || {});
 
             return function (item) {
                 var targetItem = dataItem || item || {};
