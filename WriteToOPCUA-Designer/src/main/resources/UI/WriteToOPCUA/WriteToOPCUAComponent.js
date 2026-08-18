@@ -256,13 +256,12 @@ define(function (require) {
         },
 
         _checkBeforeDestroy: function _checkBeforeDestroy(obj) {
-            if (obj !== null && obj !== undefined) {
-                if (typeof obj.destroy === "function") {
+            if (obj) {
+                if (obj.destroy) {
                     obj.destroy();
-                } else if (typeof obj.onDestroy === "function") {
+                } else if (obj.onDestroy) {
                     obj.onDestroy();
                 }
-                obj = null;
             }
         },
 

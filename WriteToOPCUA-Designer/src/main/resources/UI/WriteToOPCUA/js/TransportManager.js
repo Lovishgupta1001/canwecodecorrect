@@ -83,7 +83,7 @@ define(function (require) {
             var dataSource = new uilayer.data.DataSource({
                 transport: {
                     read: function (options) {
-                        if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
+                        if (typeof AjaxUtility !== "undefined" && AjaxUtility.commonAjaxRequest) {
                             AjaxUtility.commonAjaxRequest("GET", "activities/writetoopcua/fetchOPCUATransportList", null, "json")
                                 .done(function (data) {
                                     options.success(data || []);
@@ -92,7 +92,7 @@ define(function (require) {
                                     options.error(err);
                                 });
                         } else {
-                            var requestUrl = uilayer.rest && typeof uilayer.rest.serviceUrl === "function"
+                            var requestUrl = (uilayer.rest && uilayer.rest.serviceUrl)
                                 ? uilayer.rest.serviceUrl("activities/writetoopcua/fetchOPCUATransportList")
                                 : "activities/writetoopcua/fetchOPCUATransportList";
 
@@ -198,7 +198,7 @@ define(function (require) {
 
             var url = "activities/writetoopcua/testTransportById?transportId=" + encodeURIComponent(transportId);
 
-            if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
+            if (typeof AjaxUtility !== "undefined" && AjaxUtility.commonAjaxRequest) {
                 var promise = AjaxUtility.commonAjaxRequest("GET", url, null, "json");
                 promise.done(function (data) {
                     if (data === false || (data && data.success === false)) {
@@ -206,13 +206,13 @@ define(function (require) {
                     }
                 });
                 promise.fail(function (err) {
-                    if (typeof logger !== "undefined" && typeof logger.error === "function") {
+                    if (typeof logger !== "undefined" && logger.error) {
                         logger.error("testTransportById request failed:", err);
                     }
                     uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
                 });
             } else {
-                var requestUrl = uilayer.rest && typeof uilayer.rest.serviceUrl === "function"
+                var requestUrl = (uilayer.rest && uilayer.rest.serviceUrl)
                     ? uilayer.rest.serviceUrl(url)
                     : url;
 
@@ -226,7 +226,7 @@ define(function (require) {
                         }
                     },
                     error: function (xhr, status, error) {
-                        if (typeof logger !== "undefined" && typeof logger.error === "function") {
+                        if (typeof logger !== "undefined" && logger.error) {
                             logger.error("testTransportById request failed:", error || status);
                         }
                         uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);

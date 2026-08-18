@@ -7,11 +7,6 @@ define([
 
     var DataChangeGridManager = {
         refreshGridMode: function (view) {
-            if (!view?.callMethodGrid && !view?.dataChangeWriteGrid) {
-                if (!view?.dataChangeWriteGrid) {
-                    return;
-                }
-            }
             if (!view?.dataChangeWriteGrid) {
                 return;
             }
@@ -261,9 +256,9 @@ define([
                 });
 
                 var initialVal = dataItem.get ? dataItem.get("dataChangeName") : dataItem.dataChangeName;
-                if (dropdown && typeof dropdown.value === "function") {
+                if (dropdown && dropdown.value) {
                     dropdown.value(initialVal || "");
-                } else if (dropdown && dropdown.widget && typeof dropdown.widget.value === "function") {
+                } else if (dropdown && dropdown.widget && dropdown.widget.value) {
                     dropdown.widget.value(initialVal || "");
                 }
             });

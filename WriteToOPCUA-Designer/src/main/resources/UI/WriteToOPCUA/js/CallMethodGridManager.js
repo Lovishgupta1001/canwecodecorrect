@@ -261,9 +261,9 @@ define([
                 });
 
                 var initialVal = dataItem.get ? dataItem.get("methodName") : dataItem.methodName;
-                if (dropdown && typeof dropdown.value === "function") {
+                if (dropdown && dropdown.value) {
                     dropdown.value(initialVal || "");
-                } else if (dropdown && dropdown.widget && typeof dropdown.widget.value === "function") {
+                } else if (dropdown && dropdown.widget && dropdown.widget.value) {
                     dropdown.widget.value(initialVal || "");
                 }
             });
@@ -415,14 +415,14 @@ define([
                     globalSelf.callMethodGrid.widget.refresh();
                 }
 
-                if (e && e.sender && typeof e.sender.close === "function") {
+                if (e && e.sender && e.sender.close) {
                     e.sender.close();
                 }
                 manager._destroyInputParametersModal(globalSelf, true);
             };
 
             var cancelHandler = function (e) {
-                if (e && e.sender && typeof e.sender.close === "function") {
+                if (e && e.sender && e.sender.close) {
                     e.sender.close();
                 }
                 manager._destroyInputParametersModal(globalSelf, true);
@@ -462,11 +462,11 @@ define([
             });
 
             if (globalSelf.inputParametersModal) {
-                if (typeof globalSelf.inputParametersModal.open === "function") {
+                if (globalSelf.inputParametersModal.open) {
                     globalSelf.inputParametersModal.open($anchor);
-                } else if (globalSelf.inputParametersModal.widget && typeof globalSelf.inputParametersModal.widget.open === "function") {
+                } else if (globalSelf.inputParametersModal.widget && globalSelf.inputParametersModal.widget.open) {
                     globalSelf.inputParametersModal.widget.open($anchor);
-                } else if (typeof globalSelf.inputParametersModal.show === "function") {
+                } else if (globalSelf.inputParametersModal.show) {
                     globalSelf.inputParametersModal.show();
                 }
             }
@@ -487,7 +487,7 @@ define([
                 var popover = globalSelf.inputParametersModal;
                 globalSelf.inputParametersModal = null;
 
-                if (!isFromCloseCallback && typeof popover.close === "function") {
+                if (!isFromCloseCallback && popover.close) {
                     popover.close();
                 }
             }

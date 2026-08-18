@@ -272,10 +272,10 @@ define(function (require) {
                 return "";
             }
             if (typeof val === "object") {
-                if (typeof val.value === "string") {
+                if (val.value) {
                     return val.value;
                 }
-                if (typeof val.expression === "string") {
+                if (val.expression) {
                     return val.expression;
                 }
                 return "";
@@ -306,7 +306,7 @@ define(function (require) {
                 var parameters = [];
 
                 if (params) {
-                    if (typeof params.toJSON === "function") {
+                    if (params.toJSON) {
                         parameters = params.toJSON();
                     } else if (params.length !== undefined) {
                         parameters = params;
