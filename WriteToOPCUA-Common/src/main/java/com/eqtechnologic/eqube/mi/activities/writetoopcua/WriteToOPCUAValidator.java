@@ -14,6 +14,9 @@ import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUA
 import com.eqtechnologic.eqube.mi.component.service.ComponentService;
 import com.eqtechnologic.eqube.mi.component.service.ComponentValidator;
 import com.eqtechnologic.eqube.mi.component.utility.ComponentUtility;
+import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
+import com.eqtechnologic.eqube.platform.transport.client.constants.TransportClientConstants;
+import com.eqtechnologic.eqube.platform.transport.client.service.TransportClientService;
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
 
 import java.util.ArrayList;
@@ -51,6 +54,10 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                     ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, WriteToOPCUAConstants.TRANSPORT_NAME),
                     false);
             errorList.add(error);
+        } else {
+            if (!dynamicTransport) {
+                validateTransport(transportName, errorList, configMap);
+            }
         }
 
         String operation = (String) configMap.get(WriteToOPCUAConstants.OPERATION);
@@ -61,6 +68,21 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                         ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "dataChangeWrite"),
                         false);
                 errorList.add(error);
+            } else {
+                int row = 1;
+                for (Map<String, Object> item : dataChangeWriteList) {
+                    if (item != null) {
+                        String dcName = (String) item.get("dataChangeName");
+                        String newValue = (String) item.get("newValue");
+                        if (dynamicTransport && dcName != null) {
+                            validateExpression(dcName, additionalInfo, errorList, "dataChangeWrite/" + row + "/dataChangeName");
+                        }
+                        if (newValue != null && !newValue.isEmpty()) {
+                            validateExpression(newValue, additionalInfo, errorList, "dataChangeWrite/" + row + "/newValue");
+                        }
+                    }
+                    row++;
+                }
             }
         } else if (WriteToOPCUAConstants.CALL_METHOD.equals(operation)) {
             List<Map<String, Object>> callMethodList = (List<Map<String, Object>>) configMap.get("callMethod");
@@ -69,10 +91,61 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                         ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "callMethod"),
                         false);
                 errorList.add(error);
+            } else {
+                int row = 1;
+                for (Map<String, Object> item : callMethodList) {
+                    if (item != null) {
+                        String methodName = (String) item.get("methodName");
+                        if (dynamicTransport && methodName != null) {
+                            validateExpression(methodName, additionalInfo, errorList, "callMethod/" + row + "/methodName");
+                        }
+                        List<Map<String, Object>> inputParams = (List<Map<String, Object>>) item.get("inputParameters");
+                        if (inputParams != null) {
+                            int pRow = 1;
+                            for (Map<String, Object> param : inputParams) {
+                                if (param != null) {
+                                    String pVal = (String) param.get("value");
+                                    if (pVal != null && !pVal.isEmpty()) {
+                                        validateExpression(pVal, additionalInfo, errorList, "callMethod/" + row + "/inputParameters/" + pRow + "/value");
+                                    }
+                                }
+                                pRow++;
+                            }
+                        }
+                    }
+                    row++;
+                }
             }
         }
 
         return errorList;
+    }
+
+    private void validateTransport(String transportName, List<eQError> errorList, Map<String, Object> configMap) {
+        try {
+            boolean isDynamicTransport = true;
+            TransportClientBean transportClientBean = getTransportClientService().getTransportDetail(transportName);
+            if (transportClientBean != null) {
+                isDynamicTransport = false;
+            }
+
+            if (!isDynamicTransport) {
+                errorList.addAll(Collections.emptyList());
+            } else {
+                eQError error = new eQError("writetoopcua.transportNotFound", COMPONENT_ERR,
+                        ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, WriteToOPCUAConstants.TRANSPORT_NAME),
+                        false);
+                errorList.add(error);
+            }
+        } catch (Exception e) {
+            eQError errorMsg = new eQError("writetoopcua.transportFrameworkError_transport", COMPONENT_ERR,
+                    null, true);
+            errorList.add(errorMsg);
+        }
+    }
+
+    private TransportClientService getTransportClientService() {
+        return ServiceRegistry.getInstance().getService(TransportClientConstants.SERVICE_NAME);
     }
 
     private void validateExpression(String expressionValue, Map map, List<eQError> errors, String resource) {
