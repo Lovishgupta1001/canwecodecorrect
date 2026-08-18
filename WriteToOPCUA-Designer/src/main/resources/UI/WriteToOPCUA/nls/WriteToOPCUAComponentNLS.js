@@ -54,6 +54,7 @@ define({
         "NodeIdLabel": "Node ID",
         "SampleValueLabel": "Sample Value",
         "Copy": "Copy",
-        "Copied": "Copied"
+        "Copied": "Copied",
+        "ViewInputParameters": "View input parameters"
     }
 });

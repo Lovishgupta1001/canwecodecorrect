@@ -61,7 +61,7 @@ define(function (require) {
                 if (typeof rawHelpText === "object") {
                     try {
                         return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
-                            "<pre style='margin:0;font-family:inherit;white-space:pre-wrap;'>" +
+                            "<pre class='sample-value-tooltip-content'>" +
                             _.escape(JSON.stringify(rawHelpText, null, 2)) +
                             "</pre>";
                     } catch (e) {
@@ -122,7 +122,8 @@ define(function (require) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    var text = $("<textarea/>").html($(this).attr("data-copy")).text();
+                    var $copyBtn = $(this);
+                    var text = $("<textarea/>").html($copyBtn.attr("data-copy")).text();
 
                     if (navigator.clipboard) {
                         navigator.clipboard.writeText(text);
@@ -132,6 +133,16 @@ define(function (require) {
                         temp.val(text).select();
                         document.execCommand("copy");
                         temp.remove();
+                    }
+
+                    if (!$copyBtn.siblings(".sample-copy-success").length) {
+                        var $successMsg = $("<span class='sample-copy-success'>" + _.escape(nls.Copied) + "</span>");
+                        $copyBtn.after($successMsg);
+                        setTimeout(function () {
+                            $successMsg.fadeOut(300, function () {
+                                $(this).remove();
+                            });
+                        }, 1200);
                     }
                 });
         },
@@ -204,19 +215,19 @@ define(function (require) {
                 var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
                 var contentText = rawHelpText ? String(rawHelpText) : sampleValue;
                 var sampleValueHelpText =
-                    "<div class='ul-body-m-b' style='display:flex;justify-content:space-between;align-items:center;'>" +
-                    "<span>Sample Value</span>" +
+                    "<div class='ul-body-m-b sample-value-tooltip-header'>" +
+                    "<span>" + _.escape(nls.SampleValue) + "</span>" +
                     "<span class='eQ-icon eQ-fonts-copy sample-value-copy-icon eq-cursor-pointer' " +
                     "data-copy='" + _.escape(contentText) + "' " +
-                    "title='Copy'></span>" +
+                    "title='" + _.escape(nls.Copy) + "'></span>" +
                     "</div>" +
-                    "<pre style='margin:0;font-family:inherit;white-space:pre-wrap;'>" +
+                    "<pre class='sample-value-tooltip-content'>" +
                     _.escape(contentText) +
                     "</pre>";
                 var hasSelection = !!dataItem.dataChangeName;
 
                 return "<div class='writetoopcua-info-cell'>" +
-                    "<span class='writetoopcua-info-cell-value' style='white-space: pre-wrap;' " +
+                    "<span class='writetoopcua-info-cell-value sample-value-text' " +
                     "title='" + _.escape(sampleValue) + "'>" +
                     _.escape(sampleValue) +
                     "</span>" +
@@ -290,7 +301,7 @@ define(function (require) {
                     (count > 0
                         ? "<button type='button' " +
                           "class='input-parameter-badge' " +
-                          "title='View input parameters'>" +
+                          "title='" + _.escape(nls.ViewInputParameters) + "'>" +
                           count +
                           "</button>"
                         : "") +
