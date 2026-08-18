@@ -10,6 +10,32 @@ define(function (require) {
 
     var GridUtils = {
 
+        getOperationGridToolbar: function (searchClass, nls) {
+            var addBtnClass = searchClass.indexOf("data-change") !== -1
+                ? "data-change-write-add-btn"
+                : "call-method-add-btn";
+
+            return [
+                {
+                    template: function () {
+                        return "<div class='writetoopcua-grid-toolbar'>" +
+                            "<div class='writetoopcua-grid-search'>" +
+                            "<input type='text' class='" + searchClass + "'/>" +
+                            "</div>" +
+                            "<div class='writetoopcua-grid-actions'>" +
+                            "<button type='button' class='" + addBtnClass + "' title='" + nls.Add + "'>" +
+                            "<span class='eQ-icon eQ-fonts-addRow'></span>" +
+                            "</button>" +
+                            "<button type='button' class='writetoopcua-grid-delete-btn' title='" + nls.Delete + "'>" +
+                            "<span class='eQ-icon eQ-fonts-removeRow'></span>" +
+                            "</button>" +
+                            "</div>" +
+                            "</div>";
+                    }
+                }
+            ];
+        },
+
         getDeleteActionTemplate: function (nls) {
             return "<span class='eQ-icon eQ-fonts-delete eq-cursor-pointer writetoopcua-delete-row' " +
                 "title='" + nls.Delete + "'></span>";

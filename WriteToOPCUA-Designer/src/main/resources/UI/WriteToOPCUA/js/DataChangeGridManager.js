@@ -138,6 +138,7 @@ define([
 
             view.dataChangeWriteGrid = uilayer.grid({
                 elem: view.$(".cvt-grid-div-data-change-write"),
+                toolbar: GridUtils.getOperationGridToolbar("data-change-write-search", view.nls),
                 editable: {
                     mode: "incell",
                     createAt: "bottom"
@@ -149,7 +150,7 @@ define([
                 sortable: true,
                 filterable: true,
                 scrollable: true,
-                height: "14.5rem",
+                height: "13rem",
                 columns: this._getDataChangeWriteColumns(view),
                 dataSource: this._getDataChangeWriteDataSource(data)
             });

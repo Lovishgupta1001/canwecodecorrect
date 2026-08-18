@@ -140,6 +140,7 @@ define([
 
             view.callMethodGrid = uilayer.grid({
                 elem: view.$(".cvt-grid-div-call-method"),
+                toolbar: GridUtils.getOperationGridToolbar("call-method-search", view.nls),
                 editable: {
                     mode: "incell",
                     createAt: "bottom"
@@ -151,7 +152,7 @@ define([
                 sortable: true,
                 filterable: true,
                 scrollable: true,
-                height: "14.5rem",
+                height: "13rem",
                 columns: this._getCallMethodColumns(view),
                 dataSource: this._getCallMethodDataSource(data)
             });
