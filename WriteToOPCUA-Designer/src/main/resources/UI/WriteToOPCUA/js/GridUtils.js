@@ -38,7 +38,7 @@ define(function (require) {
 
         getDeleteActionTemplate: function (nls) {
             return "<span class='eQ-icon eQ-fonts-delete eq-cursor-pointer writetoopcua-delete-row' " +
-                "title='" + nls.Delete + "'></span>";
+                "title='" + (nls ? nls.Delete : "Delete") + "'></span>";
         },
 
         renderGridSearchBar: function (searchClass, grid, field, view, nls) {
@@ -124,25 +124,23 @@ define(function (require) {
         },
 
         initializeGridHelpTooltips: function (container) {
-            container.find(".grid-help-container").each(this._initializeHelpTooltip);
+            if (typeof uilayer !== "undefined" && uilayer.help) {
+                container.find(".node-id-help-icon, .sample-value-help-icon, .node-id-help-tooltip, .sample-value-help-tooltip, .grid-help-container").each(function () {
+                    var elem = $(this);
+                    if (!elem.data("help-initialized")) {
+                        elem.data("help-initialized", true);
+                        uilayer.help({
+                            elem: elem,
+                            position: "top",
+                            width: "12rem"
+                        });
+                    }
+                });
+            }
 
             $(document)
                 .off("click.sampleValueCopy")
                 .on("click.sampleValueCopy", ".sample-value-copy-icon", this._handleSampleValueCopy);
-        },
-
-        _initializeHelpTooltip: function () {
-            var elem = $(this);
-
-            if (!elem.data("help-initialized")) {
-                elem.data("help-initialized", true);
-
-                uilayer.help({
-                    elem: elem,
-                    position: "top",
-                    width: "12rem"
-                });
-            }
         },
 
         _handleSampleValueCopy: function (e) {
@@ -177,10 +175,11 @@ define(function (require) {
 
         getNodeIdTemplate: function (selectionField) {
             return function (dataItem) {
-                var nodeId = dataItem.nodeId || "";
+                var nodeId = (dataItem.get ? dataItem.get("nodeId") : dataItem.nodeId) || "";
                 var rawHelpText = dataItem.nodeIdHelpText || dataItem.nodeIdDetails || dataItem.nodeDetails;
                 var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId);
-                var hasSelection = !!dataItem[selectionField];
+                var selVal = dataItem.get ? dataItem.get(selectionField) : dataItem[selectionField];
+                var hasSelection = !!selVal;
 
                 return "<div class='writetoopcua-info-cell'>" +
                     "<span class='writetoopcua-info-cell-value' " +
@@ -188,9 +187,9 @@ define(function (require) {
                     _.escape(nodeId) +
                     "</span>" +
                     (hasSelection
-                        ? "<div class='grid-help-container writetoopcua-info-icon'>" +
-                        "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
-                        "</div>"
+                        ? "<span class='eQ-icon eQ-fonts-info writetoopcua-info-icon node-id-help-icon' " +
+                        "title='" + _.escape(nodeIdHelpText) + "' " +
+                        "data-help='" + _.escape(nodeIdHelpText) + "'></span>"
                         : "") +
                     "</div>";
             };
@@ -237,7 +236,7 @@ define(function (require) {
 
         getSampleValueTemplate: function () {
             return function (dataItem) {
-                var rawSampleValue = dataItem.sampleValue;
+                var rawSampleValue = dataItem.get ? dataItem.get("sampleValue") : dataItem.sampleValue;
                 var sampleValue = GridUtils.formatSampleValue(rawSampleValue);
                 var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
                 var contentText = rawHelpText ? String(rawHelpText) : sampleValue;
@@ -251,7 +250,8 @@ define(function (require) {
                     "<pre class='sample-value-tooltip-content'>" +
                     _.escape(contentText) +
                     "</pre>";
-                var hasSelection = !!dataItem.dataChangeName;
+                var selVal = dataItem.get ? dataItem.get("dataChangeName") : dataItem.dataChangeName;
+                var hasSelection = !!selVal;
 
                 return "<div class='writetoopcua-info-cell'>" +
                     "<span class='writetoopcua-info-cell-value sample-value-text' " +
@@ -259,9 +259,9 @@ define(function (require) {
                     _.escape(sampleValue) +
                     "</span>" +
                     (hasSelection
-                        ? "<div class='grid-help-container writetoopcua-info-icon'>" +
-                        "<input class='sample-value-help-tooltip' data-help='" + _.escape(sampleValueHelpText) + "'/>" +
-                        "</div>"
+                        ? "<span class='eQ-icon eQ-fonts-info writetoopcua-info-icon sample-value-help-icon' " +
+                        "title='" + _.escape(sampleValueHelpText) + "' " +
+                        "data-help='" + _.escape(sampleValueHelpText) + "'></span>"
                         : "") +
                     "</div>";
             };
@@ -284,7 +284,7 @@ define(function (require) {
         },
 
         getOutputValueTemplate: function (dataItem) {
-            var outputValue = dataItem.outputValue || "";
+            var outputValue = (dataItem.get ? dataItem.get("outputValue") : dataItem.outputValue) || "";
             var isEmpty = !outputValue;
 
             return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
@@ -301,7 +301,7 @@ define(function (require) {
             var dataItem = viewOrDataItem?.model ? null : (viewOrDataItem || {});
 
             return function (item) {
-                var targetItem = dataItem || item || {};
+                var targetItem = (dataItem && dataItem.inputParameters) ? dataItem : (item || {});
                 var params = targetItem.inputParameters;
                 var parameters = [];
 
