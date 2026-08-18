@@ -7,7 +7,7 @@ define([
 
     var DataChangeGridManager = {
         refreshGridMode: function (view) {
-            if (!view || !view.dataChangeWriteGrid) {
+            if (!view?.dataChangeWriteGrid) {
                 return;
             }
 
@@ -122,7 +122,7 @@ define([
         },
 
         _resizeGridIfExists: function (grid) {
-            if (grid && grid.widget) {
+            if (grid?.widget) {
                 grid.widget.resize();
                 return true;
             }
@@ -155,7 +155,7 @@ define([
                 dataSource: this._getDataChangeWriteDataSource(data)
             });
 
-            if (view.dataChangeWriteGrid && view.dataChangeWriteGrid.widget) {
+            if (view.dataChangeWriteGrid?.widget) {
                 view.dataChangeWriteGrid.widget.bind(
                     "dataBound",
                     this._initializeDataChangeDropdowns.bind(this, view)
@@ -172,7 +172,6 @@ define([
                 view.nls
             );
         },
-
 
         _initializeDataChangeDropdowns: function (view) {
             GridUtils.initializeGridHelpTooltips(view.$el);

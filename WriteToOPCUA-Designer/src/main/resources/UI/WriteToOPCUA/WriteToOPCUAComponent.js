@@ -45,7 +45,6 @@ define(function (require) {
             }
         },
 
-
         onRender: function () {
             var deferred = $.Deferred();
 
@@ -55,17 +54,18 @@ define(function (require) {
             var operationGroupName = "operation-" + actId;
             var executionModeGroupName = "execution-mode-" + actId;
 
+            // change required
             this.$(".data-change-write-radio, .call-method-radio")
                 .attr("name", operationGroupName);
 
             this.$(".parallel-mode-radio, .sequential-mode-radio")
                 .attr("name", executionModeGroupName);
 
-            var operation = this.model.getKey("operation") || Constants.DATA_CHANGE_WRITE;
+            var operation = this.model.getKey("operation");
             this.$(".data-change-write-radio").prop("checked", operation === Constants.DATA_CHANGE_WRITE);
             this.$(".call-method-radio").prop("checked", operation === Constants.CALL_METHOD);
 
-            var executionMode = this.model.getKey("executionMode") || Constants.PARALLEL;
+            var executionMode = this.model.getKey("executionMode");
             this.$(".parallel-mode-radio").prop("checked", executionMode === Constants.PARALLEL);
             this.$(".sequential-mode-radio").prop("checked", executionMode === Constants.SEQUENTIAL);
 
@@ -103,7 +103,6 @@ define(function (require) {
         _initializeControls: function () {
             this.$(".data-change-write-container").hide();
             this.$(".call-method-container").hide();
-            this.$("#transport-name-expression-region").hide();
         },
 
         _getGridInstance: function () {
@@ -130,7 +129,7 @@ define(function (require) {
 
             if (grid) {
                 var selectedRow = grid.select();
-                if (selectedRow && selectedRow.length) {
+                if (selectedRow?.length) {
                     grid.removeRow(selectedRow);
                 } else {
                     var lastRow = grid.tbody.find("tr:last");
@@ -173,7 +172,6 @@ define(function (require) {
             DataChangeGridManager.refreshGridMode(this);
             CallMethodGridManager.refreshGridMode(this);
         },
-
 
         _updateOperationUI: function () {
             var operation = this.$(".data-change-write-radio").is(":checked")

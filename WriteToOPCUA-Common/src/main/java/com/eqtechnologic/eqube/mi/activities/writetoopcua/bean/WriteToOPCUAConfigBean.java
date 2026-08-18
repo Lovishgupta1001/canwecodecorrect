@@ -26,7 +26,6 @@ public class WriteToOPCUAConfigBean extends ActivityConfigBean {
 
     private Boolean dynamicTransport = Boolean.FALSE;
 
-    @ComponentData(componentName = ExpressionBuilderConstants.EXPRESSION_BUILDER_SERVICE, mandatory = false)
     private String transportName;
 
     private String operation = WriteToOPCUAConstants.DATA_CHANGE_WRITE;

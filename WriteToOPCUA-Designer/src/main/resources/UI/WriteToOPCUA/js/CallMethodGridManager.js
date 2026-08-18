@@ -6,13 +6,14 @@ define([
     "use strict";
 
     var CallMethodGridManager = {
+
         _outputValueEditor: function (container, options) {
             var input = $("<input type='text' class='ul-textbox' name='" + options.field + "'/>");
             container.append(input);
         },
 
         refreshGridMode: function (view) {
-            if (!view || !view.callMethodGrid) {
+            if (!view?.callMethodGrid) {
                 return;
             }
 
@@ -124,7 +125,7 @@ define([
         },
 
         _resizeGridIfExists: function (grid) {
-            if (grid && grid.widget) {
+            if (grid?.widget) {
                 grid.widget.resize();
                 return true;
             }
@@ -157,7 +158,7 @@ define([
                 dataSource: this._getCallMethodDataSource(data)
             });
 
-            if (view.callMethodGrid && view.callMethodGrid.widget) {
+            if (view.callMethodGrid?.widget) {
                 view.callMethodGrid.widget.bind(
                     "dataBound",
                     this._initializeMethodDropdowns.bind(this, view)
@@ -259,9 +260,9 @@ define([
                 });
 
                 var initialVal = dataItem.get ? dataItem.get("methodName") : dataItem.methodName;
-                if (dropdown && dropdown.value) {
+                if (dropdown?.value) {
                     dropdown.value(initialVal || "");
-                } else if (dropdown && dropdown.widget && dropdown.widget.value) {
+                } else if (dropdown?.widget?.value) {
                     dropdown.widget.value(initialVal || "");
                 }
             });
@@ -398,9 +399,7 @@ define([
             var saveHandler = function (e) {
                 var updatedParameters = [];
 
-                if (view.inputParametersModalGrid &&
-                    view.inputParametersModalGrid.widget &&
-                    view.inputParametersModalGrid.widget.dataSource) {
+                if (view.inputParametersModalGrid?.widget?.dataSource) {
                     updatedParameters = view.inputParametersModalGrid
                         .widget.dataSource.data().toJSON();
                 }
@@ -411,11 +410,11 @@ define([
                     dataItem.inputParameters = updatedParameters;
                 }
 
-                if (view.callMethodGrid && view.callMethodGrid.widget) {
+                if (view.callMethodGrid?.widget) {
                     view.callMethodGrid.widget.refresh();
                 }
 
-                if (e && e.sender && typeof e.sender.close === "function") {
+                if (typeof e?.sender?.close === "function") {
                     try {
                         e.sender.close();
                     } catch (err) {
@@ -426,7 +425,7 @@ define([
             };
 
             var cancelHandler = function (e) {
-                if (e && e.sender && typeof e.sender.close === "function") {
+                if (e?.sender && typeof e.sender.close === "function") {
                     try {
                         e.sender.close();
                     } catch (err) {
