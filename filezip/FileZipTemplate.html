@@ -1,0 +1,89 @@
+<!--<link rel="stylesheet" href="Activities/FileZip/UI/FileZip/style/style.css"/>-->
+
+<div class="config-div ul-label-large" id="file-zip-congifuration-container">
+<div id="file-zip-tabstrip">
+<ul>
+<li><%=nls.tabs.source%></li>
+<li><%=nls.tabs.destination%></li>
+</ul>
+<div class="file-zip-source-tab tab-container">
+<div id="file-zip-source-tab-container">
+<div id="file-zip-src-section" class="ul-form-container">
+<div class="ul-form-small ul-col-lg-8 ul-pad-0x">
+<div class="file-zip-header ul-pad-2x-r ul-pad-2x-t ul-pad-1x-b">
+<span class="file-zip-header-label ul-header-xxs-b"><%-nls.labelHeader.folderFileSelection%></span>
+</div>
+<div class="file-zip-comp">
+<div id="file-zip-src-system-conn-comp"></div>
+<div id="file-zip-file-selection-comp"></div>
+<div class="ul-label-large">
+<div id="hide-preserve" class="ul-form-row ul-flex-gap-3x ul-pad-2x-r ul-pad-2x-b">
+<div class="ul-label-container">
+<label class="file-label-wrapper ul-body-m-b" for="preserveFolder"><%=nls.preserveFolderStructure%></label>
+</div>
+<div class=" file-zip-checkbox ul-input-container">
+<input type="checkbox" id="preserveFolder" class="preserve-folder-checkbox" value="PreserveStructure" checked>
+</div>
+</div>
+<div id="create_parent_folder" class="ul-form-row ul-flex-gap-3x ul-pad-2x-r ul-pad-2x-b">
+<div class="ul-label-container">
+<label class="file-label-wrapper ul-body-m-b" for="preserveParentFolder"><%=nls.preserveParentFolder%></label>
+</div>
+<div class=" file-zip-checkbox ul-input-container">
+<input type="checkbox" id="preserveParentFolder" class="preserve-parent-folder-checkbox" value="parentFolder" checked>
+</div>
+</div>
+<div class="ul-form-row ul-flex-gap-3x ul-pad-2x-r ul-pad-2x-b">
+<div class="ul-label-container">
+<label class="file-label-wrapper ul-body-m-b" for="deleteInputFiles"><%=nls['FileZip.deleteInputFiles']%></label>
+</div>
+<div class=" file-zip-checkbox ul-input-container">
+<input type="checkbox" id="deleteInputFiles" class="delete-input-files-checkbox" value="DeleteInputFiles" checked>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="file-zip-src-explorer-section" name="file-zip-src-explorer-section" class="layouting-div">
+<div id="file-zip-src-explorer-component"></div>
+</div>
+</div>
+</div>
+<div class="file-zip-destination-tab tab-container">
+<div id="file-zip-dest-tab-container">
+<div id="file-zip-dest-section" class="ul-form-container">
+<div class="ul-form-small ul-col-lg-8 ul-pad-0x">
+<div class="file-zip-header ul-pad-2x-r ul-pad-2x-t ul-pad-1x-b">
+<span class="file-zip-header-label ul-header-xxs-b"><%-nls.labelHeader.folderFileSelection%></span>
+</div>
+<div class="file-zip-comp">
+<div id="file-zip-dest-system-conn-comp"></div>
+<div class="ul-label-large">
+<div class="ul-form-row ul-flex-gap-3x ul-pad-2x-r ul-pad-2x-b">
+<div class="ul-label-container propertyLabels">
+<label class="ul-required archive-name ul-body-m-b" for="archiveName"><%=nls['FileZip.archiveName']%></label>
+</div>
+<div class="ul-input-container file-eb-container propertyValue">
+<div id="archiveName" class="expression-editor ul-container" data-bind="value:expBuilder"></div>
+</div>
+</div>
+<div class="ul-form-row ul-flex-gap-3x ul-pad-2x-r ul-pad-2x-b">
+<div class="ul-label-container">
+<label class="file-label-wrapper ul-body-m-b" for="archiveType"><%=nls['FileZip.archiveType']%></label>
+</div>
+<div class="ul-input-container">
+<div id="archiveType" class="ul-container"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="file-zip-dest-explorer-section" name="file-zip-dest-explorer-section" class="layouting-div">
+<div id="file-zip-dest-explorer-component"></div>
+</div>
+</div>
+</div>
+</div>
+</div>

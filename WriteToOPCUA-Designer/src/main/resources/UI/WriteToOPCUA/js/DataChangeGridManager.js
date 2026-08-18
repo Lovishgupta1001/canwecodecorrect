@@ -7,6 +7,11 @@ define([
 
     var DataChangeGridManager = {
         refreshGridMode: function (view) {
+            if (!view?.callMethodGrid && !view?.dataChangeWriteGrid) {
+                if (!view?.dataChangeWriteGrid) {
+                    return;
+                }
+            }
             if (!view?.dataChangeWriteGrid) {
                 return;
             }
@@ -122,7 +127,7 @@ define([
         },
 
         _resizeGridIfExists: function (grid) {
-            if (grid?.widget) {
+            if (grid && grid.widget) {
                 grid.widget.resize();
                 return true;
             }
@@ -155,7 +160,7 @@ define([
                 dataSource: this._getDataChangeWriteDataSource(data)
             });
 
-            if (view.dataChangeWriteGrid?.widget) {
+            if (view.dataChangeWriteGrid && view.dataChangeWriteGrid.widget) {
                 view.dataChangeWriteGrid.widget.bind(
                     "dataBound",
                     this._initializeDataChangeDropdowns.bind(this, view)
@@ -174,11 +179,13 @@ define([
         },
 
         _initializeDataChangeDropdowns: function (view) {
-            GridUtils.initializeGridHelpTooltips(view.$el);
-            view.$(".data-change-name-dropdown").each(function () {
+            var globalSelf = view;
+            GridUtils.initializeGridHelpTooltips(globalSelf.$el);
+
+            globalSelf.$(".data-change-name-dropdown").each(function () {
                 var element = $(this);
                 var row = element.closest("tr");
-                var grid = view.dataChangeWriteGrid ? view.dataChangeWriteGrid.widget : null;
+                var grid = globalSelf.dataChangeWriteGrid ? globalSelf.dataChangeWriteGrid.widget : null;
 
                 if (!grid) {
                     return;
@@ -201,7 +208,7 @@ define([
                 if (existingDropdown) {
                     if (existingDropdown.setDataSource) {
                         existingDropdown.setDataSource(new uilayer.data.DataSource({
-                            data: view.dataChangeOptions || []
+                            data: globalSelf.dataChangeOptions || []
                         }));
                     }
                     return;
@@ -215,12 +222,12 @@ define([
                 var dropdown = uilayer.dropDownList({
                     elem: element,
                     dataSource: new uilayer.data.DataSource({
-                        data: view.dataChangeOptions || []
+                        data: globalSelf.dataChangeOptions || []
                     }),
                     dataTextField: "dataChangeName",
                     dataValueField: "dataChangeName",
                     optionLabel: {
-                        dataChangeName: view.nls.SelectDataChange
+                        dataChangeName: globalSelf.nls.SelectDataChange
                     },
                     change: function () {
                         var selectedValue = this.value();
@@ -254,9 +261,9 @@ define([
                 });
 
                 var initialVal = dataItem.get ? dataItem.get("dataChangeName") : dataItem.dataChangeName;
-                if (typeof dropdown?.value === "function") {
+                if (dropdown && typeof dropdown.value === "function") {
                     dropdown.value(initialVal || "");
-                } else if (typeof dropdown?.widget?.value === "function") {
+                } else if (dropdown && dropdown.widget && typeof dropdown.widget.value === "function") {
                     dropdown.widget.value(initialVal || "");
                 }
             });

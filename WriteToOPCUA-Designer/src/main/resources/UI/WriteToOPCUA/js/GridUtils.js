@@ -42,9 +42,10 @@ define(function (require) {
         },
 
         renderGridSearchBar: function (searchClass, grid, field, view, nls) {
-            var searchElement = view.$("." + searchClass);
+            var globalSelf = view;
+            var searchElement = globalSelf.$("." + searchClass);
 
-            if (!searchElement.length || !grid?.widget?.dataSource) {
+            if (!searchElement.length || !grid || !grid.widget || !grid.widget.dataSource) {
                 return null;
             }
 
@@ -85,16 +86,10 @@ define(function (require) {
         _formatNodeDetailsHelpText: function (dataItem, rawHelpText, nodeId) {
             if (rawHelpText) {
                 if (typeof rawHelpText === "object") {
-                    try {
-                        return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
-                            "<pre class='sample-value-tooltip-content'>" +
-                            _.escape(JSON.stringify(rawHelpText, null, 2)) +
-                            "</pre>";
-                    } catch (e) {
-                        console.error("Error formatting node details help text:", e);
-                        return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
-                            "<div>" + _.escape(String(rawHelpText)) + "</div>";
-                    }
+                    return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
+                        "<pre class='sample-value-tooltip-content'>" +
+                        _.escape(JSON.stringify(rawHelpText, null, 2)) +
+                        "</pre>";
                 }
                 return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
                     "<div>" + _.escape(String(rawHelpText)) + "</div>";
@@ -129,9 +124,7 @@ define(function (require) {
         },
 
         initializeGridHelpTooltips: function (container) {
-            if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                container.find(".grid-help-container").each(this._initializeHelpTooltip);
-            }
+            container.find(".grid-help-container").each(this._initializeHelpTooltip);
 
             $(document)
                 .off("click.sampleValueCopy")
@@ -147,7 +140,7 @@ define(function (require) {
                 uilayer.help({
                     elem: elem,
                     position: "top",
-                    width: "12rem",
+                    width: "12rem"
                 });
             }
         },
@@ -214,12 +207,7 @@ define(function (require) {
                 return String(valueToFormat);
             }
 
-            try {
-                return JSON.stringify(valueToFormat, null, 2);
-            } catch (e) {
-                console.log("Exception while stringifying sample value: " + e);
-                return String(valueToFormat);
-            }
+            return JSON.stringify(valueToFormat, null, 2);
         },
 
         _extractSampleValue: function (value) {
@@ -241,18 +229,10 @@ define(function (require) {
                 return value;
             }
 
-            try {
-                var parsed = JSON.parse(trimmed);
-
-                return parsed &&
-                typeof parsed === "object" &&
-                parsed.hasOwnProperty("Value")
-                    ? parsed.Value
-                    : parsed;
-            } catch (e) {
-                console.log("Exception while parsing sample value JSON: " + e);
-                return value;
-            }
+            var parsed = JSON.parse(trimmed);
+            return parsed && typeof parsed === "object" && parsed.hasOwnProperty("Value")
+                ? parsed.Value
+                : parsed;
         },
 
         getSampleValueTemplate: function () {
@@ -318,7 +298,7 @@ define(function (require) {
         },
 
         getInputParametersTemplate: function (viewOrDataItem) {
-            var dataItem = viewOrDataItem?.model ? null : (viewOrDataItem || {});
+            var dataItem = viewOrDataItem && viewOrDataItem.model ? null : (viewOrDataItem || {});
 
             return function (item) {
                 var targetItem = dataItem || item || {};

@@ -2,6 +2,7 @@
  * Created by Lovish.
  */
 define(function (require) {
+    "use strict";
 
     var uilayer = require("uilayer"),
         template = require("tpl!./template/WriteToOPCUAComponentTemplate"),
@@ -39,7 +40,6 @@ define(function (require) {
             if (!this.model.getKey("dataChangeWrite")) {
                 this.model.setKey("dataChangeWrite", []);
             }
-
             if (!this.model.getKey("callMethod")) {
                 this.model.setKey("callMethod", []);
             }
@@ -54,12 +54,8 @@ define(function (require) {
             var operationGroupName = "operation-" + actId;
             var executionModeGroupName = "execution-mode-" + actId;
 
-            // change required
-            this.$(".data-change-write-radio, .call-method-radio")
-                .attr("name", operationGroupName);
-
-            this.$(".parallel-mode-radio, .sequential-mode-radio")
-                .attr("name", executionModeGroupName);
+            this.$(".data-change-write-radio, .call-method-radio").attr("name", operationGroupName);
+            this.$(".parallel-mode-radio, .sequential-mode-radio").attr("name", executionModeGroupName);
 
             var operation = this.model.getKey("operation");
             this.$(".data-change-write-radio").prop("checked", operation === Constants.DATA_CHANGE_WRITE);
@@ -74,29 +70,26 @@ define(function (require) {
             this._renderHelp();
 
             deferred.resolve();
-
             return deferred.promise();
         },
 
         _renderHelp: function () {
-            if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                var parallelElem = this.$el.find("#parallel-mode-help-container");
-                if (parallelElem.length) {
-                    uilayer.help({
-                        elem: parallelElem,
-                        position: "top",
-                        width: "15%"
-                    });
-                }
+            var parallelElem = this.$el.find("#parallel-mode-help-container");
+            if (parallelElem.length) {
+                uilayer.help({
+                    elem: parallelElem,
+                    position: "top",
+                    width: "15%"
+                });
+            }
 
-                var sequentialElem = this.$el.find("#sequential-mode-help-container");
-                if (sequentialElem.length) {
-                    uilayer.help({
-                        elem: sequentialElem,
-                        position: "top",
-                        width: "15%"
-                    });
-                }
+            var sequentialElem = this.$el.find("#sequential-mode-help-container");
+            if (sequentialElem.length) {
+                uilayer.help({
+                    elem: sequentialElem,
+                    position: "top",
+                    width: "15%"
+                });
             }
         },
 
@@ -240,73 +233,66 @@ define(function (require) {
         highlightErrors: function (errorObjectList) {
             var globalSelf = this;
 
-            errorObjectList.forEach(function (errorObject) {
-                var element = globalSelf.$el.find("#" + errorObject.path);
+            if (errorObjectList && errorObjectList.length > 0) {
+                errorObjectList.forEach(function (errorObject) {
+                    var element = globalSelf.$el.find("#" + errorObject.path);
 
-                if (element.length) {
-                    globalSelf.focusErrorComponent(element);
+                    if (element.length) {
+                        globalSelf.focusErrorComponent(element);
 
-                    if (!element.is(":visible") &&
-                        globalSelf.$el.find("#" + errorObject.path + "_wrapper").length) {
-                        element = globalSelf.$el.find("#" + errorObject.path + "_wrapper");
+                        if (!element.is(":visible") && globalSelf.$el.find("#" + errorObject.path + "_wrapper").length) {
+                            element = globalSelf.$el.find("#" + errorObject.path + "_wrapper");
+                        }
+
+                        element.addErrorHighlightClass("components-error-red-highlight");
+                        globalSelf.showErrorTooltip(errorObject, element);
                     }
-
-                    element.addErrorHighlightClass(
-                        "components-error-red-highlight"
-                    );
-
-                    globalSelf.showErrorTooltip(
-                        errorObject,
-                        element
-                    );
-                }
-            });
+                });
+            }
         },
 
         getErrorMessage: function () {
             return "";
         },
 
-        _destroyComponent: function (component) {
-            if (!component || typeof component.destroy !== "function") {
-                return;
-            }
-
-            try {
-                component.destroy();
-            } catch (error) {
-                console.warn("WriteToOPCUA component cleanup failed:", error);
+        _checkBeforeDestroy: function _checkBeforeDestroy(obj) {
+            if (obj !== null && obj !== undefined) {
+                if (typeof obj.destroy === "function") {
+                    obj.destroy();
+                } else if (typeof obj.onDestroy === "function") {
+                    obj.onDestroy();
+                }
+                obj = null;
             }
         },
 
         onBeforeDestroy: function () {
+            this.activityId = null;
+            this.designerReqres = null;
+            this.processModel = null;
+            this.dataChangeOptions = null;
+            this.callMethodOptions = null;
+            this.selectedCallMethodRow = null;
+
             CallMethodGridManager._destroyInputParametersModal(this);
 
-            this._destroyComponent(this.dataChangeWriteSearchBar);
+            this._checkBeforeDestroy(this.dataChangeWriteSearchBar);
+            this._checkBeforeDestroy(this.callMethodSearchBar);
+            this._checkBeforeDestroy(this.dataChangeWriteGrid);
+            this._checkBeforeDestroy(this.callMethodGrid);
+            this._checkBeforeDestroy(this.transportDropdown);
+            this._checkBeforeDestroy(this.refreshButton);
+            this._checkBeforeDestroy(this.createButton);
+            this._checkBeforeDestroy(this.openButton);
+
             this.dataChangeWriteSearchBar = null;
-
-            this._destroyComponent(this.callMethodSearchBar);
             this.callMethodSearchBar = null;
-
-            this._destroyComponent(this.dataChangeWriteGrid);
             this.dataChangeWriteGrid = null;
-
-            this._destroyComponent(this.callMethodGrid);
             this.callMethodGrid = null;
-
-            this._destroyComponent(this.transportDropdown);
             this.transportDropdown = null;
-
-            this._destroyComponent(this.refreshButton);
             this.refreshButton = null;
-
-            this._destroyComponent(this.createButton);
             this.createButton = null;
-
-            this._destroyComponent(this.openButton);
             this.openButton = null;
-
-            this.selectedCallMethodRow = null;
         }
     });
 

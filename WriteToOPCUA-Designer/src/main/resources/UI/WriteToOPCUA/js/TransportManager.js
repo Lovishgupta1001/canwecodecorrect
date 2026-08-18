@@ -20,24 +20,26 @@ define(function (require) {
         },
 
         renderTransportButtons: function (view) {
-            if (!view.refreshButton) {
-                view.refreshButton = uilayer.button({
-                    elem: view.$(".transports-refresh-button"),
+            var globalSelf = view;
+
+            if (!globalSelf.refreshButton) {
+                globalSelf.refreshButton = uilayer.button({
+                    elem: globalSelf.$(".transports-refresh-button"),
                     uiStyle: "tertiary",
                     click: function () {
-                        if (view.transportDropdown) {
-                            view.transportDropdown.destroy();
-                            view.transportDropdown = null;
-                            view.$(".transport-selector-dropdown").empty();
+                        if (globalSelf.transportDropdown) {
+                            globalSelf.transportDropdown.destroy();
+                            globalSelf.transportDropdown = null;
+                            globalSelf.$(".transport-selector-dropdown").empty();
                         }
-                        TransportManager.renderTransportDropdown(view);
+                        TransportManager.renderTransportDropdown(globalSelf);
                     }
                 });
             }
 
-            if (!view.createButton) {
-                view.createButton = uilayer.button({
-                    elem: view.$(".transports-create-button"),
+            if (!globalSelf.createButton) {
+                globalSelf.createButton = uilayer.button({
+                    elem: globalSelf.$(".transports-create-button"),
                     uiStyle: "tertiary",
                     click: function () {
                         window.open(
@@ -48,16 +50,16 @@ define(function (require) {
                 });
             }
 
-            if (!view.openButton) {
-                view.openButton = uilayer.button({
-                    elem: view.$(".transports-open-button"),
+            if (!globalSelf.openButton) {
+                globalSelf.openButton = uilayer.button({
+                    elem: globalSelf.$(".transports-open-button"),
                     uiStyle: "tertiary",
                     click: function () {
-                        if (!view.transportDropdown?.dataItem()) {
+                        if (!globalSelf.transportDropdown || !globalSelf.transportDropdown.dataItem()) {
                             return;
                         }
 
-                        var item = view.transportDropdown.dataItem();
+                        var item = globalSelf.transportDropdown.dataItem();
                         var transportId = item.toJSON ? item.toJSON().transportId : item.transportId;
 
                         if (transportId) {
@@ -72,7 +74,9 @@ define(function (require) {
         },
 
         renderTransportDropdown: function (view) {
-            if (view.transportDropdown) {
+            var globalSelf = view;
+
+            if (globalSelf.transportDropdown) {
                 return;
             }
 
@@ -88,7 +92,7 @@ define(function (require) {
                                     options.error(err);
                                 });
                         } else {
-                            var requestUrl = typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
+                            var requestUrl = uilayer.rest && typeof uilayer.rest.serviceUrl === "function"
                                 ? uilayer.rest.serviceUrl("activities/writetoopcua/fetchOPCUATransportList")
                                 : "activities/writetoopcua/fetchOPCUATransportList";
 
@@ -107,42 +111,44 @@ define(function (require) {
                 }
             });
 
-            view.transportDropdown = uilayer.dropDownList({
-                elem: view.$(".transport-selector-dropdown"),
+            globalSelf.transportDropdown = uilayer.dropDownList({
+                elem: globalSelf.$(".transport-selector-dropdown"),
                 filter: "contains",
                 dataSource: dataSource,
                 dataTextField: "transportName",
                 dataValueField: "transportId",
                 optionLabel: {
                     transportId: "",
-                    transportName: view.nls.SelectTransport
+                    transportName: globalSelf.nls.SelectTransport
                 },
                 dataBound: function () {
-                    var savedTransportName = view.model.getKey("transportName");
+                    var savedTransportName = globalSelf.model.getKey("transportName");
                     if (savedTransportName && this.dataSource) {
                         var items = this.dataSource.data();
-                        for (var item of items) {
+                        for (var i = 0; i < items.length; i++) {
+                            var item = items[i];
                             var tName = item.transportName || item.name;
+
                             if (tName === savedTransportName) {
                                 this.value(item.transportId);
 
                                 var transport = item.toJSON ? item.toJSON() : item;
-                                view.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
+                                globalSelf.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
                                     if (opt && !opt.dataChangeName && opt.name) {
                                         opt.dataChangeName = opt.name;
                                     }
                                     return opt;
                                 });
-                                view.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
+                                globalSelf.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
                                     if (opt && !opt.methodName && opt.name) {
                                         opt.methodName = opt.name;
                                     }
                                     return opt;
                                 });
 
-                                DataChangeGridManager.refreshGridMode(view);
-                                CallMethodGridManager.refreshGridMode(view);
-                                TransportManager.testTransportById(item.transportId, view);
+                                DataChangeGridManager.refreshGridMode(globalSelf);
+                                CallMethodGridManager.refreshGridMode(globalSelf);
+                                TransportManager.testTransportById(item.transportId, globalSelf);
                                 break;
                             }
                         }
@@ -156,35 +162,36 @@ define(function (require) {
                             ? selectedItem.toJSON()
                             : selectedItem;
 
-                        view.model.setKey(
+                        globalSelf.model.setKey(
                             "transportName",
                             transport.transportName || ""
                         );
 
-                        view.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
+                        globalSelf.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
                             if (opt && !opt.dataChangeName && opt.name) {
                                 opt.dataChangeName = opt.name;
                             }
                             return opt;
                         });
-                        view.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
+                        globalSelf.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
                             if (opt && !opt.methodName && opt.name) {
                                 opt.methodName = opt.name;
                             }
                             return opt;
                         });
 
-                        DataChangeGridManager.refreshGridMode(view);
-                        CallMethodGridManager.refreshGridMode(view);
-                        TransportManager.testTransportById(transport.transportId, view);
+                        DataChangeGridManager.refreshGridMode(globalSelf);
+                        CallMethodGridManager.refreshGridMode(globalSelf);
+                        TransportManager.testTransportById(transport.transportId, globalSelf);
                     }
                 }
             });
 
-            this.renderTransportButtons(view);
+            this.renderTransportButtons(globalSelf);
         },
 
         testTransportById: function (transportId, view) {
+            var globalSelf = view;
             if (!transportId) {
                 return;
             }
@@ -194,22 +201,18 @@ define(function (require) {
             if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
                 var promise = AjaxUtility.commonAjaxRequest("GET", url, null, "json");
                 promise.done(function (data) {
-                    if (data === false || (data?.success === false)) {
-                        if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
-                            uilayer.notifier("warning", view.nls.TransportTestFailed);
-                        }
+                    if (data === false || (data && data.success === false)) {
+                        uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
                     }
                 });
                 promise.fail(function (err) {
                     if (typeof logger !== "undefined" && typeof logger.error === "function") {
                         logger.error("testTransportById request failed:", err);
                     }
-                    if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
-                        uilayer.notifier("warning", view.nls.TransportTestFailed);
-                    }
+                    uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
                 });
             } else {
-                var requestUrl = typeof uilayer !== "undefined" && typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
+                var requestUrl = uilayer.rest && typeof uilayer.rest.serviceUrl === "function"
                     ? uilayer.rest.serviceUrl(url)
                     : url;
 
@@ -218,19 +221,15 @@ define(function (require) {
                     type: "GET",
                     dataType: "json",
                     success: function (data) {
-                        if (data === false || data?.success === false) {
-                            if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
-                                uilayer.notifier("warning", view.nls.TransportTestFailed);
-                            }
+                        if (data === false || (data && data.success === false)) {
+                            uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
                         }
                     },
                     error: function (xhr, status, error) {
                         if (typeof logger !== "undefined" && typeof logger.error === "function") {
                             logger.error("testTransportById request failed:", error || status);
                         }
-                        if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
-                            uilayer.notifier("warning", view.nls.TransportTestFailed);
-                        }
+                        uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
                     }
                 });
             }

@@ -125,7 +125,7 @@ define([
         },
 
         _resizeGridIfExists: function (grid) {
-            if (grid?.widget) {
+            if (grid && grid.widget) {
                 grid.widget.resize();
                 return true;
             }
@@ -158,7 +158,7 @@ define([
                 dataSource: this._getCallMethodDataSource(data)
             });
 
-            if (view.callMethodGrid?.widget) {
+            if (view.callMethodGrid && view.callMethodGrid.widget) {
                 view.callMethodGrid.widget.bind(
                     "dataBound",
                     this._initializeMethodDropdowns.bind(this, view)
@@ -178,12 +178,13 @@ define([
 
         _initializeMethodDropdowns: function (view) {
             var manager = this;
-            GridUtils.initializeGridHelpTooltips(view.$el);
+            var globalSelf = view;
+            GridUtils.initializeGridHelpTooltips(globalSelf.$el);
 
-            view.$(".method-name-dropdown").each(function () {
+            globalSelf.$(".method-name-dropdown").each(function () {
                 var element = $(this);
                 var row = element.closest("tr");
-                var grid = view.callMethodGrid ? view.callMethodGrid.widget : null;
+                var grid = globalSelf.callMethodGrid ? globalSelf.callMethodGrid.widget : null;
 
                 if (!grid) {
                     return;
@@ -206,7 +207,7 @@ define([
                 if (existingDropdown) {
                     if (existingDropdown.setDataSource) {
                         existingDropdown.setDataSource(new uilayer.data.DataSource({
-                            data: view.callMethodOptions || []
+                            data: globalSelf.callMethodOptions || []
                         }));
                     }
                     return;
@@ -220,12 +221,12 @@ define([
                 var dropdown = uilayer.dropDownList({
                     elem: element,
                     dataSource: new uilayer.data.DataSource({
-                        data: view.callMethodOptions || []
+                        data: globalSelf.callMethodOptions || []
                     }),
                     dataTextField: "methodName",
                     dataValueField: "methodName",
                     optionLabel: {
-                        methodName: view.nls.SelectMethod
+                        methodName: globalSelf.nls.SelectMethod
                     },
                     change: function () {
                         var selectedValue = this.value();
@@ -260,9 +261,9 @@ define([
                 });
 
                 var initialVal = dataItem.get ? dataItem.get("methodName") : dataItem.methodName;
-                if (dropdown?.value) {
+                if (dropdown && typeof dropdown.value === "function") {
                     dropdown.value(initialVal || "");
-                } else if (dropdown?.widget?.value) {
+                } else if (dropdown && dropdown.widget && typeof dropdown.widget.value === "function") {
                     dropdown.widget.value(initialVal || "");
                 }
             });
@@ -367,6 +368,7 @@ define([
 
         openInputParametersModal: function (view, dataItem, anchorElem) {
             var manager = this;
+            var globalSelf = view;
 
             var methodName = dataItem.get
                 ? dataItem.get("methodName")
@@ -378,30 +380,29 @@ define([
 
             inputParameters = this._copyInputParameters(inputParameters || []);
 
-            this._destroyInputParametersModal(view);
+            this._destroyInputParametersModal(globalSelf);
 
             var $popoverWrapper = $(
                 "<div class='input-parameters-modal-wrapper'>" +
                 "<div class='ul-pad-2x-b'>" +
-                "<label class='ul-body-m-b'>" + (view.nls.InputParameters) + "</label>" +
+                "<label class='ul-body-m-b'>" + (globalSelf.nls.InputParameters) + "</label>" +
                 "</div>" +
                 "<div class='input-parameters-modal-grid'></div>" +
                 "</div>"
             );
-            view.$el.append($popoverWrapper);
-            view._inputParametersModalWrapper = $popoverWrapper;
+            globalSelf.$el.append($popoverWrapper);
+            globalSelf._inputParametersModalWrapper = $popoverWrapper;
 
             var gridElement = $popoverWrapper.find(".input-parameters-modal-grid");
-            view.inputParametersModalGrid = this._createInputParametersModalGrid(gridElement, inputParameters, view);
+            globalSelf.inputParametersModalGrid = this._createInputParametersModalGrid(gridElement, inputParameters, globalSelf);
 
-            var $anchor = (anchorElem && $(anchorElem).length) ? $(anchorElem) : view.$el;
+            var $anchor = (anchorElem && $(anchorElem).length) ? $(anchorElem) : globalSelf.$el;
 
             var saveHandler = function (e) {
                 var updatedParameters = [];
 
-                if (view.inputParametersModalGrid?.widget?.dataSource) {
-                    updatedParameters = view.inputParametersModalGrid
-                        .widget.dataSource.data().toJSON();
+                if (globalSelf.inputParametersModalGrid && globalSelf.inputParametersModalGrid.widget && globalSelf.inputParametersModalGrid.widget.dataSource) {
+                    updatedParameters = globalSelf.inputParametersModalGrid.widget.dataSource.data().toJSON();
                 }
 
                 if (dataItem.set) {
@@ -410,49 +411,40 @@ define([
                     dataItem.inputParameters = updatedParameters;
                 }
 
-                if (view.callMethodGrid?.widget) {
-                    view.callMethodGrid.widget.refresh();
+                if (globalSelf.callMethodGrid && globalSelf.callMethodGrid.widget) {
+                    globalSelf.callMethodGrid.widget.refresh();
                 }
 
-                if (typeof e?.sender?.close === "function") {
-                    try {
-                        e.sender.close();
-                    } catch (err) {
-                        console.warn("Popover close warning:", err);
-                    }
+                if (e && e.sender && typeof e.sender.close === "function") {
+                    e.sender.close();
                 }
-                manager._destroyInputParametersModal(view, true);
+                manager._destroyInputParametersModal(globalSelf, true);
             };
 
             var cancelHandler = function (e) {
-                if (e?.sender && typeof e.sender.close === "function") {
-                    try {
-                        e.sender.close();
-                    } catch (err) {
-                        console.warn("Popover cancel warning:", err);
-                    }
+                if (e && e.sender && typeof e.sender.close === "function") {
+                    e.sender.close();
                 }
-                manager._destroyInputParametersModal(view, true);
+                manager._destroyInputParametersModal(globalSelf, true);
             };
 
-            view.inputParametersModal = uilayer.popOver({
+            globalSelf.inputParametersModal = uilayer.popOver({
                 elem: $popoverWrapper,
                 anchor: $anchor,
                 pinPopover: true,
-                height: '23rem',
-                width: '30rem',
-                title: (view.nls.AddMethodCall) + ": " + (methodName || ""),
-                // size: "small",
+                height: "23rem",
+                width: "30rem",
+                title: (globalSelf.nls.AddMethodCall) + ": " + (methodName || ""),
                 popupPosition: "left",
-                actions: ['close'],
+                actions: ["close"],
                 buttons: [
                     {
-                        label: view.nls.Cancel,
+                        label: globalSelf.nls.Cancel,
                         action: "cancel",
                         uiStyle: "tertiary"
                     },
                     {
-                        label: view.nls.Save,
+                        label: globalSelf.nls.Save,
                         action: "save",
                         uiStyle: "primary"
                     }
@@ -461,52 +453,49 @@ define([
                 save: saveHandler,
                 ok: saveHandler,
                 messages: {
-                    ok: view.nls.Save,
-                    cancel: view.nls.Cancel
+                    ok: globalSelf.nls.Save,
+                    cancel: globalSelf.nls.Cancel
                 },
                 close: function () {
-                    manager._destroyInputParametersModal(view, true);
+                    manager._destroyInputParametersModal(globalSelf, true);
                 }
             });
 
-            if (view.inputParametersModal) {
-                if (typeof view.inputParametersModal.open === "function") {
-                    view.inputParametersModal.open($anchor);
-                } else if (view.inputParametersModal.widget && typeof view.inputParametersModal.widget.open === "function") {
-                    view.inputParametersModal.widget.open($anchor);
-                } else if (typeof view.inputParametersModal.show === "function") {
-                    view.inputParametersModal.show();
+            if (globalSelf.inputParametersModal) {
+                if (typeof globalSelf.inputParametersModal.open === "function") {
+                    globalSelf.inputParametersModal.open($anchor);
+                } else if (globalSelf.inputParametersModal.widget && typeof globalSelf.inputParametersModal.widget.open === "function") {
+                    globalSelf.inputParametersModal.widget.open($anchor);
+                } else if (typeof globalSelf.inputParametersModal.show === "function") {
+                    globalSelf.inputParametersModal.show();
                 }
             }
         },
 
         _destroyInputParametersModal: function (view, isFromCloseCallback) {
-            if (view.inputParametersModalGrid) {
-                view._destroyComponent(view.inputParametersModalGrid);
-                view.inputParametersModalGrid = null;
+            var globalSelf = view;
+            if (!globalSelf) {
+                return;
             }
 
-            if (view.inputParametersModal) {
-                var popover = view.inputParametersModal;
-                view.inputParametersModal = null;
+            if (globalSelf.inputParametersModalGrid) {
+                globalSelf._destroyComponent(globalSelf.inputParametersModalGrid);
+                globalSelf.inputParametersModalGrid = null;
+            }
+
+            if (globalSelf.inputParametersModal) {
+                var popover = globalSelf.inputParametersModal;
+                globalSelf.inputParametersModal = null;
 
                 if (!isFromCloseCallback && typeof popover.close === "function") {
-                    try {
-                        popover.close();
-                    } catch (e) {
-                        console.warn("Popover destroy warning:", e);
-                    }
+                    popover.close();
                 }
             }
 
-            if (view._inputParametersModalWrapper) {
-                var $wrapper = view._inputParametersModalWrapper;
-                view._inputParametersModalWrapper = null;
-                try {
-                    $wrapper.remove();
-                } catch (e) {
-                    console.warn("Wrapper remove warning:", e);
-                }
+            if (globalSelf._inputParametersModalWrapper) {
+                var $wrapper = globalSelf._inputParametersModalWrapper;
+                globalSelf._inputParametersModalWrapper = null;
+                $wrapper.remove();
             }
         }
     };

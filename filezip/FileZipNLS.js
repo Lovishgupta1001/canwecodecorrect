@@ -1,0 +1,50 @@
+define({
+    "root": {
+        "tabs": {
+            "source": "Source",
+            "destination": "Destination"
+        },
+        "labelHeader": {
+            "folderFileSelection": "Folder and File selection"
+        },
+        "filezip.description": "The File Zip activity creates a zip for a list of file provided as an input. It supports file path as input. The activity also has a provision to delete the input file after the zip has been created. An exception would be raised in case of an inaccessible file or inability to create the zip file.",
+        "filezip.displayname": "File Zip",
+        "FileZip.zipFileName": "Zip file name",
+        "FileZip.deleteInputFiles": "Delete input files",
+        "FileZip.FileNameNotEmpty": "File name is required.",
+        "FileZip.filePath": "File path",
+        "preserveFolderStructure": "Preserve folder structure",
+        "preserveParentFolder": "Include parent folder",
+        "FileZip.fileName": "File path",
+        "FileZip.source": "Source",
+        "FileZip.destination": "Destination",
+        "FileZip.connectionLabel": "Connection",
+        "FileZip.connectionVariables": "Connection variables",
+        "FileZip.error.predictFilePattern": "Unable to predict file pattern.",
+        "FileZip.refresh": "Refresh",
+        "FileZip.baseFilePathLabel": "Base path",
+        "FileZip.RelativeFilePathLabel": "Relative path",
+        "FileZip.populate": "Populate",
+        "FileZip.traverseFilePathRecusively": "Traverse path recursively",
+        "FileZip.fileNamePattern": "File name pattern",
+        "FileZip.preserveFolderStructure": "Preserve folder structure",
+        "FileZip.preserveParentFolder": "Include parent folder",
+        "FileZip.folderFileSelection": "Folder and File selection",
+        "FileZip.warning.selectatleastonefile": "Select at least one sample file.",
+        "FileZip.connectionNotEmptySrc": "Source connection is required.",
+        "FileZip.connectionNotEmptyDest": "Destination connection  is required.",
+        "FileZip.error.invalidConnection": "Select a valid FileSystem connection.",
+        "FileZip.invalidConnection": "Invalid connection",
+        "FileZip.emptyArchiveName": "Archive name is required",
+        "FileZip.emptyStringArchiveName": "Archive name is required",
+        "FileZip.zippedFiles": "Files archived successfully",
+        "FileZip.failedFiles": "Files failed to archive",
+        "FileZip.failedFilesToDelete": "Files failed to delete after archive",
+        "FileZip.zipBaseFilePath": "Base file path of archive",
+        "FileZip.zipRelativeFilePath": "Relative file path of archive",
+        "FileZip.archiveName": "Archive name",
+        "FileZip.archiveType": "Archive type",
+        "ZIP": "ZIP",
+        "noFileSelected": "Select at least one file"
+    }
+});
