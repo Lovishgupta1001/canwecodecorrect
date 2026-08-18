@@ -26,7 +26,7 @@ define(function (require) {
             "click .input-parameter-badge": "_onInputParameterBadgeClick",
             "click .data-change-write-add-btn": "_onAddDataChangeRow",
             "click .call-method-add-btn": "_onAddCallMethodRow",
-            "change .transport-name-variable-checkbox": "_updateTransportUI",
+            // "change .transport-name-variable-checkbox": "_updateTransportUI",
             "change .data-change-write-radio": "_updateOperationUI",
             "change .call-method-radio": "_updateOperationUI"
         },
@@ -97,8 +97,8 @@ define(function (require) {
                 if (parallelElem.length) {
                     uilayer.help({
                         elem: parallelElem,
-                        position: "right",
-                        width: "10%"
+                        position: "top",
+                        width: "15%"
                     });
                 }
 
@@ -106,8 +106,8 @@ define(function (require) {
                 if (sequentialElem.length) {
                     uilayer.help({
                         elem: sequentialElem,
-                        position: "right",
-                        width: "10%"
+                        position: "top",
+                        width: "15%"
                     });
                 }
             }
@@ -359,4 +359,3 @@ define(function (require) {
 
     return WriteToOPCUAUIComponent;
 });
-    

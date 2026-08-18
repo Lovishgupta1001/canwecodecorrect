@@ -5,7 +5,8 @@ define(function (require) {
     "use strict";
 
     var uilayer = require("uilayer"),
-        _ = require("underscore");
+        _ = require("underscore"),
+        nls = require("i18n!../nls/WriteToOPCUAComponentNLS");
 
     var GridUtils = {
 
@@ -59,48 +60,44 @@ define(function (require) {
             if (rawHelpText) {
                 if (typeof rawHelpText === "object") {
                     try {
-                        return "<div class='ul-body-m-b'>Node Details</div>" +
+                        return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
                             "<pre style='margin:0;font-family:inherit;white-space:pre-wrap;'>" +
                             _.escape(JSON.stringify(rawHelpText, null, 2)) +
                             "</pre>";
                     } catch (e) {
-                        return "<div class='ul-body-m-b'>Node Details</div>" +
+                        return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
                             "<div>" + _.escape(String(rawHelpText)) + "</div>";
                     }
                 }
-                return "<div class='ul-body-m-b'>Node Details</div>" +
+                return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
                     "<div>" + _.escape(String(rawHelpText)) + "</div>";
             }
 
-            var html = "<div class='ul-body-m-b'>Node Details</div>";
+            var html = "<div class='ul-header-xxxs-b ul-pad-1x'>" + nls.NodeDetails + "</div>";
             var isMethod = !!(dataItem.methodName || dataItem.objectNodeId);
             var name = dataItem.name || dataItem.dataChangeName || dataItem.methodName || "";
 
-            if (isMethod) {
-                if (name) {
-                    html += "<div>Method Name: " + _.escape(name) + "</div>";
+            var addRow = function (label, value) {
+                if (value) {
+                    html += "<div>" +
+                        "<span class='ul-body-s-b ul-pad-1x-r writetoopcua-label'>" +
+                        label + ":" +
+                        "</span>" +
+                        "<span>" + _.escape(value) + "</span>" +
+                        "</div>";
                 }
-                if (nodeId) {
-                    html += "<div>Node ID: " + _.escape(nodeId) + "</div>";
-                }
-                if (dataItem.objectNodeId) {
-                    html += "<div>Object Node ID: " + _.escape(dataItem.objectNodeId) + "</div>";
-                }
-            } else {
-                if (name) {
-                    html += "<div>Node Name: " + _.escape(name) + "</div>";
-                }
-                if (nodeId) {
-                    html += "<div>Node ID: " + _.escape(nodeId) + "</div>";
-                }
-                if (dataItem.dataTypeName) {
-                    html += "<div>Data Type Name: " + _.escape(dataItem.dataTypeName) + "</div>";
-                }
-                if (dataItem.dataTypeNodeId) {
-                    html += "<div>Data Type Node ID: " + _.escape(dataItem.dataTypeNodeId) + "</div>";
-                }
-            }
+            };
 
+            if (isMethod) {
+                addRow(nls.MethodName, name);
+                addRow(nls.NodeId, nodeId);
+                addRow(nls.ObjectNodeId, dataItem.objectNodeId);
+            } else {
+                addRow(nls.NodeName, name);
+                addRow(nls.NodeId, nodeId);
+                addRow(nls.DataTypeName, dataItem.dataTypeName);
+                addRow(nls.DataTypeNodeId, dataItem.dataTypeNodeId);
+            }
             return html;
         },
 
@@ -112,12 +109,31 @@ define(function (require) {
                         elem.data("help-initialized", true);
                         uilayer.help({
                             elem: elem,
-                            position: "right",
-                            width: "250px"
+                            position: "top",
+                            width: "12rem",
+                            height: "auto"
                         });
                     }
                 });
             }
+            $(document)
+                .off("click.sampleValueCopy")
+                .on("click.sampleValueCopy", ".sample-value-copy-icon", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    var text = $("<textarea/>").html($(this).attr("data-copy")).text();
+
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(text);
+                    } else {
+                        var temp = $("<textarea>");
+                        $("body").append(temp);
+                        temp.val(text).select();
+                        document.execCommand("copy");
+                        temp.remove();
+                    }
+                });
         },
 
         getNodeIdTemplate: function (selectionField, isDynamic) {
@@ -195,7 +211,13 @@ define(function (require) {
                 var sampleValue = GridUtils.formatSampleValue(rawSampleValue);
                 var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
                 var contentText = rawHelpText ? String(rawHelpText) : sampleValue;
-                var sampleValueHelpText = "<div class='ul-body-m-b'>Sample Value</div>" +
+                var sampleValueHelpText =
+                    "<div class='ul-body-m-b' style='display:flex;justify-content:space-between;align-items:center;'>" +
+                    "<span>Sample Value</span>" +
+                    "<span class='eQ-icon eQ-fonts-copy sample-value-copy-icon eq-cursor-pointer' " +
+                    "data-copy='" + _.escape(contentText) + "' " +
+                    "title='Copy'></span>" +
+                    "</div>" +
                     "<pre style='margin:0;font-family:inherit;white-space:pre-wrap;'>" +
                     _.escape(contentText) +
                     "</pre>";

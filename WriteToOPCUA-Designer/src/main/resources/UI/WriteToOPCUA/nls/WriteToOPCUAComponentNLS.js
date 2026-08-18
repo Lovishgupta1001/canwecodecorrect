@@ -44,6 +44,16 @@ define({
         "writetoopcua.selTransport": "Please select a Transport Name.",
         "writetoopcua.emptyDataChangeWrite": "At least one Data Change Write item must be configured.",
         "writetoopcua.emptyCallMethod": "At least one Call Method item must be configured.",
-        "TransportTestFailed": "Failed to connect to the selected transport."
+        "TransportTestFailed": "Server is currently unavailable and as a result, value hints cannot be provided.",
+        "NodeDetails": "Node Details",
+        "NodeName": "Node Name",
+        "ObjectNodeId": "Object Node ID",
+        "DataTypeName": "Data Type Name",
+        "DataTypeNodeId": "Data Type Node ID",
+        "MethodNameLabel": "Method Name",
+        "NodeIdLabel": "Node ID",
+        "SampleValueLabel": "Sample Value",
+        "Copy": "Copy",
+        "Copied": "Copied"
     }
 });

@@ -198,8 +198,6 @@ define([
             );
         },
 
-
-
         _initializeMethodDropdowns: function (view) {
             var manager = this;
             GridUtils.initializeGridHelpTooltips(view.$el);
@@ -338,7 +336,7 @@ define([
                 sortable: false,
                 filterable: false,
                 scrollable: true,
-                height: "15rem",
+                height: "10rem",
                 columns: [
                     {
                         field: "name",
@@ -407,10 +405,10 @@ define([
 
             var $popoverWrapper = $(
                 "<div class='input-parameters-modal-wrapper'>" +
-                    "<div class='ul-pad-2x-b'>" +
-                        "<label class='ul-body-m-b'>" + (view.nls.InputParameters || "Input Parameters") + "</label>" +
-                    "</div>" +
-                    "<div class='input-parameters-modal-grid'></div>" +
+                "<div class='ul-pad-2x-b'>" +
+                "<label class='ul-body-m-b'>" + (view.nls.InputParameters) + "</label>" +
+                "</div>" +
+                "<div class='input-parameters-modal-grid'></div>" +
                 "</div>"
             );
             view.$el.append($popoverWrapper);
@@ -465,21 +463,21 @@ define([
             view.inputParametersModal = uilayer.popOver({
                 elem: $popoverWrapper,
                 anchor: $anchor,
-                pinPopover: false,
-                height: "400px",
-                width: "450px",
-                title: (view.nls.AddMethodCall || "Add Method Call") + ": " + (methodName || ""),
-                size: "large",
-                popupPosition: "right",
-                actions: [],
+                pinPopover: true,
+                height: '23rem',
+                width: '30rem',
+                title: (view.nls.AddMethodCall) + ": " + (methodName || ""),
+                // size: "small",
+                popupPosition: "left",
+                actions: ['close'],
                 buttons: [
                     {
-                        label: view.nls.Cancel || "Cancel",
+                        label: view.nls.Cancel,
                         action: "cancel",
                         uiStyle: "tertiary"
                     },
                     {
-                        label: view.nls.Save || "Save",
+                        label: view.nls.Save,
                         action: "save",
                         uiStyle: "primary"
                     }
@@ -488,8 +486,8 @@ define([
                 save: saveHandler,
                 ok: saveHandler,
                 messages: {
-                    ok: view.nls.Save || "Save",
-                    cancel: view.nls.Cancel || "Cancel"
+                    ok: view.nls.Save,
+                    cancel: view.nls.Cancel
                 },
                 close: function () {
                     manager._destroyInputParametersModal(view, true);
