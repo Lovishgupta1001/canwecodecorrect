@@ -123,7 +123,7 @@ define(function (require) {
 
         initializeGridHelpTooltips: function (container) {
             if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                container.find(".help-container").each(function () {
+                container.find(".grid-help-container").each(function () {
                     var elem = $(this);
                     if (!elem.data("help-initialized")) {
                         elem.data("help-initialized", true);
@@ -154,8 +154,8 @@ define(function (require) {
                     _.escape(nodeId) +
                     "</span>" +
                     (hasSelection
-                        ? "<div class='help-container writetoopcua-info-icon'>" +
-                          "<input class='help-tooltip node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'></input>" +
+                        ? "<div class='grid-help-container writetoopcua-info-icon'>" +
+                          "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'></input>" +
                           "</div>"
                         : "") +
                     "</div>";
@@ -220,8 +220,8 @@ define(function (require) {
                     _.escape(sampleValue) +
                     "</span>" +
                     (hasSelection
-                        ? "<div class='help-container writetoopcua-info-icon'>" +
-                          "<input class='help-tooltip sample-value-help-tooltip' data-help='" + _.escape(sampleValueHelpText) + "'></input>" +
+                        ? "<div class='grid-help-container writetoopcua-info-icon'>" +
+                          "<input class='sample-value-help-tooltip' data-help='" + _.escape(sampleValueHelpText) + "'></input>" +
                           "</div>"
                         : "") +
                     "</div>";
