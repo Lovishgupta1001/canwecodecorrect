@@ -85,16 +85,10 @@ define(function (require) {
         _formatNodeDetailsHelpText: function (dataItem, rawHelpText, nodeId) {
             if (rawHelpText) {
                 if (typeof rawHelpText === "object") {
-                    try {
-                        return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
-                            "<pre class='sample-value-tooltip-content'>" +
-                            _.escape(JSON.stringify(rawHelpText, null, 2)) +
-                            "</pre>";
-                    } catch (e) {
-                        console.error("Error formatting node details help text:", e);
-                        return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
-                            "<div>" + _.escape(String(rawHelpText)) + "</div>";
-                    }
+                    return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
+                        "<pre class='sample-value-tooltip-content'>" +
+                        _.escape(JSON.stringify(rawHelpText, null, 2)) +
+                        "</pre>";
                 }
                 return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
                     "<div>" + _.escape(String(rawHelpText)) + "</div>";
@@ -214,12 +208,7 @@ define(function (require) {
                 return String(valueToFormat);
             }
 
-            try {
-                return JSON.stringify(valueToFormat, null, 2);
-            } catch (e) {
-                console.log("Exception while stringifying sample value: " + e);
-                return String(valueToFormat);
-            }
+            return JSON.stringify(valueToFormat, null, 2);
         },
 
         _extractSampleValue: function (value) {
@@ -241,18 +230,13 @@ define(function (require) {
                 return value;
             }
 
-            try {
-                var parsed = JSON.parse(trimmed);
+            var parsed = JSON.parse(trimmed);
 
-                return parsed &&
-                typeof parsed === "object" &&
-                parsed.hasOwnProperty("Value")
-                    ? parsed.Value
-                    : parsed;
-            } catch (e) {
-                console.log("Exception while parsing sample value JSON: " + e);
-                return value;
-            }
+            return parsed &&
+            typeof parsed === "object" &&
+            parsed.hasOwnProperty("Value")
+                ? parsed.Value
+                : parsed;
         },
 
         getSampleValueTemplate: function () {

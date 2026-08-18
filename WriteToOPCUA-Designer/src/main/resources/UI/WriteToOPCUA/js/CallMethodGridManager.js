@@ -415,23 +415,15 @@ define([
                     view.callMethodGrid.widget.refresh();
                 }
 
-                if (typeof e?.sender?.close === "function") {
-                    try {
-                        e.sender.close();
-                    } catch (err) {
-                        console.warn("Popover close warning:", err);
-                    }
+                if (e?.sender?.close) {
+                    e.sender.close();
                 }
                 manager._destroyInputParametersModal(view, true);
             };
 
             var cancelHandler = function (e) {
-                if (e?.sender && typeof e.sender.close === "function") {
-                    try {
-                        e.sender.close();
-                    } catch (err) {
-                        console.warn("Popover cancel warning:", err);
-                    }
+                if (e?.sender?.close) {
+                    e.sender.close();
                 }
                 manager._destroyInputParametersModal(view, true);
             };
@@ -490,23 +482,15 @@ define([
                 var popover = view.inputParametersModal;
                 view.inputParametersModal = null;
 
-                if (!isFromCloseCallback && typeof popover.close === "function") {
-                    try {
-                        popover.close();
-                    } catch (e) {
-                        console.warn("Popover destroy warning:", e);
-                    }
+                if (!isFromCloseCallback && popover.close) {
+                    popover.close();
                 }
             }
 
             if (view._inputParametersModalWrapper) {
                 var $wrapper = view._inputParametersModalWrapper;
                 view._inputParametersModalWrapper = null;
-                try {
-                    $wrapper.remove();
-                } catch (e) {
-                    console.warn("Wrapper remove warning:", e);
-                }
+                $wrapper.remove();
             }
         }
     };
