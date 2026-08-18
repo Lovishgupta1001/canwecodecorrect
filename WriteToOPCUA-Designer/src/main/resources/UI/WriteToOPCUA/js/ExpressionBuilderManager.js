@@ -26,7 +26,7 @@ define(function (require) {
                     var expression = ExpressionBuilderUtility.getExpression(event);
 
                     if (!expression || /^[a-zA-Z][a-zA-Z0-9+\-.]*:$/.test(expression)) {
-                        if (event.sender && event.sender.widget) {
+                        if (typeof event?.sender?.widget?.close === "function") {
                             event.sender.widget.close();
                         }
                         return;
@@ -34,7 +34,7 @@ define(function (require) {
 
                     options.model.set(field, expression);
 
-                    if (event.sender && event.sender.widget) {
+                    if (typeof event?.sender?.widget?.close === "function") {
                         event.sender.widget.close();
                     }
                 }

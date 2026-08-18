@@ -36,6 +36,7 @@ public class CallMethodItem {
         this.name = name;
     }
 
+    @SuppressWarnings("java:S4144")
     public String getMethodName() {
         return name;
     }

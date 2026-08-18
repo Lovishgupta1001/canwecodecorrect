@@ -8,11 +8,9 @@ define(function (require) {
         model = require("./model/WriteToOPCUAComponentModel"),
         nls = require("i18n!./nls/WriteToOPCUAComponentNLS"),
         Constants = require("./js/constants"),
-        GridUtils = require("./js/GridUtils"),
         TransportManager = require("./js/TransportManager"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
-        CallMethodGridManager = require("./js/CallMethodGridManager"),
-        ExpressionBuilderManager = require("./js/ExpressionBuilderManager");
+        CallMethodGridManager = require("./js/CallMethodGridManager");
 
     var WriteToOPCUAUIComponent = MIUIComponentI.extend({
 
@@ -144,7 +142,7 @@ define(function (require) {
         },
 
         _onAddDataChangeRow: function () {
-            if (this.dataChangeWriteGrid && this.dataChangeWriteGrid.widget && this.dataChangeWriteGrid.widget.dataSource) {
+            if (this.dataChangeWriteGrid?.widget?.dataSource) {
                 this.dataChangeWriteGrid.widget.dataSource.add({
                     dataChangeName: "",
                     nodeId: "",
@@ -155,7 +153,7 @@ define(function (require) {
         },
 
         _onAddCallMethodRow: function () {
-            if (this.callMethodGrid && this.callMethodGrid.widget && this.callMethodGrid.widget.dataSource) {
+            if (this.callMethodGrid?.widget?.dataSource) {
                 this.callMethodGrid.widget.dataSource.add({
                     methodName: "",
                     nodeId: "",
@@ -216,18 +214,14 @@ define(function (require) {
                     : Constants.SEQUENTIAL
             );
 
-            if (this.dataChangeWriteGrid &&
-                this.dataChangeWriteGrid.widget &&
-                this.dataChangeWriteGrid.widget.dataSource) {
+            if (this.dataChangeWriteGrid?.widget?.dataSource) {
                 this.model.setKey(
                     "dataChangeWrite",
                     this.dataChangeWriteGrid.widget.dataSource.data().toJSON()
                 );
             }
 
-            if (this.callMethodGrid &&
-                this.callMethodGrid.widget &&
-                this.callMethodGrid.widget.dataSource) {
+            if (this.callMethodGrid?.widget?.dataSource) {
                 this.model.setKey(
                     "callMethod",
                     this.callMethodGrid.widget.dataSource.data().toJSON()

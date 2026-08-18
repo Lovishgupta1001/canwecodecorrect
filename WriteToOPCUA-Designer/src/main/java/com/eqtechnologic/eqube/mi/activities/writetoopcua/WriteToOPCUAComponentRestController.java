@@ -38,8 +38,12 @@ public class WriteToOPCUAComponentRestController {
     private static final Logger LOGGER = Logger.getLogger(WriteToOPCUAComponentRestController.class.getName());
     private List<String> operations = Arrays.asList(MIOperation.Process.LIST_PROCESS, MIOperation.Transaction.LIST_TRANSACTIONS);
 
+    private final WriteToOPCUAComponentServiceHelper opcuaHelper;
+
     @Autowired
-    private WriteToOPCUAComponentServiceHelper opcuaHelper;
+    public WriteToOPCUAComponentRestController(WriteToOPCUAComponentServiceHelper opcuaHelper) {
+        this.opcuaHelper = opcuaHelper;
+    }
 
     @GetMapping(value = "/fetchTransportListByType")
     public List<TransportInfo> fetchTransportListByType(@RequestParam("transportType") String transportType) throws BusinessException {

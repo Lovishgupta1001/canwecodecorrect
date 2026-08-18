@@ -6,7 +6,6 @@ define(function (require) {
 
     var uilayer = require("uilayer"),
         Constants = require("./constants"),
-        ExpressionBuilderManager = require("./ExpressionBuilderManager"),
         DataChangeGridManager = require("./DataChangeGridManager"),
         CallMethodGridManager = require("./CallMethodGridManager");
 

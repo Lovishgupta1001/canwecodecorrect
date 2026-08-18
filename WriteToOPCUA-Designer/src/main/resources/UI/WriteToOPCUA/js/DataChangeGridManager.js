@@ -254,9 +254,9 @@ define([
                 });
 
                 var initialVal = dataItem.get ? dataItem.get("dataChangeName") : dataItem.dataChangeName;
-                if (dropdown && dropdown.value) {
+                if (typeof dropdown?.value === "function") {
                     dropdown.value(initialVal || "");
-                } else if (dropdown && dropdown.widget && dropdown.widget.value) {
+                } else if (typeof dropdown?.widget?.value === "function") {
                     dropdown.widget.value(initialVal || "");
                 }
             });

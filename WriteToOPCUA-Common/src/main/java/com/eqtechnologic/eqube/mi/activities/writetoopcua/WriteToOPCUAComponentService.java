@@ -40,7 +40,7 @@ import java.util.Map;
  *
  * @author Lovish
  */
-@SuppressWarnings("java:S6830")
+@SuppressWarnings({"java:S6830", "rawtypes"})
 @Exported
 @Service(WriteToOPCUAConstants.WRITE_TO_OPCUA)
 @AutoService(ActivityService.class)
@@ -50,8 +50,12 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
 
     private static final Logger LOGGER = Logger.getLogger(WriteToOPCUAComponentService.class.getName());
 
+    private final WriteToOPCUAComponentServiceHelper opcuaHelper;
+
     @Autowired
-    private WriteToOPCUAComponentServiceHelper opcuaHelper;
+    public WriteToOPCUAComponentService(WriteToOPCUAComponentServiceHelper opcuaHelper) {
+        this.opcuaHelper = opcuaHelper;
+    }
 
     private TransportClientService getTransportClientService() {
         return ServiceRegistry.getInstance().getService(TransportClientConstants.SERVICE_NAME);

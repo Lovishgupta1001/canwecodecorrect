@@ -301,7 +301,6 @@ define([
         },
 
         _createInputParametersModalGrid: function (gridElement, inputParameters, view) {
-            var manager = this;
             return uilayer.grid({
                 elem: gridElement,
                 editable: {
@@ -419,7 +418,7 @@ define([
                     try {
                         e.sender.close();
                     } catch (err) {
-                        // ignore
+                        console.warn("Popover close warning:", err);
                     }
                 }
                 manager._destroyInputParametersModal(view, true);
@@ -430,7 +429,7 @@ define([
                     try {
                         e.sender.close();
                     } catch (err) {
-                        // ignore
+                        console.warn("Popover cancel warning:", err);
                     }
                 }
                 manager._destroyInputParametersModal(view, true);
@@ -495,7 +494,7 @@ define([
                     try {
                         popover.close();
                     } catch (e) {
-                        // ignore if already closed
+                        console.warn("Popover destroy warning:", e);
                     }
                 }
             }
@@ -506,7 +505,7 @@ define([
                 try {
                     $wrapper.remove();
                 } catch (e) {
-                    // ignore
+                    console.warn("Wrapper remove warning:", e);
                 }
             }
         }
