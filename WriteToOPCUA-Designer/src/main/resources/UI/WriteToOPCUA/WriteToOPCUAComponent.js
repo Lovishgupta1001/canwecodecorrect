@@ -26,7 +26,6 @@ define(function (require) {
             "click .input-parameter-badge": "_onInputParameterBadgeClick",
             "click .data-change-write-add-btn": "_onAddDataChangeRow",
             "click .call-method-add-btn": "_onAddCallMethodRow",
-            // "change .transport-name-variable-checkbox": "_updateTransportUI",
             "change .data-change-write-radio": "_updateOperationUI",
             "change .call-method-radio": "_updateOperationUI"
         },
@@ -52,18 +51,9 @@ define(function (require) {
         onRender: function () {
             var deferred = $.Deferred();
 
-            this.transportNameAsVariable = uilayer.checkbox({
-                elem: this.$el.find(".transport-name-variable-checkbox")
-            });
-
             this.$("#transport-name-expression-region").attr("name", Constants.TRANSPORT_NAME);
 
             this._initializeControls();
-
-            this.$(".transport-name-variable-checkbox").prop(
-                "checked",
-                this.model.getKey("dynamicTransport")
-            );
 
             var operationGroupName = "operation-" + this.activityId;
             var executionModeGroupName = "execution-mode-" + this.activityId;
@@ -182,23 +172,6 @@ define(function (require) {
         },
 
         _updateTransportUI: function () {
-            var isDynamicTransport = this.$(".transport-name-variable-checkbox").is(":checked");
-
-            // Update model FIRST — grid managers read this when rebuilding columns
-            this.model.setKey("dynamicTransport", isDynamicTransport);
-
-            // Clear transport name on every mode switch so the expression editor
-            // starts empty and the dropdown resets to the optionLabel placeholder.
-            this.model.setKey("transportName", "");
-
-            // Destroy the dropdown so renderTransportDropdown recreates it fresh
-            // at the optionLabel (placeholder) state when switching back to static.
-            if (this.transportDropdown) {
-                this._destroyComponent(this.transportDropdown);
-                this.transportDropdown = null;
-                this.$(".transport-selector-dropdown").empty();
-            }
-
             TransportManager.updateTransportUI(this);
             DataChangeGridManager.refreshGridMode(this);
             CallMethodGridManager.refreshGridMode(this);
@@ -230,11 +203,6 @@ define(function (require) {
         },
 
         getData: function () {
-            this.model.setKey(
-                "dynamicTransport",
-                this.$(".transport-name-variable-checkbox").is(":checked")
-            );
-
             this.model.setKey(
                 "operation",
                 this.$(".data-change-write-radio").is(":checked")
@@ -325,9 +293,6 @@ define(function (require) {
             this.transportExpressionBuilder = null;
 
             CallMethodGridManager._destroyInputParametersModal(this);
-
-            this._destroyComponent(this.transportNameAsVariable);
-            this.transportNameAsVariable = null;
 
             this._destroyComponent(this.dataChangeWriteSearchBar);
             this.dataChangeWriteSearchBar = null;

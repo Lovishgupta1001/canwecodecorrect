@@ -22,20 +22,6 @@ define([
         },
 
         _getDataChangeWriteColumns: function (view) {
-            var isDynamic = !!view.model.getKey("dynamicTransport");
-
-            var dataChangeNameTemplate = isDynamic
-                ? GridUtils.getEditableValueTemplate("dataChangeName", "data-change-name-edit-icon")
-                : function (dataItem) {
-                    return "<div class='data-change-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
-                };
-
-            var dataChangeNameEditor = isDynamic
-                ? function (container, options) {
-                    ExpressionBuilderManager.dataChangeNameEditor(container, options, view);
-                }
-                : null;
-
             return [
                 {
                     selectable: true,
@@ -44,10 +30,11 @@ define([
                 {
                     field: "dataChangeName",
                     title: view.nls.DataChangeName,
-                    template: dataChangeNameTemplate,
-                    editor: dataChangeNameEditor,
+                    template: function (dataItem) {
+                        return "<div class='data-change-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
+                    },
                     editable: function () {
-                        return isDynamic;
+                        return false;
                     },
                     filterable: false
                 },
@@ -57,7 +44,7 @@ define([
                     editable: function () {
                         return false;
                     },
-                    template: GridUtils.getNodeIdTemplate("dataChangeName", isDynamic),
+                    template: GridUtils.getNodeIdTemplate("dataChangeName"),
                     filterable: true
                 },
                 {
@@ -66,7 +53,7 @@ define([
                     editable: function () {
                         return false;
                     },
-                    template: GridUtils.getSampleValueTemplate(isDynamic),
+                    template: GridUtils.getSampleValueTemplate(),
                     filterable: false
                 },
                 {
@@ -174,11 +161,7 @@ define([
                 );
             }
 
-            // For static mode the dropdowns are in the template HTML already,
-            // initialize them immediately after the first render.
-            if (!view.model.getKey("dynamicTransport")) {
-                this._initializeDataChangeDropdowns(view);
-            }
+            this._initializeDataChangeDropdowns(view);
 
             view.dataChangeWriteSearchBar = GridUtils.renderGridSearchBar(
                 "data-change-write-search",

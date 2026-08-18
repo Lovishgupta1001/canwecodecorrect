@@ -13,7 +13,7 @@ define(function (require) {
     var TransportManager = {
 
         updateTransportUI: function (view) {
-            var isDynamicTransport = view.$(".transport-name-variable-checkbox").is(":checked");
+            var isDynamicTransport = !!view.model.getKey("dynamicTransport");
             this.renderTransportName(view, isDynamicTransport);
         },
 

@@ -27,26 +27,6 @@ define([
         },
 
         _getCallMethodColumns: function (view) {
-            var isDynamic = !!view.model.getKey("dynamicTransport");
-
-            var methodNameTemplate = isDynamic
-                ? GridUtils.getEditableValueTemplate("methodName", "method-name-edit-icon")
-                : function (dataItem) {
-                    return "<div class='method-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
-                };
-
-            var methodNameEditor = isDynamic
-                ? function (container, options) {
-                    ExpressionBuilderManager.methodNameEditor(container, options, view);
-                }
-                : null;
-
-            var inputParametersEditor = isDynamic
-                ? function (container, options) {
-                    ExpressionBuilderManager.inputParametersEditor(container, options, view);
-                }
-                : null;
-
             return [
                 {
                     selectable: true,
@@ -55,10 +35,11 @@ define([
                 {
                     field: "methodName",
                     title: view.nls.MethodName,
-                    template: methodNameTemplate,
-                    editor: methodNameEditor,
+                    template: function (dataItem) {
+                        return "<div class='method-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
+                    },
                     editable: function () {
-                        return isDynamic;
+                        return false;
                     },
                     filterable: false
                 },
@@ -68,17 +49,16 @@ define([
                     editable: function () {
                         return false;
                     },
-                    template: GridUtils.getNodeIdTemplate("methodName", isDynamic),
+                    template: GridUtils.getNodeIdTemplate("methodName"),
                     filterable: true
                 },
                 {
                     field: "inputParameters",
                     title: view.nls.InputParameters,
                     editable: function () {
-                        return isDynamic;
+                        return false;
                     },
                     template: GridUtils.getInputParametersTemplate(view),
-                    editor: inputParametersEditor,
                     filterable: false,
                     sortable: false
                 },
@@ -183,11 +163,7 @@ define([
                 );
             }
 
-            // For static mode the dropdowns are in the template HTML already,
-            // initialize them immediately after the first render.
-            if (!view.model.getKey("dynamicTransport")) {
-                this._initializeMethodDropdowns(view);
-            }
+            this._initializeMethodDropdowns(view);
 
             view.callMethodSearchBar = GridUtils.renderGridSearchBar(
                 "call-method-search",

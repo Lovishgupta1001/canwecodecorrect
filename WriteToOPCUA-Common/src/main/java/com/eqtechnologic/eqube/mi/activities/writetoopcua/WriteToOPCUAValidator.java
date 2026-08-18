@@ -46,11 +46,6 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
 
         List<eQError> errorList = new ArrayList<>();
         String transportName = (String) configMap.get(WriteToOPCUAConstants.TRANSPORT_NAME);
-        Boolean dynamicTransport = Boolean.TRUE.equals(configMap.get(WriteToOPCUAConstants.DYNAMIC_TRANSPORT));
-
-        if (dynamicTransport) {
-            validateExpression(transportName, additionalInfo, errorList, WriteToOPCUAConstants.TRANSPORT_NAME);
-        }
 
         if (transportName == null || transportName.trim().isEmpty()) {
             eQError error = new eQError("writetoopcua.selTransport", COMPONENT_ERR,
@@ -58,9 +53,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                     false);
             errorList.add(error);
         } else {
-            if (!dynamicTransport) {
-                validateTransport(transportName, errorList, configMap);
-            }
+            validateTransport(transportName, errorList, configMap);
         }
 
         String operation = (String) configMap.get(WriteToOPCUAConstants.OPERATION);
@@ -75,11 +68,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 int row = 1;
                 for (Object item : dataChangeWriteList) {
                     if (item != null) {
-                        String dcName = getDataChangeName(item);
                         String newValue = getNewValue(item);
-                        if (dynamicTransport && dcName != null) {
-                            validateExpression(dcName, additionalInfo, errorList, "dataChangeWrite/" + row + "/dataChangeName");
-                        }
                         if (newValue != null && !newValue.isEmpty()) {
                             validateExpression(newValue, additionalInfo, errorList, "dataChangeWrite/" + row + "/newValue");
                         }
@@ -98,14 +87,8 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 int row = 1;
                 for (Object item : callMethodList) {
                     if (item != null) {
-                        String methodName = getMethodName(item);
-                        if (dynamicTransport && methodName != null) {
-                            validateExpression(methodName, additionalInfo, errorList, "callMethod/" + row + "/methodName");
-                        }
                         Object inputParamsObj = getInputParametersObj(item);
-                        if (inputParamsObj instanceof String) {
-                            validateExpression((String) inputParamsObj, additionalInfo, errorList, "callMethod/" + row + "/inputParameters");
-                        } else if (inputParamsObj instanceof List) {
+                        if (inputParamsObj instanceof List) {
                             List<?> inputParams = (List<?>) inputParamsObj;
                             int pRow = 1;
                             for (Object param : inputParams) {
@@ -174,15 +157,8 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
 
     private void validateTransport(String transportName, List<eQError> errorList, Map<String, Object> configMap) {
         try {
-            boolean isDynamicTransport = true;
             TransportClientBean transportClientBean = getTransportClientService().getTransportDetail(transportName);
-            if (transportClientBean != null) {
-                isDynamicTransport = false;
-            }
-
-            if (!isDynamicTransport) {
-                errorList.addAll(Collections.emptyList());
-            } else {
+            if (transportClientBean == null) {
                 eQError error = new eQError("writetoopcua.transportNotFound", COMPONENT_ERR,
                         ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, WriteToOPCUAConstants.TRANSPORT_NAME),
                         false);

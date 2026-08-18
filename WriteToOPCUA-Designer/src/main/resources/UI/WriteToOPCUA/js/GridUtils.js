@@ -136,11 +136,7 @@ define(function (require) {
                 });
         },
 
-        getNodeIdTemplate: function (selectionField, isDynamic) {
-            if (isDynamic) {
-                return function () { return ""; };
-            }
-
+        getNodeIdTemplate: function (selectionField) {
             return function (dataItem) {
                 var nodeId = dataItem.nodeId || "";
                 var rawHelpText = dataItem.nodeIdHelpText || dataItem.nodeIdDetails || dataItem.nodeDetails;
@@ -201,11 +197,7 @@ define(function (require) {
             return String(valueToFormat);
         },
 
-        getSampleValueTemplate: function (isDynamic) {
-            if (isDynamic) {
-                return function () { return ""; };
-            }
-
+        getSampleValueTemplate: function () {
             return function (dataItem) {
                 var rawSampleValue = dataItem.sampleValue;
                 var sampleValue = GridUtils.formatSampleValue(rawSampleValue);
@@ -268,93 +260,42 @@ define(function (require) {
         },
 
         getInputParametersTemplate: function (viewOrDataItem) {
-            if (viewOrDataItem && viewOrDataItem.model) {
-                var view = viewOrDataItem;
-                return function (dataItem) {
-                    var isDynamicTransport = view.model.getKey("dynamicTransport");
+            var dataItem = (viewOrDataItem && viewOrDataItem.model) ? null : (viewOrDataItem || {});
 
-                    if (isDynamicTransport) {
-                        var val = typeof dataItem.inputParameters === "string"
-                            ? dataItem.inputParameters
-                            : "";
-                        var isEmpty = !val;
+            return function (item) {
+                var targetItem = dataItem || item || {};
+                var params = targetItem.inputParameters;
+                var parameters = [];
 
-                        return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
-                            "<span class='writetoopcua-editable-cell-value' " +
-                            "title='" + _.escape(val) + "'>" +
-                            _.escape(val) +
-                            "</span>" +
-                            "<span class='eQ-icon eQ-fonts-edit eq-cursor-pointer " +
-                            "writetoopcua-editable-cell-icon input-parameters-edit-icon'></span>" +
-                            "</div>";
+                if (params) {
+                    if (typeof params.toJSON === "function") {
+                        parameters = params.toJSON();
+                    } else if (params.length !== undefined) {
+                        parameters = params;
                     }
-
-                    var params = dataItem.inputParameters;
-                    var parameters = [];
-
-                    if (params) {
-                        if (typeof params.toJSON === "function") {
-                            parameters = params.toJSON();
-                        } else if (params.length !== undefined) {
-                            parameters = params;
-                        }
-                    }
-
-                    var count = parameters.length || 0;
-                    var firstParam = parameters[0] || {};
-                    var displayValue = firstParam.name ||
-                        firstParam.parameterName ||
-                        firstParam.displayName ||
-                        "";
-
-                    return "<div class='input-parameters-cell'>" +
-                        "<span class='input-parameter-value' title='" +
-                        _.escape(displayValue) + "'>" +
-                        _.escape(displayValue) +
-                        "</span>" +
-                        (count > 0
-                            ? "<button type='button' " +
-                              "class='input-parameter-badge' " +
-                              "title='View input parameters'>" +
-                              count +
-                              "</button>"
-                            : "") +
-                        "</div>";
-                };
-            }
-
-            var dataItem = viewOrDataItem || {};
-            var params = dataItem.inputParameters;
-            var parameters = [];
-
-            if (params) {
-                if (typeof params.toJSON === "function") {
-                    parameters = params.toJSON();
-                } else if (params.length !== undefined) {
-                    parameters = params;
                 }
-            }
 
-            var count = parameters.length || 0;
-            var firstParam = parameters[0] || {};
-            var displayValue = firstParam.name ||
-                firstParam.parameterName ||
-                firstParam.displayName ||
-                "";
+                var count = parameters.length || 0;
+                var firstParam = parameters[0] || {};
+                var displayValue = firstParam.name ||
+                    firstParam.parameterName ||
+                    firstParam.displayName ||
+                    "";
 
-            return "<div class='input-parameters-cell'>" +
-                "<span class='input-parameter-value' title='" +
-                _.escape(displayValue) + "'>" +
-                _.escape(displayValue) +
-                "</span>" +
-                (count > 0
-                    ? "<button type='button' " +
-                      "class='input-parameter-badge' " +
-                      "title='View input parameters'>" +
-                      count +
-                      "</button>"
-                    : "") +
-                "</div>";
+                return "<div class='input-parameters-cell'>" +
+                    "<span class='input-parameter-value' title='" +
+                    _.escape(displayValue) + "'>" +
+                    _.escape(displayValue) +
+                    "</span>" +
+                    (count > 0
+                        ? "<button type='button' " +
+                          "class='input-parameter-badge' " +
+                          "title='View input parameters'>" +
+                          count +
+                          "</button>"
+                        : "") +
+                    "</div>";
+            };
         },
 
         getEditableValueTemplate: function (field, iconClass) {

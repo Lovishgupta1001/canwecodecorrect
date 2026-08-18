@@ -16,8 +16,13 @@ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.DataChangeWriteIt
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.InputParameterItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
+import com.eqtechnologic.eqube.platform.transport.client.beans.OpcUaTransportClientInfoBean;
 import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
+import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaArgumentInfo;
+import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaDataChangeWriteItem;
+import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
+import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaWriteItem;
 import com.eqtechnologic.eqube.transport.uiservice.TransportRESTServiceHelper;
 import org.springframework.stereotype.Component;
 
