@@ -72,7 +72,7 @@ define([
                 {
                     field: "newValue",
                     title: view.nls.NewValue,
-                    template: GridUtils.getNewValueTemplate,
+                    template: GridUtils.getEditableValueTemplate("newValue", "new-value-edit-icon"),
                     editor: function (container, options) {
                         ExpressionBuilderManager.newValueEditor(container, options, view);
                     },
@@ -95,7 +95,24 @@ define([
             ];
         },
 
+        _parseStringField: function (val) {
+            if (val === null || val === undefined) {
+                return "";
+            }
+            if (typeof val === "object") {
+                if (typeof val.value === "string") {
+                    return val.value;
+                }
+                if (typeof val.expression === "string") {
+                    return val.expression;
+                }
+                return "";
+            }
+            return String(val);
+        },
+
         _getDataChangeWriteDataSource: function (data) {
+            var self = this;
             return {
                 data: data,
                 pageSize: 50,
@@ -109,7 +126,8 @@ define([
                                 nullable: true
                             },
                             dataChangeName: {
-                                type: "string"
+                                type: "string",
+                                parse: self._parseStringField
                             },
                             nodeId: {
                                 type: "string",
@@ -120,7 +138,8 @@ define([
                                 editable: false
                             },
                             newValue: {
-                                type: "string"
+                                type: "string",
+                                parse: self._parseStringField
                             },
                             action: {
                                 type: "string",

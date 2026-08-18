@@ -21,10 +21,10 @@ define(function (require) {
                             "<input type='text' class='" + searchClass + "'/>" +
                             "</div>" +
                             "<div class='writetoopcua-grid-actions'>" +
-                            "<button type='button' class='k-button k-button-icontext k-grid-add' title='" + addTitle + "'>" +
+                            "<button type='button' class='ul-button writetoopcua-grid-add-btn' title='" + addTitle + "'>" +
                             "<span class='eQ-icon eQ-fonts-addRow'></span>" +
                             "</button>" +
-                            "<button type='button' class='k-button k-button-icontext k-grid-delete writetoopcua-grid-delete-btn' title='" + deleteTitle + "'>" +
+                            "<button type='button' class='ul-button writetoopcua-grid-delete-btn' title='" + deleteTitle + "'>" +
                             "<span class='eQ-icon eQ-fonts-removeRow'></span>" +
                             "</button>" +
                             "</div>" +
@@ -349,7 +349,12 @@ define(function (require) {
         getEditableValueTemplate: function (field, iconClass) {
             return function (dataItem) {
                 var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
-                var value = rawVal || "";
+                var value = "";
+                if (typeof rawVal === "string") {
+                    value = rawVal;
+                } else if (rawVal && typeof rawVal === "object") {
+                    value = rawVal.value || rawVal.expression || "";
+                }
                 var isEmpty = !value;
 
                 return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +

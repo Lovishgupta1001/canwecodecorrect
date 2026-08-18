@@ -92,67 +92,11 @@ define(function (require) {
         },
 
         newValueEditor: function (container, options, view) {
-            var editorElement = $("<div class='new-value-expression-editor'></div>");
-            editorElement.appendTo(container);
-
-            var configData = {
-                processModel: view.processModel,
-                activityID: view.activityId,
-                tabName: "CONFIGURATION"
-            };
-
-            ExpressionBuilderUtility.getExpressionBuilderEditor({
-                launcherType: ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
-                configData: configData,
-                changeHandler: function (event) {
-                    var expression = ExpressionBuilderUtility.getExpression(event);
-
-                    if (!expression || /^[a-zA-Z][a-zA-Z0-9+\-.]*:$/.test(expression)) {
-                        if (event.sender && event.sender.widget) {
-                            event.sender.widget.close();
-                        }
-                        return;
-                    }
-
-                    options.model.set("newValue", expression);
-
-                    if (event.sender && event.sender.widget) {
-                        event.sender.widget.close();
-                    }
-                }
-            }, container, options);
+            this.renderGridExpressionEditor(container, options, view, "newValue");
         },
 
         parameterValueEditor: function (container, options, view) {
-            var editorElement = $("<div class='parameter-value-expression-editor'></div>");
-            editorElement.appendTo(container);
-
-            var configData = {
-                processModel: view.processModel,
-                activityID: view.activityId,
-                tabName: "CONFIGURATION"
-            };
-
-            ExpressionBuilderUtility.getExpressionBuilderEditor({
-                launcherType: ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
-                configData: configData,
-                changeHandler: function (event) {
-                    var expression = ExpressionBuilderUtility.getExpression(event);
-
-                    if (!expression || /^[a-zA-Z][a-zA-Z0-9+\-.]*:$/.test(expression)) {
-                        if (event.sender && event.sender.widget) {
-                            event.sender.widget.close();
-                        }
-                        return;
-                    }
-
-                    options.model.set("value", expression);
-
-                    if (event.sender && event.sender.widget) {
-                        event.sender.widget.close();
-                    }
-                }
-            }, container, options);
+            this.renderGridExpressionEditor(container, options, view, "value");
         },
 
         destroy: function (expressionBuilder) {
