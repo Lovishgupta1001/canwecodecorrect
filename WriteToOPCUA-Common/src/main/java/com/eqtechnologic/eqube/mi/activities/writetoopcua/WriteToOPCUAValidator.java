@@ -10,6 +10,9 @@
 package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 
 import com.eqtechnologic.eqube.commonui.components.eQError;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.CallMethodItem;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.DataChangeWriteItem;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.InputParameterItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
 import com.eqtechnologic.eqube.mi.component.service.ComponentService;
 import com.eqtechnologic.eqube.mi.component.service.ComponentValidator;
@@ -62,7 +65,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
 
         String operation = (String) configMap.get(WriteToOPCUAConstants.OPERATION);
         if (WriteToOPCUAConstants.DATA_CHANGE_WRITE.equals(operation)) {
-            List<Map<String, Object>> dataChangeWriteList = (List<Map<String, Object>>) configMap.get("dataChangeWrite");
+            List<?> dataChangeWriteList = (List<?>) configMap.get("dataChangeWrite");
             if (dataChangeWriteList == null || dataChangeWriteList.isEmpty()) {
                 eQError error = new eQError("writetoopcua.emptyDataChangeWrite", COMPONENT_ERR,
                         ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "dataChangeWrite"),
@@ -70,10 +73,10 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 errorList.add(error);
             } else {
                 int row = 1;
-                for (Map<String, Object> item : dataChangeWriteList) {
+                for (Object item : dataChangeWriteList) {
                     if (item != null) {
-                        String dcName = (String) item.get("dataChangeName");
-                        String newValue = (String) item.get("newValue");
+                        String dcName = getDataChangeName(item);
+                        String newValue = getNewValue(item);
                         if (dynamicTransport && dcName != null) {
                             validateExpression(dcName, additionalInfo, errorList, "dataChangeWrite/" + row + "/dataChangeName");
                         }
@@ -85,7 +88,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 }
             }
         } else if (WriteToOPCUAConstants.CALL_METHOD.equals(operation)) {
-            List<Map<String, Object>> callMethodList = (List<Map<String, Object>>) configMap.get("callMethod");
+            List<?> callMethodList = (List<?>) configMap.get("callMethod");
             if (callMethodList == null || callMethodList.isEmpty()) {
                 eQError error = new eQError("writetoopcua.emptyCallMethod", COMPONENT_ERR,
                         ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "callMethod"),
@@ -93,18 +96,21 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 errorList.add(error);
             } else {
                 int row = 1;
-                for (Map<String, Object> item : callMethodList) {
+                for (Object item : callMethodList) {
                     if (item != null) {
-                        String methodName = (String) item.get("methodName");
+                        String methodName = getMethodName(item);
                         if (dynamicTransport && methodName != null) {
                             validateExpression(methodName, additionalInfo, errorList, "callMethod/" + row + "/methodName");
                         }
-                        List<Map<String, Object>> inputParams = (List<Map<String, Object>>) item.get("inputParameters");
-                        if (inputParams != null) {
+                        Object inputParamsObj = getInputParametersObj(item);
+                        if (inputParamsObj instanceof String) {
+                            validateExpression((String) inputParamsObj, additionalInfo, errorList, "callMethod/" + row + "/inputParameters");
+                        } else if (inputParamsObj instanceof List) {
+                            List<?> inputParams = (List<?>) inputParamsObj;
                             int pRow = 1;
-                            for (Map<String, Object> param : inputParams) {
+                            for (Object param : inputParams) {
                                 if (param != null) {
-                                    String pVal = (String) param.get("value");
+                                    String pVal = getParamValue(param);
                                     if (pVal != null && !pVal.isEmpty()) {
                                         validateExpression(pVal, additionalInfo, errorList, "callMethod/" + row + "/inputParameters/" + pRow + "/value");
                                     }
@@ -119,6 +125,51 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
         }
 
         return errorList;
+    }
+
+    private String getDataChangeName(Object obj) {
+        if (obj instanceof DataChangeWriteItem) {
+            return ((DataChangeWriteItem) obj).getDataChangeName();
+        } else if (obj instanceof Map) {
+            return (String) ((Map<?, ?>) obj).get("dataChangeName");
+        }
+        return null;
+    }
+
+    private String getNewValue(Object obj) {
+        if (obj instanceof DataChangeWriteItem) {
+            return ((DataChangeWriteItem) obj).getNewValue();
+        } else if (obj instanceof Map) {
+            return (String) ((Map<?, ?>) obj).get("newValue");
+        }
+        return null;
+    }
+
+    private String getMethodName(Object obj) {
+        if (obj instanceof CallMethodItem) {
+            return ((CallMethodItem) obj).getMethodName();
+        } else if (obj instanceof Map) {
+            return (String) ((Map<?, ?>) obj).get("methodName");
+        }
+        return null;
+    }
+
+    private Object getInputParametersObj(Object obj) {
+        if (obj instanceof CallMethodItem) {
+            return ((CallMethodItem) obj).getInputParameters();
+        } else if (obj instanceof Map) {
+            return ((Map<?, ?>) obj).get("inputParameters");
+        }
+        return null;
+    }
+
+    private String getParamValue(Object pObj) {
+        if (pObj instanceof InputParameterItem) {
+            return ((InputParameterItem) pObj).getValue();
+        } else if (pObj instanceof Map) {
+            return (String) ((Map<?, ?>) pObj).get("value");
+        }
+        return null;
     }
 
     private void validateTransport(String transportName, List<eQError> errorList, Map<String, Object> configMap) {
