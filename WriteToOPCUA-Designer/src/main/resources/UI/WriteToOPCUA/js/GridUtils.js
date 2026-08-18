@@ -91,34 +91,49 @@ define(function (require) {
             if (rawHelpText) {
                 if (typeof rawHelpText === "object") {
                     try {
-                        return JSON.stringify(rawHelpText, null, 2);
+                        return "<div class='ul-body-m-b'>Node Details</div>" +
+                            "<pre style='margin:0;font-family:inherit;white-space:pre-wrap;'>" +
+                            _.escape(JSON.stringify(rawHelpText, null, 2)) +
+                            "</pre>";
                     } catch (e) {
-                        return String(rawHelpText);
+                        return "<div class='ul-body-m-b'>Node Details</div>" +
+                            "<div>" + _.escape(String(rawHelpText)) + "</div>";
                     }
                 }
-                return String(rawHelpText);
+                return "<div class='ul-body-m-b'>Node Details</div>" +
+                    "<div>" + _.escape(String(rawHelpText)) + "</div>";
             }
 
-            var lines = [];
+            var html = "<div class='ul-body-m-b'>Node Details</div>";
+            var isMethod = !!(dataItem.methodName || dataItem.objectNodeId);
             var name = dataItem.name || dataItem.dataChangeName || dataItem.methodName || "";
-            if (name) {
-                lines.push("Node Name: " + name);
-            }
-            if (dataItem.displayName) {
-                lines.push("Display Name: " + dataItem.displayName);
-            } else if (name) {
-                lines.push("Display Name: " + name);
-            }
-            if (dataItem.browseName) {
-                lines.push("Browse Name: " + dataItem.browseName);
-            } else if (name) {
-                lines.push("Browse Name: " + name);
-            }
-            if (nodeId) {
-                lines.push("Node ID: " + nodeId);
+
+            if (isMethod) {
+                if (name) {
+                    html += "<div>Method Name: " + _.escape(name) + "</div>";
+                }
+                if (nodeId) {
+                    html += "<div>Node ID: " + _.escape(nodeId) + "</div>";
+                }
+                if (dataItem.objectNodeId) {
+                    html += "<div>Object Node ID: " + _.escape(dataItem.objectNodeId) + "</div>";
+                }
+            } else {
+                if (name) {
+                    html += "<div>Node Name: " + _.escape(name) + "</div>";
+                }
+                if (nodeId) {
+                    html += "<div>Node ID: " + _.escape(nodeId) + "</div>";
+                }
+                if (dataItem.dataTypeName) {
+                    html += "<div>Data Type Name: " + _.escape(dataItem.dataTypeName) + "</div>";
+                }
+                if (dataItem.dataTypeNodeId) {
+                    html += "<div>Data Type Node ID: " + _.escape(dataItem.dataTypeNodeId) + "</div>";
+                }
             }
 
-            return lines.join("\n");
+            return html;
         },
 
         initializeGridHelpTooltips: function (container) {
@@ -211,7 +226,11 @@ define(function (require) {
                 var rawSampleValue = dataItem.sampleValue;
                 var sampleValue = GridUtils.formatSampleValue(rawSampleValue);
                 var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
-                var sampleValueHelpText = rawHelpText ? GridUtils._formatHelpText(rawHelpText, "Sample Value: ", sampleValue) : sampleValue;
+                var contentText = rawHelpText ? GridUtils._formatHelpText(rawHelpText, "Sample Value: ", sampleValue) : sampleValue;
+                var sampleValueHelpText = "<div class='ul-body-m-b'>Sample Value</div>" +
+                    "<pre style='margin:0;font-family:inherit;white-space:pre-wrap;'>" +
+                    _.escape(contentText) +
+                    "</pre>";
                 var hasSelection = !!dataItem.dataChangeName;
 
                 return "<div class='writetoopcua-info-cell'>" +
