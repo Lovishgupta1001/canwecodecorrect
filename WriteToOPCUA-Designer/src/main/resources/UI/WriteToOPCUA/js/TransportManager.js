@@ -13,27 +13,11 @@ define(function (require) {
     var TransportManager = {
 
         updateTransportUI: function (view) {
-            var isDynamicTransport = !!view.model.getKey("dynamicTransport");
-            this.renderTransportName(view, isDynamicTransport);
+            this.renderTransportName(view);
         },
 
-        renderTransportName: function (view, isDynamicTransport) {
-            if (isDynamicTransport) {
-                view.$("#transport-name-expression-region").show();
-                view.$("#transport-name-dropdown-region").hide();
-
-                ExpressionBuilderManager.renderTransportExpressionBuilder(view);
-            } else {
-                view.$("#transport-name-expression-region").hide();
-                view.$("#transport-name-dropdown-region").show();
-
-                if (view.transportExpressionBuilder) {
-                    ExpressionBuilderManager.destroy(view.transportExpressionBuilder);
-                    view.transportExpressionBuilder = null;
-                }
-
-                this.renderTransportDropdown(view);
-            }
+        renderTransportName: function (view) {
+            this.renderTransportDropdown(view);
         },
 
         renderTransportButtons: function (view) {

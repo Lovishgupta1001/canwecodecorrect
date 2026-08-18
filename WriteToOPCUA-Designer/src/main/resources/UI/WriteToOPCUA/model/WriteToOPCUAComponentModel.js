@@ -9,7 +9,6 @@ define(function (require) {
         defaults: {},
 
         onInitialize: function (options) {
-            this.set("dynamicTransport", false);
             this.set("transportName", "");
             this.set("operation", "DataChangeWrite");
             this.set("executionMode", "Parallel");

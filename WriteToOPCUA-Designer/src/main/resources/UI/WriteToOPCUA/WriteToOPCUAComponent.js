@@ -51,12 +51,11 @@ define(function (require) {
         onRender: function () {
             var deferred = $.Deferred();
 
-            this.$("#transport-name-expression-region").attr("name", Constants.TRANSPORT_NAME);
-
             this._initializeControls();
 
-            var operationGroupName = "operation-" + this.activityId;
-            var executionModeGroupName = "execution-mode-" + this.activityId;
+            var actId = this.activityId;
+            var operationGroupName = "operation-" + actId;
+            var executionModeGroupName = "execution-mode-" + actId;
 
             this.$(".data-change-write-radio, .call-method-radio")
                 .attr("name", operationGroupName);
@@ -289,9 +288,6 @@ define(function (require) {
         },
 
         onBeforeDestroy: function () {
-            ExpressionBuilderManager.destroy(this.transportExpressionBuilder);
-            this.transportExpressionBuilder = null;
-
             CallMethodGridManager._destroyInputParametersModal(this);
 
             this._destroyComponent(this.dataChangeWriteSearchBar);
