@@ -328,22 +328,6 @@ define([
             this.openInputParametersModal(view, dataItem, badge);
         },
 
-        _parseStringField: function (val) {
-            if (val === null || val === undefined) {
-                return "";
-            }
-            if (typeof val === "object") {
-                if (typeof val.value === "string") {
-                    return val.value;
-                }
-                if (typeof val.expression === "string") {
-                    return val.expression;
-                }
-                return "";
-            }
-            return String(val);
-        },
-
         _createInputParametersModalGrid: function (gridElement, inputParameters, view) {
             var manager = this;
             return uilayer.grid({
@@ -399,7 +383,7 @@ define([
                                 },
                                 value: {
                                     type: "string",
-                                    parse: manager._parseStringField
+                                    parse: GridUtils.parseStringField
                                 }
                             }
                         }

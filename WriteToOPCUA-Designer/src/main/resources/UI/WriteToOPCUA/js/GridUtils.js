@@ -9,31 +9,6 @@ define(function (require) {
 
     var GridUtils = {
 
-        getOperationGridToolbar: function (searchClass, nls) {
-            var addTitle = (nls && nls.Add) ? nls.Add : "Add";
-            var deleteTitle = (nls && nls.Delete) ? nls.Delete : "Delete";
-
-            return [
-                {
-                    template: function () {
-                        return "<div class='writetoopcua-grid-toolbar'>" +
-                            "<div class='writetoopcua-grid-search'>" +
-                            "<input type='text' class='" + searchClass + "'/>" +
-                            "</div>" +
-                            "<div class='writetoopcua-grid-actions'>" +
-                            "<button type='button' class='ul-button writetoopcua-grid-add-btn' title='" + addTitle + "'>" +
-                            "<span class='eQ-icon eQ-fonts-addRow'></span>" +
-                            "</button>" +
-                            "<button type='button' class='ul-button writetoopcua-grid-delete-btn' title='" + deleteTitle + "'>" +
-                            "<span class='eQ-icon eQ-fonts-removeRow'></span>" +
-                            "</button>" +
-                            "</div>" +
-                            "</div>";
-                    }
-                }
-            ];
-        },
-
         getDeleteActionTemplate: function (nls) {
             return "<span class='eQ-icon eQ-fonts-delete eq-cursor-pointer writetoopcua-delete-row' " +
                 "title='" + nls.Delete + "'></span>";
@@ -60,31 +35,6 @@ define(function (require) {
                 placeholder: nls.Search,
                 filterAfter: 3
             });
-        },
-
-        _formatHelpText: function (val, fallbackPrefix, fallbackVal) {
-            if (val === null || val === undefined) {
-                return fallbackVal ? (fallbackPrefix + fallbackVal) : "";
-            }
-            if (typeof val === "object") {
-                try {
-                    return JSON.stringify(val, null, 2);
-                } catch (e) {
-                    return String(val);
-                }
-            }
-            return String(val);
-        },
-
-        initializeHelpTooltip: function (view, elementId) {
-            if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                return uilayer.help({
-                    elem: view.$el.find("#" + elementId).first(),
-                    position: "right",
-                    width: "10%"
-                });
-            }
-            return null;
         },
 
         _formatNodeDetailsHelpText: function (dataItem, rawHelpText, nodeId) {
@@ -226,7 +176,7 @@ define(function (require) {
                 var rawSampleValue = dataItem.sampleValue;
                 var sampleValue = GridUtils.formatSampleValue(rawSampleValue);
                 var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
-                var contentText = rawHelpText ? GridUtils._formatHelpText(rawHelpText, "Sample Value: ", sampleValue) : sampleValue;
+                var contentText = rawHelpText ? String(rawHelpText) : sampleValue;
                 var sampleValueHelpText = "<div class='ul-body-m-b'>Sample Value</div>" +
                     "<pre style='margin:0;font-family:inherit;white-space:pre-wrap;'>" +
                     _.escape(contentText) +
@@ -247,18 +197,20 @@ define(function (require) {
             };
         },
 
-        getNewValueTemplate: function (dataItem) {
-            var value = dataItem.newValue || "";
-            var isEmpty = !value;
-
-            return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
-                "<span class='writetoopcua-editable-cell-value' " +
-                "title='" + _.escape(value) + "'>" +
-                _.escape(value) +
-                "</span>" +
-                "<span class='eQ-icon eQ-fonts-edit eq-cursor-pointer " +
-                "writetoopcua-editable-cell-icon new-value-edit-icon'></span>" +
-                "</div>";
+        parseStringField: function (val) {
+            if (val === null || val === undefined) {
+                return "";
+            }
+            if (typeof val === "object") {
+                if (typeof val.value === "string") {
+                    return val.value;
+                }
+                if (typeof val.expression === "string") {
+                    return val.expression;
+                }
+                return "";
+            }
+            return String(val);
         },
 
         getOutputValueTemplate: function (dataItem) {

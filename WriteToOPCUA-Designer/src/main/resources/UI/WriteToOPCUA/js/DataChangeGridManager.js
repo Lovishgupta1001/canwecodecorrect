@@ -95,24 +95,7 @@ define([
             ];
         },
 
-        _parseStringField: function (val) {
-            if (val === null || val === undefined) {
-                return "";
-            }
-            if (typeof val === "object") {
-                if (typeof val.value === "string") {
-                    return val.value;
-                }
-                if (typeof val.expression === "string") {
-                    return val.expression;
-                }
-                return "";
-            }
-            return String(val);
-        },
-
         _getDataChangeWriteDataSource: function (data) {
-            var self = this;
             return {
                 data: data,
                 pageSize: 50,
@@ -127,7 +110,7 @@ define([
                             },
                             dataChangeName: {
                                 type: "string",
-                                parse: self._parseStringField
+                                parse: GridUtils.parseStringField
                             },
                             nodeId: {
                                 type: "string",
@@ -139,7 +122,7 @@ define([
                             },
                             newValue: {
                                 type: "string",
-                                parse: self._parseStringField
+                                parse: GridUtils.parseStringField
                             },
                             action: {
                                 type: "string",
