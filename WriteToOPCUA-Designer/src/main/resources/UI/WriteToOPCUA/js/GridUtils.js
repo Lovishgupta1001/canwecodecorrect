@@ -38,14 +38,13 @@ define(function (require) {
 
         getDeleteActionTemplate: function (nls) {
             return "<span class='eQ-icon eQ-fonts-delete eq-cursor-pointer writetoopcua-delete-row' " +
-                "title='" + (nls ? nls.Delete : "Delete") + "'></span>";
+                "title='" + nls.Delete + "'></span>";
         },
 
         renderGridSearchBar: function (searchClass, grid, field, view, nls) {
-            var globalSelf = view;
-            var searchElement = globalSelf.$("." + searchClass);
+            var searchElement = view.$("." + searchClass);
 
-            if (!searchElement.length || !grid?.widget?.dataSource) {
+            if (!searchElement.length || !grid || !grid.widget || !grid.widget.dataSource) {
                 return null;
             }
 
@@ -85,12 +84,6 @@ define(function (require) {
 
         _formatNodeDetailsHelpText: function (dataItem, rawHelpText, nodeId) {
             if (rawHelpText) {
-                if (typeof rawHelpText === "object") {
-                    return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
-                        "<pre class='sample-value-tooltip-content'>" +
-                        _.escape(JSON.stringify(rawHelpText, null, 2)) +
-                        "</pre>";
-                }
                 return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
                     "<div>" + _.escape(String(rawHelpText)) + "</div>";
             }
@@ -124,62 +117,57 @@ define(function (require) {
         },
 
         initializeGridHelpTooltips: function (container) {
-            if (typeof uilayer !== "undefined" && uilayer.help) {
-                container.find(".node-id-help-icon, .sample-value-help-icon, .node-id-help-tooltip, .sample-value-help-tooltip, .grid-help-container").each(function () {
+            if (uilayer && uilayer.help) {
+                container.find(".grid-help-container").each(function () {
                     var elem = $(this);
                     if (!elem.data("help-initialized")) {
                         elem.data("help-initialized", true);
                         uilayer.help({
                             elem: elem,
                             position: "top",
-                            width: "12rem"
+                            width: "12rem",
+                            height: "auto"
                         });
                     }
                 });
             }
-
             $(document)
                 .off("click.sampleValueCopy")
-                .on("click.sampleValueCopy", ".sample-value-copy-icon", this._handleSampleValueCopy);
-        },
+                .on("click.sampleValueCopy", ".sample-value-copy-icon", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-        _handleSampleValueCopy: function (e) {
-            e.preventDefault();
-            e.stopPropagation();
+                    var $copyBtn = $(this);
+                    var text = $("<textarea/>").html($copyBtn.attr("data-copy")).text();
 
-            var $copyBtn = $(this);
-            var text = $("<textarea/>").html($copyBtn.attr("data-copy")).text();
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(text);
+                    } else {
+                        var temp = $("<textarea>");
+                        $("body").append(temp);
+                        temp.val(text).select();
+                        document.execCommand("copy");
+                        temp.remove();
+                    }
 
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(text);
-            }
-
-            if (!$copyBtn.siblings(".sample-copy-success").length) {
-                var $successMsg = $("<span class='sample-copy-success'>" +
-                    _.escape(nls.Copied) +
-                    "</span>");
-
-                $copyBtn.after($successMsg);
-
-                setTimeout(function () {
-                    GridUtils._removeCopyMessage($successMsg);
-                }, 1200);
-            }
-        },
-
-        _removeCopyMessage: function ($successMsg) {
-            $successMsg.fadeOut(300, function () {
-                $(this).remove();
-            });
+                    if (!$copyBtn.siblings(".sample-copy-success").length) {
+                        var $successMsg = $("<span class='sample-copy-success'>" + _.escape(nls.Copied) + "</span>");
+                        $copyBtn.after($successMsg);
+                        setTimeout(function () {
+                            $successMsg.fadeOut(300, function () {
+                                $(this).remove();
+                            });
+                        }, 1200);
+                    }
+                });
         },
 
         getNodeIdTemplate: function (selectionField) {
             return function (dataItem) {
-                var nodeId = (dataItem.get ? dataItem.get("nodeId") : dataItem.nodeId) || "";
+                var nodeId = dataItem.nodeId || "";
                 var rawHelpText = dataItem.nodeIdHelpText || dataItem.nodeIdDetails || dataItem.nodeDetails;
                 var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId);
-                var selVal = dataItem.get ? dataItem.get(selectionField) : dataItem[selectionField];
-                var hasSelection = !!selVal;
+                var hasSelection = !!dataItem[selectionField];
 
                 return "<div class='writetoopcua-info-cell'>" +
                     "<span class='writetoopcua-info-cell-value' " +
@@ -187,56 +175,45 @@ define(function (require) {
                     _.escape(nodeId) +
                     "</span>" +
                     (hasSelection
-                        ? "<span class='eQ-icon eQ-fonts-info writetoopcua-info-icon node-id-help-icon' " +
-                        "title='" + _.escape(nodeIdHelpText) + "' " +
-                        "data-help='" + _.escape(nodeIdHelpText) + "'></span>"
+                        ? "<div class='grid-help-container writetoopcua-info-icon'>" +
+                          "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'></input>" +
+                          "</div>"
                         : "") +
                     "</div>";
             };
         },
 
         formatSampleValue: function (rawSampleValue) {
-            if (rawSampleValue === null || rawSampleValue === undefined || rawSampleValue === "") {
+            if (!rawSampleValue) {
                 return "";
             }
 
-            var valueToFormat = this._extractSampleValue(rawSampleValue);
+            var valueToFormat = rawSampleValue;
 
-            if (typeof valueToFormat !== "object" || valueToFormat === null) {
-                return String(valueToFormat);
+            if (rawSampleValue.substring) {
+                var trimmed = rawSampleValue.trim();
+                if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+                    var parsed = JSON.parse(trimmed);
+                    if (parsed && parsed.Value !== undefined) {
+                        valueToFormat = parsed.Value;
+                    } else {
+                        valueToFormat = parsed;
+                    }
+                }
+            } else if (rawSampleValue.Value !== undefined) {
+                valueToFormat = rawSampleValue.Value;
             }
 
-            return JSON.stringify(valueToFormat, null, 2);
-        },
-
-        _extractSampleValue: function (value) {
-            if (typeof value === "string") {
-                return this._extractFromString(value);
+            if (valueToFormat && valueToFormat.constructor === Object) {
+                return JSON.stringify(valueToFormat, null, 2);
             }
 
-            if (typeof value === "object" && value !== null && value.hasOwnProperty("Value")) {
-                return value.Value;
-            }
-
-            return value;
-        },
-
-        _extractFromString: function (value) {
-            var trimmed = value.trim();
-
-            if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
-                return value;
-            }
-
-            var parsed = JSON.parse(trimmed);
-            return parsed && typeof parsed === "object" && parsed.hasOwnProperty("Value")
-                ? parsed.Value
-                : parsed;
+            return String(valueToFormat);
         },
 
         getSampleValueTemplate: function () {
             return function (dataItem) {
-                var rawSampleValue = dataItem.get ? dataItem.get("sampleValue") : dataItem.sampleValue;
+                var rawSampleValue = dataItem.sampleValue;
                 var sampleValue = GridUtils.formatSampleValue(rawSampleValue);
                 var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
                 var contentText = rawHelpText ? String(rawHelpText) : sampleValue;
@@ -250,8 +227,7 @@ define(function (require) {
                     "<pre class='sample-value-tooltip-content'>" +
                     _.escape(contentText) +
                     "</pre>";
-                var selVal = dataItem.get ? dataItem.get("dataChangeName") : dataItem.dataChangeName;
-                var hasSelection = !!selVal;
+                var hasSelection = !!dataItem.dataChangeName;
 
                 return "<div class='writetoopcua-info-cell'>" +
                     "<span class='writetoopcua-info-cell-value sample-value-text' " +
@@ -259,32 +235,29 @@ define(function (require) {
                     _.escape(sampleValue) +
                     "</span>" +
                     (hasSelection
-                        ? "<span class='eQ-icon eQ-fonts-info writetoopcua-info-icon sample-value-help-icon' " +
-                        "title='" + _.escape(sampleValueHelpText) + "' " +
-                        "data-help='" + _.escape(sampleValueHelpText) + "'></span>"
+                        ? "<div class='grid-help-container writetoopcua-info-icon'>" +
+                          "<input class='sample-value-help-tooltip' data-help='" + _.escape(sampleValueHelpText) + "'></input>" +
+                          "</div>"
                         : "") +
                     "</div>";
             };
         },
 
         parseStringField: function (val) {
-            if (val === null || val === undefined) {
+            if (!val) {
                 return "";
             }
-            if (typeof val === "object") {
-                if (val.value) {
-                    return val.value;
-                }
-                if (val.expression) {
-                    return val.expression;
-                }
-                return "";
+            if (val.value) {
+                return val.value;
+            }
+            if (val.expression) {
+                return val.expression;
             }
             return String(val);
         },
 
         getOutputValueTemplate: function (dataItem) {
-            var outputValue = (dataItem.get ? dataItem.get("outputValue") : dataItem.outputValue) || "";
+            var outputValue = dataItem.outputValue || "";
             var isEmpty = !outputValue;
 
             return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
@@ -298,10 +271,10 @@ define(function (require) {
         },
 
         getInputParametersTemplate: function (viewOrDataItem) {
-            var dataItem = viewOrDataItem?.model ? null : (viewOrDataItem || {});
+            var dataItem = (viewOrDataItem && viewOrDataItem.model) ? null : (viewOrDataItem || {});
 
             return function (item) {
-                var targetItem = (dataItem && dataItem.inputParameters) ? dataItem : (item || {});
+                var targetItem = dataItem || item || {};
                 var params = targetItem.inputParameters;
                 var parameters = [];
 
@@ -327,10 +300,10 @@ define(function (require) {
                     "</span>" +
                     (count > 0
                         ? "<button type='button' " +
-                        "class='input-parameter-badge' " +
-                        "title='" + _.escape(nls.ViewInputParameters) + "'>" +
-                        count +
-                        "</button>"
+                          "class='input-parameter-badge' " +
+                          "title='" + _.escape(nls.ViewInputParameters) + "'>" +
+                          count +
+                          "</button>"
                         : "") +
                     "</div>";
             };
@@ -340,9 +313,9 @@ define(function (require) {
             return function (dataItem) {
                 var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
                 var value = "";
-                if (typeof rawVal === "string") {
+                if (rawVal && rawVal.substring) {
                     value = rawVal;
-                } else if (rawVal && typeof rawVal === "object") {
+                } else if (rawVal) {
                     value = rawVal.value || rawVal.expression || "";
                 }
                 var isEmpty = !value;
