@@ -10,13 +10,12 @@ define(function (require) {
     var ExpressionBuilderManager = {
 
         renderGridExpressionEditor: function (container, options, view, field) {
-            var globalSelf = view;
             var editorElement = $("<div class='grid-expression-editor'></div>");
             editorElement.appendTo(container);
 
             var configData = {
-                processModel: globalSelf.processModel,
-                activityID: globalSelf.activityId,
+                processModel: view.processModel,
+                activityID: view.activityId,
                 tabName: "CONFIGURATION"
             };
 
@@ -27,7 +26,7 @@ define(function (require) {
                     var expression = ExpressionBuilderUtility.getExpression(event);
 
                     if (!expression || /^[a-zA-Z][a-zA-Z0-9+\-.]*:$/.test(expression)) {
-                        if (event?.sender?.widget?.close) {
+                        if (typeof event?.sender?.widget?.close === "function") {
                             event.sender.widget.close();
                         }
                         return;
@@ -35,7 +34,7 @@ define(function (require) {
 
                     options.model.set(field, expression);
 
-                    if (event?.sender?.widget?.close) {
+                    if (typeof event?.sender?.widget?.close === "function") {
                         event.sender.widget.close();
                     }
                 }

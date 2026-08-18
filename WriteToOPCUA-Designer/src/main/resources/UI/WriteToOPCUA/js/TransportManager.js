@@ -20,26 +20,24 @@ define(function (require) {
         },
 
         renderTransportButtons: function (view) {
-            var globalSelf = view;
-
-            if (!globalSelf.refreshButton) {
-                globalSelf.refreshButton = uilayer.button({
-                    elem: globalSelf.$(".transports-refresh-button"),
+            if (!view.refreshButton) {
+                view.refreshButton = uilayer.button({
+                    elem: view.$(".transports-refresh-button"),
                     uiStyle: "tertiary",
                     click: function () {
-                        if (globalSelf.transportDropdown) {
-                            globalSelf.transportDropdown.destroy();
-                            globalSelf.transportDropdown = null;
-                            globalSelf.$(".transport-selector-dropdown").empty();
+                        if (view.transportDropdown) {
+                            view.transportDropdown.destroy();
+                            view.transportDropdown = null;
+                            view.$(".transport-selector-dropdown").empty();
                         }
-                        TransportManager.renderTransportDropdown(globalSelf);
+                        TransportManager.renderTransportDropdown(view);
                     }
                 });
             }
 
-            if (!globalSelf.createButton) {
-                globalSelf.createButton = uilayer.button({
-                    elem: globalSelf.$(".transports-create-button"),
+            if (!view.createButton) {
+                view.createButton = uilayer.button({
+                    elem: view.$(".transports-create-button"),
                     uiStyle: "tertiary",
                     click: function () {
                         window.open(
@@ -50,16 +48,16 @@ define(function (require) {
                 });
             }
 
-            if (!globalSelf.openButton) {
-                globalSelf.openButton = uilayer.button({
-                    elem: globalSelf.$(".transports-open-button"),
+            if (!view.openButton) {
+                view.openButton = uilayer.button({
+                    elem: view.$(".transports-open-button"),
                     uiStyle: "tertiary",
                     click: function () {
-                        if (!globalSelf.transportDropdown || !globalSelf.transportDropdown.dataItem()) {
+                        if (!view.transportDropdown?.dataItem()) {
                             return;
                         }
 
-                        var item = globalSelf.transportDropdown.dataItem();
+                        var item = view.transportDropdown.dataItem();
                         var transportId = item.toJSON ? item.toJSON().transportId : item.transportId;
 
                         if (transportId) {
@@ -74,16 +72,14 @@ define(function (require) {
         },
 
         renderTransportDropdown: function (view) {
-            var globalSelf = view;
-
-            if (globalSelf.transportDropdown) {
+            if (view.transportDropdown) {
                 return;
             }
 
             var dataSource = new uilayer.data.DataSource({
                 transport: {
                     read: function (options) {
-                        if (typeof AjaxUtility !== "undefined" && AjaxUtility.commonAjaxRequest) {
+                        if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
                             AjaxUtility.commonAjaxRequest("GET", "activities/writetoopcua/fetchOPCUATransportList", null, "json")
                                 .done(function (data) {
                                     options.success(data || []);
@@ -92,7 +88,7 @@ define(function (require) {
                                     options.error(err);
                                 });
                         } else {
-                            var requestUrl = (uilayer.rest && uilayer.rest.serviceUrl)
+                            var requestUrl = typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
                                 ? uilayer.rest.serviceUrl("activities/writetoopcua/fetchOPCUATransportList")
                                 : "activities/writetoopcua/fetchOPCUATransportList";
 
@@ -111,43 +107,42 @@ define(function (require) {
                 }
             });
 
-            globalSelf.transportDropdown = uilayer.dropDownList({
-                elem: globalSelf.$(".transport-selector-dropdown"),
+            view.transportDropdown = uilayer.dropDownList({
+                elem: view.$(".transport-selector-dropdown"),
                 filter: "contains",
                 dataSource: dataSource,
                 dataTextField: "transportName",
                 dataValueField: "transportId",
                 optionLabel: {
                     transportId: "",
-                    transportName: globalSelf.nls.SelectTransport
+                    transportName: view.nls.SelectTransport
                 },
                 dataBound: function () {
-                    var savedTransportName = globalSelf.model.getKey("transportName");
+                    var savedTransportName = view.model.getKey("transportName");
                     if (savedTransportName && this.dataSource) {
                         var items = this.dataSource.data();
                         for (var item of items) {
                             var tName = item.transportName || item.name;
-
                             if (tName === savedTransportName) {
                                 this.value(item.transportId);
 
                                 var transport = item.toJSON ? item.toJSON() : item;
-                                globalSelf.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
+                                view.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
                                     if (opt && !opt.dataChangeName && opt.name) {
                                         opt.dataChangeName = opt.name;
                                     }
                                     return opt;
                                 });
-                                globalSelf.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
+                                view.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
                                     if (opt && !opt.methodName && opt.name) {
                                         opt.methodName = opt.name;
                                     }
                                     return opt;
                                 });
 
-                                DataChangeGridManager.refreshGridMode(globalSelf);
-                                CallMethodGridManager.refreshGridMode(globalSelf);
-                                TransportManager.testTransportById(item.transportId, globalSelf);
+                                DataChangeGridManager.refreshGridMode(view);
+                                CallMethodGridManager.refreshGridMode(view);
+                                TransportManager.testTransportById(item.transportId, view);
                                 break;
                             }
                         }
@@ -161,57 +156,60 @@ define(function (require) {
                             ? selectedItem.toJSON()
                             : selectedItem;
 
-                        globalSelf.model.setKey(
+                        view.model.setKey(
                             "transportName",
                             transport.transportName || ""
                         );
 
-                        globalSelf.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
+                        view.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
                             if (opt && !opt.dataChangeName && opt.name) {
                                 opt.dataChangeName = opt.name;
                             }
                             return opt;
                         });
-                        globalSelf.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
+                        view.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
                             if (opt && !opt.methodName && opt.name) {
                                 opt.methodName = opt.name;
                             }
                             return opt;
                         });
 
-                        DataChangeGridManager.refreshGridMode(globalSelf);
-                        CallMethodGridManager.refreshGridMode(globalSelf);
-                        TransportManager.testTransportById(transport.transportId, globalSelf);
+                        DataChangeGridManager.refreshGridMode(view);
+                        CallMethodGridManager.refreshGridMode(view);
+                        TransportManager.testTransportById(transport.transportId, view);
                     }
                 }
             });
 
-            this.renderTransportButtons(globalSelf);
+            this.renderTransportButtons(view);
         },
 
         testTransportById: function (transportId, view) {
-            var globalSelf = view;
             if (!transportId) {
                 return;
             }
 
             var url = "activities/writetoopcua/testTransportById?transportId=" + encodeURIComponent(transportId);
 
-            if (typeof AjaxUtility !== "undefined" && AjaxUtility.commonAjaxRequest) {
+            if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
                 var promise = AjaxUtility.commonAjaxRequest("GET", url, null, "json");
                 promise.done(function (data) {
                     if (data === false || (data?.success === false)) {
-                        uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
+                        if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
+                            uilayer.notifier("warning", view.nls.TransportTestFailed);
+                        }
                     }
                 });
                 promise.fail(function (err) {
-                    if (typeof logger !== "undefined" && logger.error) {
+                    if (typeof logger !== "undefined" && typeof logger.error === "function") {
                         logger.error("testTransportById request failed:", err);
                     }
-                    uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
+                    if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
+                        uilayer.notifier("warning", view.nls.TransportTestFailed);
+                    }
                 });
             } else {
-                var requestUrl = (uilayer.rest && uilayer.rest.serviceUrl)
+                var requestUrl = typeof uilayer !== "undefined" && typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
                     ? uilayer.rest.serviceUrl(url)
                     : url;
 
@@ -220,15 +218,19 @@ define(function (require) {
                     type: "GET",
                     dataType: "json",
                     success: function (data) {
-                        if (data === false || (data?.success === false)) {
-                            uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
+                        if (data === false || data?.success === false) {
+                            if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
+                                uilayer.notifier("warning", view.nls.TransportTestFailed);
+                            }
                         }
                     },
                     error: function (xhr, status, error) {
-                        if (typeof logger !== "undefined" && logger.error) {
+                        if (typeof logger !== "undefined" && typeof logger.error === "function") {
                             logger.error("testTransportById request failed:", error || status);
                         }
-                        uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
+                        if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
+                            uilayer.notifier("warning", view.nls.TransportTestFailed);
+                        }
                     }
                 });
             }

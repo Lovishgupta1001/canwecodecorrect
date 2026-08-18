@@ -44,7 +44,7 @@ define(function (require) {
         renderGridSearchBar: function (searchClass, grid, field, view, nls) {
             var searchElement = view.$("." + searchClass);
 
-            if (!searchElement.length || !grid || !grid.widget || !grid.widget.dataSource) {
+            if (!searchElement.length || !grid?.widget?.dataSource) {
                 return null;
             }
 
@@ -84,6 +84,18 @@ define(function (require) {
 
         _formatNodeDetailsHelpText: function (dataItem, rawHelpText, nodeId) {
             if (rawHelpText) {
+                if (typeof rawHelpText === "object") {
+                    try {
+                        return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
+                            "<pre class='sample-value-tooltip-content'>" +
+                            _.escape(JSON.stringify(rawHelpText, null, 2)) +
+                            "</pre>";
+                    } catch (e) {
+                        console.error("Error formatting node details help text:", e);
+                        return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
+                            "<div>" + _.escape(String(rawHelpText)) + "</div>";
+                    }
+                }
                 return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
                     "<div>" + _.escape(String(rawHelpText)) + "</div>";
             }
@@ -117,49 +129,57 @@ define(function (require) {
         },
 
         initializeGridHelpTooltips: function (container) {
-            if (uilayer && uilayer.help) {
-                container.find(".grid-help-container").each(function () {
-                    var elem = $(this);
-                    if (!elem.data("help-initialized")) {
-                        elem.data("help-initialized", true);
-                        uilayer.help({
-                            elem: elem,
-                            position: "top",
-                            width: "12rem",
-                            height: "auto"
-                        });
-                    }
-                });
+            if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
+                container.find(".grid-help-container").each(this._initializeHelpTooltip);
             }
+
             $(document)
                 .off("click.sampleValueCopy")
-                .on("click.sampleValueCopy", ".sample-value-copy-icon", function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                .on("click.sampleValueCopy", ".sample-value-copy-icon", this._handleSampleValueCopy);
+        },
 
-                    var $copyBtn = $(this);
-                    var text = $("<textarea/>").html($copyBtn.attr("data-copy")).text();
+        _initializeHelpTooltip: function () {
+            var elem = $(this);
 
-                    if (navigator.clipboard) {
-                        navigator.clipboard.writeText(text);
-                    } else {
-                        var temp = $("<textarea>");
-                        $("body").append(temp);
-                        temp.val(text).select();
-                        document.execCommand("copy");
-                        temp.remove();
-                    }
+            if (!elem.data("help-initialized")) {
+                elem.data("help-initialized", true);
 
-                    if (!$copyBtn.siblings(".sample-copy-success").length) {
-                        var $successMsg = $("<span class='sample-copy-success'>" + _.escape(nls.Copied) + "</span>");
-                        $copyBtn.after($successMsg);
-                        setTimeout(function () {
-                            $successMsg.fadeOut(300, function () {
-                                $(this).remove();
-                            });
-                        }, 1200);
-                    }
+                uilayer.help({
+                    elem: elem,
+                    position: "top",
+                    width: "12rem",
                 });
+            }
+        },
+
+        _handleSampleValueCopy: function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var $copyBtn = $(this);
+            var text = $("<textarea/>").html($copyBtn.attr("data-copy")).text();
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text);
+            }
+
+            if (!$copyBtn.siblings(".sample-copy-success").length) {
+                var $successMsg = $("<span class='sample-copy-success'>" +
+                    _.escape(nls.Copied) +
+                    "</span>");
+
+                $copyBtn.after($successMsg);
+
+                setTimeout(function () {
+                    GridUtils._removeCopyMessage($successMsg);
+                }, 1200);
+            }
+        },
+
+        _removeCopyMessage: function ($successMsg) {
+            $successMsg.fadeOut(300, function () {
+                $(this).remove();
+            });
         },
 
         getNodeIdTemplate: function (selectionField) {
@@ -176,39 +196,63 @@ define(function (require) {
                     "</span>" +
                     (hasSelection
                         ? "<div class='grid-help-container writetoopcua-info-icon'>" +
-                          "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'></input>" +
-                          "</div>"
+                        "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
+                        "</div>"
                         : "") +
                     "</div>";
             };
         },
 
         formatSampleValue: function (rawSampleValue) {
-            if (!rawSampleValue) {
+            if (rawSampleValue === null || rawSampleValue === undefined || rawSampleValue === "") {
                 return "";
             }
 
-            var valueToFormat = rawSampleValue;
+            var valueToFormat = this._extractSampleValue(rawSampleValue);
 
-            if (rawSampleValue.substring) {
-                var trimmed = rawSampleValue.trim();
-                if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-                    var parsed = JSON.parse(trimmed);
-                    if (parsed && parsed.Value !== undefined) {
-                        valueToFormat = parsed.Value;
-                    } else {
-                        valueToFormat = parsed;
-                    }
-                }
-            } else if (rawSampleValue.Value !== undefined) {
-                valueToFormat = rawSampleValue.Value;
+            if (typeof valueToFormat !== "object" || valueToFormat === null) {
+                return String(valueToFormat);
             }
 
-            if (valueToFormat && valueToFormat.constructor === Object) {
+            try {
                 return JSON.stringify(valueToFormat, null, 2);
+            } catch (e) {
+                console.log("Exception while stringifying sample value: " + e);
+                return String(valueToFormat);
+            }
+        },
+
+        _extractSampleValue: function (value) {
+            if (typeof value === "string") {
+                return this._extractFromString(value);
             }
 
-            return String(valueToFormat);
+            if (typeof value === "object" && value !== null && value.hasOwnProperty("Value")) {
+                return value.Value;
+            }
+
+            return value;
+        },
+
+        _extractFromString: function (value) {
+            var trimmed = value.trim();
+
+            if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+                return value;
+            }
+
+            try {
+                var parsed = JSON.parse(trimmed);
+
+                return parsed &&
+                typeof parsed === "object" &&
+                parsed.hasOwnProperty("Value")
+                    ? parsed.Value
+                    : parsed;
+            } catch (e) {
+                console.log("Exception while parsing sample value JSON: " + e);
+                return value;
+            }
         },
 
         getSampleValueTemplate: function () {
@@ -236,22 +280,25 @@ define(function (require) {
                     "</span>" +
                     (hasSelection
                         ? "<div class='grid-help-container writetoopcua-info-icon'>" +
-                          "<input class='sample-value-help-tooltip' data-help='" + _.escape(sampleValueHelpText) + "'></input>" +
-                          "</div>"
+                        "<input class='sample-value-help-tooltip' data-help='" + _.escape(sampleValueHelpText) + "'/>" +
+                        "</div>"
                         : "") +
                     "</div>";
             };
         },
 
         parseStringField: function (val) {
-            if (!val) {
+            if (val === null || val === undefined) {
                 return "";
             }
-            if (val.value) {
-                return val.value;
-            }
-            if (val.expression) {
-                return val.expression;
+            if (typeof val === "object") {
+                if (typeof val.value === "string") {
+                    return val.value;
+                }
+                if (typeof val.expression === "string") {
+                    return val.expression;
+                }
+                return "";
             }
             return String(val);
         },
@@ -271,7 +318,7 @@ define(function (require) {
         },
 
         getInputParametersTemplate: function (viewOrDataItem) {
-            var dataItem = (viewOrDataItem && viewOrDataItem.model) ? null : (viewOrDataItem || {});
+            var dataItem = viewOrDataItem?.model ? null : (viewOrDataItem || {});
 
             return function (item) {
                 var targetItem = dataItem || item || {};
@@ -279,7 +326,7 @@ define(function (require) {
                 var parameters = [];
 
                 if (params) {
-                    if (params.toJSON) {
+                    if (typeof params.toJSON === "function") {
                         parameters = params.toJSON();
                     } else if (params.length !== undefined) {
                         parameters = params;
@@ -300,10 +347,10 @@ define(function (require) {
                     "</span>" +
                     (count > 0
                         ? "<button type='button' " +
-                          "class='input-parameter-badge' " +
-                          "title='" + _.escape(nls.ViewInputParameters) + "'>" +
-                          count +
-                          "</button>"
+                        "class='input-parameter-badge' " +
+                        "title='" + _.escape(nls.ViewInputParameters) + "'>" +
+                        count +
+                        "</button>"
                         : "") +
                     "</div>";
             };
@@ -313,9 +360,9 @@ define(function (require) {
             return function (dataItem) {
                 var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
                 var value = "";
-                if (rawVal && rawVal.substring) {
+                if (typeof rawVal === "string") {
                     value = rawVal;
-                } else if (rawVal) {
+                } else if (rawVal && typeof rawVal === "object") {
                     value = rawVal.value || rawVal.expression || "";
                 }
                 var isEmpty = !value;

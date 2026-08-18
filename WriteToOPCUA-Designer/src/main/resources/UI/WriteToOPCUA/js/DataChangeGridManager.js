@@ -174,13 +174,11 @@ define([
         },
 
         _initializeDataChangeDropdowns: function (view) {
-            var globalSelf = view;
-            GridUtils.initializeGridHelpTooltips(globalSelf.$el);
-
-            globalSelf.$(".data-change-name-dropdown").each(function () {
+            GridUtils.initializeGridHelpTooltips(view.$el);
+            view.$(".data-change-name-dropdown").each(function () {
                 var element = $(this);
                 var row = element.closest("tr");
-                var grid = globalSelf.dataChangeWriteGrid ? globalSelf.dataChangeWriteGrid.widget : null;
+                var grid = view.dataChangeWriteGrid ? view.dataChangeWriteGrid.widget : null;
 
                 if (!grid) {
                     return;
@@ -203,7 +201,7 @@ define([
                 if (existingDropdown) {
                     if (existingDropdown.setDataSource) {
                         existingDropdown.setDataSource(new uilayer.data.DataSource({
-                            data: globalSelf.dataChangeOptions || []
+                            data: view.dataChangeOptions || []
                         }));
                     }
                     return;
@@ -217,12 +215,12 @@ define([
                 var dropdown = uilayer.dropDownList({
                     elem: element,
                     dataSource: new uilayer.data.DataSource({
-                        data: globalSelf.dataChangeOptions || []
+                        data: view.dataChangeOptions || []
                     }),
                     dataTextField: "dataChangeName",
                     dataValueField: "dataChangeName",
                     optionLabel: {
-                        dataChangeName: globalSelf.nls.SelectDataChange
+                        dataChangeName: view.nls.SelectDataChange
                     },
                     change: function () {
                         var selectedValue = this.value();
@@ -256,9 +254,9 @@ define([
                 });
 
                 var initialVal = dataItem.get ? dataItem.get("dataChangeName") : dataItem.dataChangeName;
-                if (dropdown?.value) {
+                if (typeof dropdown?.value === "function") {
                     dropdown.value(initialVal || "");
-                } else if (dropdown?.widget?.value) {
+                } else if (typeof dropdown?.widget?.value === "function") {
                     dropdown.widget.value(initialVal || "");
                 }
             });
