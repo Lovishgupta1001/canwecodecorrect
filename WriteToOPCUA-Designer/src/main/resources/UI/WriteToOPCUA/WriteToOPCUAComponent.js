@@ -270,14 +270,8 @@ define(function (require) {
         },
 
         _destroyComponent: function (component) {
-            if (!component || typeof component.destroy !== "function") {
-                return;
-            }
-
-            try {
+            if (component && component.destroy) {
                 component.destroy();
-            } catch (error) {
-                console.warn("WriteToOPCUA component cleanup failed:", error);
             }
         },
 
