@@ -152,8 +152,7 @@ define([
                 resizable: true,
                 sortable: true,
                 filterable: true,
-                scrollable: true,
-                height: "13rem",
+                scrollable: false,
                 columns: this._getCallMethodColumns(globalSelf),
                 dataSource: this._getCallMethodDataSource(data)
             });
@@ -325,8 +324,7 @@ define([
                 resizable: true,
                 sortable: false,
                 filterable: false,
-                scrollable: true,
-                height: "10rem",
+                scrollable: false,
                 columns: [
                     {
                         field: "name",

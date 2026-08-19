@@ -149,8 +149,7 @@ define([
                 resizable: true,
                 sortable: true,
                 filterable: true,
-                scrollable: true,
-                height: "13rem",
+                scrollable: false,
                 columns: this._getDataChangeWriteColumns(globalSelf),
                 dataSource: this._getDataChangeWriteDataSource(data)
             });
