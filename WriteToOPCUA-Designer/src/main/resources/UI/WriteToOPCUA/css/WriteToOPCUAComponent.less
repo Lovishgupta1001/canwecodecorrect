@@ -118,9 +118,7 @@
 
 /*
  * Dropdown column cells (.data-change-name-dropdown / .method-name-dropdown)
- * are our own wrapper divs rendered inside each grid row.
- * The dropdown widget inside fills the full cell width.
- * Width is set on the container; the uilayer dropdown widget inherits it.
+ * are our own wrapper divs rendered inside each row.
  */
 .data-change-name-dropdown,
 .method-name-dropdown {
@@ -132,3 +130,24 @@
     display: none;
 }
 
+/* Tooltip styles for grid info icons */
+.sample-value-tooltip-content {
+    margin: 0;
+    padding: 0.25rem;
+    font-family: monospace, sans-serif;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    max-height: 15rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sample-value-tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}

@@ -143,7 +143,7 @@ define(function (require) {
                 uilayer.help({
                     elem: elem,
                     position: "top",
-                    width: "12rem",
+                    width: "22rem"
                 });
             }
         },
