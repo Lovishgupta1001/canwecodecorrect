@@ -85,24 +85,22 @@ define(function (require) {
         _formatNodeDetailsHelpText: function (dataItem, rawHelpText, nodeId) {
             if (rawHelpText) {
                 if (typeof rawHelpText === "object") {
-                    try {
-                        return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
-                            "<pre class='sample-value-tooltip-content'>" +
-                            _.escape(JSON.stringify(rawHelpText, null, 2)) +
-                            "</pre>";
-                    } catch (e) {
-                        console.error("Error formatting node details help text:", e);
-                        return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
-                            "<div>" + _.escape(String(rawHelpText)) + "</div>";
-                    }
+                    return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
+                        "<pre class='sample-value-tooltip-content'>" +
+                        _.escape(JSON.stringify(rawHelpText, null, 2)) +
+                        "</pre>";
                 }
                 return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
                     "<div>" + _.escape(String(rawHelpText)) + "</div>";
             }
 
+            var getVal = function (key) {
+                return dataItem.get ? dataItem.get(key) : dataItem[key];
+            };
+
             var html = "<div class='ul-header-xxxs-b ul-pad-1x'>" + nls.NodeDetails + "</div>";
-            var isMethod = !!(dataItem.methodName || dataItem.objectNodeId);
-            var name = dataItem.name || dataItem.dataChangeName || dataItem.methodName || "";
+            var isMethod = !!(getVal("name") || getVal("methodName") || getVal("objectNodeId"));
+            var name = getVal("name") || getVal("dataChangeName") || getVal("methodName") || "";
 
             var addRow = function (label, value) {
                 if (value) {
@@ -117,13 +115,13 @@ define(function (require) {
 
             if (isMethod) {
                 addRow(nls.MethodName, name);
-                addRow(nls.NodeId, nodeId);
-                addRow(nls.ObjectNodeId, dataItem.objectNodeId);
+                addRow(nls.NodeId, nodeId || getVal("nodeId"));
+                addRow(nls.ObjectNodeId, getVal("objectNodeId"));
             } else {
                 addRow(nls.NodeName, name);
-                addRow(nls.NodeId, nodeId);
-                addRow(nls.DataTypeName, dataItem.dataTypeName);
-                addRow(nls.DataTypeNodeId, dataItem.dataTypeNodeId);
+                addRow(nls.NodeId, nodeId || getVal("nodeId"));
+                addRow(nls.DataTypeName, getVal("dataTypeName"));
+                addRow(nls.DataTypeNodeId, getVal("dataTypeNodeId"));
             }
             return html;
         },
@@ -171,7 +169,7 @@ define(function (require) {
                 $copyBtn.after($successMsg);
 
                 setTimeout(function () {
-                    TransactionTabUtils._removeCopyMessage($successMsg);
+                    GridUtils._removeCopyMessage($successMsg);
                 }, 1200);
             }
         },
@@ -184,10 +182,15 @@ define(function (require) {
 
         getNodeIdTemplate: function (selectionField) {
             return function (dataItem) {
-                var nodeId = dataItem.nodeId || "";
-                var rawHelpText = dataItem.nodeIdHelpText || dataItem.nodeIdDetails || dataItem.nodeDetails;
+                var getVal = function (key) {
+                    return dataItem.get ? dataItem.get(key) : dataItem[key];
+                };
+
+                var nodeId = getVal("nodeId") || "";
+                var rawHelpText = getVal("nodeIdHelpText") || getVal("nodeIdDetails") || getVal("nodeDetails");
                 var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId);
-                var hasSelection = !!dataItem[selectionField];
+                var selVal = getVal("name") || getVal(selectionField);
+                var hasSelection = !!(selVal || nodeId);
 
                 return "<div class='writetoopcua-info-cell'>" +
                     "<span class='writetoopcua-info-cell-value' " +
@@ -214,12 +217,7 @@ define(function (require) {
                 return String(valueToFormat);
             }
 
-            try {
-                return JSON.stringify(valueToFormat, null, 2);
-            } catch (e) {
-                console.log("Exception while stringifying sample value: " + e);
-                return String(valueToFormat);
-            }
+            return JSON.stringify(valueToFormat, null, 2);
         },
 
         _extractSampleValue: function (value) {
@@ -241,25 +239,24 @@ define(function (require) {
                 return value;
             }
 
-            try {
-                var parsed = JSON.parse(trimmed);
+            var parsed = JSON.parse(trimmed);
 
-                return parsed &&
-                typeof parsed === "object" &&
-                parsed.hasOwnProperty("Value")
-                    ? parsed.Value
-                    : parsed;
-            } catch (e) {
-                console.log("Exception while parsing sample value JSON: " + e);
-                return value;
-            }
+            return parsed &&
+            typeof parsed === "object" &&
+            parsed.hasOwnProperty("Value")
+                ? parsed.Value
+                : parsed;
         },
 
         getSampleValueTemplate: function () {
             return function (dataItem) {
-                var rawSampleValue = dataItem.sampleValue;
+                var getVal = function (key) {
+                    return dataItem.get ? dataItem.get(key) : dataItem[key];
+                };
+
+                var rawSampleValue = getVal("sampleValue");
                 var sampleValue = GridUtils.formatSampleValue(rawSampleValue);
-                var rawHelpText = dataItem.sampleValueHelpText || dataItem.sampleValueDetails;
+                var rawHelpText = getVal("sampleValueHelpText") || getVal("sampleValueDetails");
                 var contentText = rawHelpText ? String(rawHelpText) : sampleValue;
                 var sampleValueHelpText =
                     "<div class='ul-body-m-b sample-value-tooltip-header'>" +
@@ -271,7 +268,8 @@ define(function (require) {
                     "<pre class='sample-value-tooltip-content'>" +
                     _.escape(contentText) +
                     "</pre>";
-                var hasSelection = !!dataItem.dataChangeName;
+                var selVal = getVal("name") || getVal("dataChangeName");
+                var hasSelection = !!(selVal || sampleValue || rawSampleValue);
 
                 return "<div class='writetoopcua-info-cell'>" +
                     "<span class='writetoopcua-info-cell-value sample-value-text' " +
@@ -304,7 +302,10 @@ define(function (require) {
         },
 
         getOutputValueTemplate: function (dataItem) {
-            var outputValue = dataItem.outputValue || "";
+            var getVal = function (key) {
+                return dataItem.get ? dataItem.get(key) : dataItem[key];
+            };
+            var outputValue = getVal("outputValue") || "";
             var isEmpty = !outputValue;
 
             return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
@@ -322,7 +323,7 @@ define(function (require) {
 
             return function (item) {
                 var targetItem = dataItem || item || {};
-                var params = targetItem.inputParameters;
+                var params = targetItem.get ? targetItem.get("inputParameters") : targetItem.inputParameters;
                 var parameters = [];
 
                 if (params) {

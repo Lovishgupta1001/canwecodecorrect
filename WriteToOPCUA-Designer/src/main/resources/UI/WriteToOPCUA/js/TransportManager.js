@@ -128,14 +128,18 @@ define(function (require) {
 
                                 var transport = item.toJSON ? item.toJSON() : item;
                                 view.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
-                                    if (opt && !opt.dataChangeName && opt.name) {
-                                        opt.dataChangeName = opt.name;
+                                    if (opt) {
+                                        var nameVal = opt.dataChangeName || opt.name || "";
+                                        opt.dataChangeName = nameVal;
+                                        opt.name = nameVal;
                                     }
                                     return opt;
                                 });
                                 view.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
-                                    if (opt && !opt.methodName && opt.name) {
-                                        opt.methodName = opt.name;
+                                    if (opt) {
+                                        var nameVal = opt.methodName || opt.name || "";
+                                        opt.methodName = nameVal;
+                                        opt.name = nameVal;
                                     }
                                     return opt;
                                 });
@@ -162,14 +166,18 @@ define(function (require) {
                         );
 
                         view.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
-                            if (opt && !opt.dataChangeName && opt.name) {
-                                opt.dataChangeName = opt.name;
+                            if (opt) {
+                                var nameVal = opt.dataChangeName || opt.name || "";
+                                opt.dataChangeName = nameVal;
+                                opt.name = nameVal;
                             }
                             return opt;
                         });
                         view.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
-                            if (opt && !opt.methodName && opt.name) {
-                                opt.methodName = opt.name;
+                            if (opt) {
+                                var nameVal = opt.methodName || opt.name || "";
+                                opt.methodName = nameVal;
+                                opt.name = nameVal;
                             }
                             return opt;
                         });

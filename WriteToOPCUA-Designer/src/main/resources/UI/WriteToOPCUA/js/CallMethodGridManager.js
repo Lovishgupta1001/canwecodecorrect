@@ -34,7 +34,7 @@ define([
                     width: 50
                 },
                 {
-                    field: "methodName",
+                    field: "name",
                     title: view.nls.MethodName,
                     template: function (dataItem) {
                         return "<div class='method-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
@@ -50,7 +50,7 @@ define([
                     editable: function () {
                         return false;
                     },
-                    template: GridUtils.getNodeIdTemplate("methodName"),
+                    template: GridUtils.getNodeIdTemplate("name"),
                     filterable: true
                 },
                 {
@@ -100,7 +100,7 @@ define([
                                 editable: false,
                                 nullable: true
                             },
-                            methodName: {
+                            name: {
                                 type: "string"
                             },
                             nodeId: {
@@ -170,7 +170,7 @@ define([
             view.callMethodSearchBar = GridUtils.renderGridSearchBar(
                 "call-method-search",
                 view.callMethodGrid,
-                "methodName",
+                "name",
                 view,
                 view.nls
             );
@@ -228,10 +228,10 @@ define([
                     dataSource: new uilayer.data.DataSource({
                         data: view.callMethodOptions || []
                     }),
-                    dataTextField: "methodName",
-                    dataValueField: "methodName",
+                    dataTextField: "name",
+                    dataValueField: "name",
                     optionLabel: {
-                        methodName: view.nls.SelectMethod
+                        name: view.nls.SelectMethod
                     },
                     change: function () {
                         var selectedValue = this.value();
@@ -250,7 +250,9 @@ define([
                             ? selectedItem.toJSON()
                             : selectedItem;
 
-                        dataItem["methodName"]      = selectedData.methodName || selectedData.name || "";
+                        var val = selectedData.name || selectedData.methodName || "";
+                        dataItem["name"]            = val;
+                        dataItem["methodName"]      = val;
                         dataItem["nodeId"]          = selectedData.nodeId     || "";
                         dataItem["objectNodeId"]    = selectedData.objectNodeId || "";
                         dataItem["inputParameters"] = manager._copyInputParameters(selectedData.inputParameters || selectedData.inputArguments);
@@ -270,12 +272,12 @@ define([
                     }
                 });
 
-                var initialVal = dataItem.get ? dataItem.get("methodName") : dataItem.methodName;
+                var initialVal = (dataItem.get ? (dataItem.get("name") || dataItem.get("methodName")) : (dataItem.name || dataItem.methodName)) || "";
 
                 if (dropdown?.value) {
-                    dropdown.value(initialVal || "");
+                    dropdown.value(initialVal);
                 } else if (dropdown?.widget?.value) {
-                    dropdown.widget.value(initialVal || "");
+                    dropdown.widget.value(initialVal);
                 }
             });
         },
@@ -381,9 +383,7 @@ define([
         openInputParametersModal: function (view, dataItem, anchorElem) {
             var manager = this;
 
-            var methodName = dataItem.get
-                ? dataItem.get("methodName")
-                : dataItem.methodName;
+            var methodName = (dataItem.get ? (dataItem.get("name") || dataItem.get("methodName")) : (dataItem.name || dataItem.methodName)) || "";
 
             var inputParameters = dataItem.get
                 ? dataItem.get("inputParameters")

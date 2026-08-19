@@ -28,7 +28,7 @@ define([
                     width: 50
                 },
                 {
-                    field: "dataChangeName",
+                    field: "name",
                     title: view.nls.DataChangeName,
                     template: function (dataItem) {
                         return "<div class='data-change-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
@@ -44,7 +44,7 @@ define([
                     editable: function () {
                         return false;
                     },
-                    template: GridUtils.getNodeIdTemplate("dataChangeName"),
+                    template: GridUtils.getNodeIdTemplate("name"),
                     filterable: true
                 },
                 {
@@ -95,7 +95,7 @@ define([
                                 editable: false,
                                 nullable: true
                             },
-                            dataChangeName: {
+                            name: {
                                 type: "string",
                                 parse: GridUtils.parseStringField
                             },
@@ -167,7 +167,7 @@ define([
             view.dataChangeWriteSearchBar = GridUtils.renderGridSearchBar(
                 "data-change-write-search",
                 view.dataChangeWriteGrid,
-                "dataChangeName",
+                "name",
                 view,
                 view.nls
             );
@@ -217,10 +217,10 @@ define([
                     dataSource: new uilayer.data.DataSource({
                         data: view.dataChangeOptions || []
                     }),
-                    dataTextField: "dataChangeName",
-                    dataValueField: "dataChangeName",
+                    dataTextField: "name",
+                    dataValueField: "name",
                     optionLabel: {
-                        dataChangeName: view.nls.SelectDataChange
+                        name: view.nls.SelectDataChange
                     },
                     change: function () {
                         var selectedValue = this.value();
@@ -237,7 +237,9 @@ define([
                             ? selectedItem.toJSON()
                             : selectedItem;
 
-                        dataItem["dataChangeName"] = selectedData.dataChangeName || selectedData.name || "";
+                        var val = selectedData.name || selectedData.dataChangeName || "";
+                        dataItem["name"]           = val;
+                        dataItem["dataChangeName"] = val;
                         dataItem["nodeId"]         = selectedData.nodeId         || "";
                         dataItem["sampleValue"]    = GridUtils.formatSampleValue(selectedData.sampleValue);
 
@@ -253,11 +255,11 @@ define([
                     }
                 });
 
-                var initialVal = dataItem.get ? dataItem.get("dataChangeName") : dataItem.dataChangeName;
+                var initialVal = (dataItem.get ? (dataItem.get("name") || dataItem.get("dataChangeName")) : (dataItem.name || dataItem.dataChangeName)) || "";
                 if (typeof dropdown?.value === "function") {
-                    dropdown.value(initialVal || "");
+                    dropdown.value(initialVal);
                 } else if (typeof dropdown?.widget?.value === "function") {
-                    dropdown.widget.value(initialVal || "");
+                    dropdown.widget.value(initialVal);
                 }
             });
         }
