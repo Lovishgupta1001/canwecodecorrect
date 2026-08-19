@@ -79,8 +79,21 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
         int row = 1;
         for (Object item : dataChangeWriteList) {
             if (item != null) {
+                String name = getName(item);
+                if (name == null || name.trim().isEmpty() || "Select Data Change".equalsIgnoreCase(name.trim())) {
+                    eQError error = new eQError("writetoopcua.emptyDataChangeName", COMPONENT_ERR,
+                            ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "dataChangeWrite/" + row + "/name"),
+                            false);
+                    errorList.add(error);
+                }
+
                 String newValue = getNewValue(item);
-                if (newValue != null && !newValue.isEmpty()) {
+                if (newValue == null || newValue.trim().isEmpty()) {
+                    eQError error = new eQError("writetoopcua.emptyNewValue", COMPONENT_ERR,
+                            ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "dataChangeWrite/" + row + "/newValue"),
+                            false);
+                    errorList.add(error);
+                } else {
                     validateExpression(newValue, additionalInfo, errorList, "dataChangeWrite/" + row + "/newValue");
                 }
             }
@@ -100,6 +113,14 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
         int row = 1;
         for (Object item : callMethodList) {
             if (item != null) {
+                String name = getName(item);
+                if (name == null || name.trim().isEmpty() || "Select Method".equalsIgnoreCase(name.trim())) {
+                    eQError error = new eQError("writetoopcua.emptyMethodName", COMPONENT_ERR,
+                            ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "callMethod/" + row + "/name"),
+                            false);
+                    errorList.add(error);
+                }
+
                 Object inputParamsObj = getInputParametersObj(item);
                 if (inputParamsObj instanceof List<?> inputParams) {
                     validateMethodInputParameters(inputParams, row, additionalInfo, errorList);
@@ -114,12 +135,28 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
         for (Object param : inputParams) {
             if (param != null) {
                 String pVal = getParamValue(param);
-                if (pVal != null && !pVal.isEmpty()) {
+                if (pVal == null || pVal.trim().isEmpty()) {
+                    eQError error = new eQError("writetoopcua.emptyParameterValue", COMPONENT_ERR,
+                            ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, CALL_METHOD_PREFIX + row + "/inputParameters/" + pRow + "/value"),
+                            false);
+                    errorList.add(error);
+                } else {
                     validateExpression(pVal, additionalInfo, errorList, CALL_METHOD_PREFIX + row + "/inputParameters/" + pRow + "/value");
                 }
             }
             pRow++;
         }
+    }
+
+    private String getName(Object obj) {
+        if (obj instanceof DataChangeWriteItem item) {
+            return item.getName();
+        } else if (obj instanceof CallMethodItem item) {
+            return item.getName();
+        } else if (obj instanceof Map<?, ?> map) {
+            return (String) map.get("name");
+        }
+        return null;
     }
 
     private String getNewValue(Object obj) {

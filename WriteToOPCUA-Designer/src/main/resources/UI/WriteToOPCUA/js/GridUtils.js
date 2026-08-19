@@ -140,7 +140,7 @@ define(function (require) {
             if (!elem.data("help-initialized")) {
                 elem.data("help-initialized", true);
 
-                var tooltipWidth = elem.find(".sample-value-help-tooltip").length ? "12rem" : "22rem";
+                var tooltipWidth = elem.find(".sample-value-help-tooltip").length ? "10rem" : "22rem";
 
                 uilayer.help({
                     elem: elem,
@@ -155,10 +155,16 @@ define(function (require) {
             e.stopPropagation();
 
             var $copyBtn = $(this);
-            var text = $("<textarea/>").html($copyBtn.attr("data-copy")).text();
+            var text = $("<textarea/>").html($copyBtn.attr("data-copy") || "").text();
 
-            if (navigator.clipboard) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text);
+            } else {
+                var $temp = $("<textarea style='position:absolute; left:-9999px; top:-9999px;'>");
+                $("body").append($temp);
+                $temp.val(text).select();
+                document.execCommand("copy");
+                $temp.remove();
             }
 
             if (!$copyBtn.siblings(".sample-copy-success").length) {
@@ -242,8 +248,8 @@ define(function (require) {
             var parsed = JSON.parse(trimmed);
 
             return parsed &&
-                typeof parsed === "object" &&
-                parsed.hasOwnProperty("Value")
+            typeof parsed === "object" &&
+            parsed.hasOwnProperty("Value")
                 ? parsed.Value
                 : parsed;
         },

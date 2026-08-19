@@ -393,11 +393,11 @@ define([
             this._destroyInputParametersModal(globalSelf);
 
             var $popoverWrapper = $(
-                "<div class='input-parameters-modal-wrapper' style='min-width: 580px; width: 580px; box-sizing: border-box;'>" +
+                "<div class='input-parameters-modal-wrapper'>" +
                 "<div class='ul-pad-2x-b'>" +
-                "<label class='ul-body-m-b'>" + (globalSelf.nls.InputParameters) + "</label>" +
+                "<div class='ul-body-m-b'>" + (globalSelf.nls.InputParameters) + "</div>" +
                 "</div>" +
-                "<div class='input-parameters-modal-grid' style='width: 100%;'></div>" +
+                "<div class='input-parameters-modal-grid'></div>" +
                 "</div>"
             );
 

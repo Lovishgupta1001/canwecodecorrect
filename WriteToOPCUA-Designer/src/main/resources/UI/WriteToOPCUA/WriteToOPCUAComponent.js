@@ -2,6 +2,7 @@
  * Created by Lovish.
  */
 define(function (require) {
+    "use strict";
 
     var uilayer = require("uilayer"),
         template = require("tpl!./template/WriteToOPCUAComponentTemplate"),
@@ -45,8 +46,8 @@ define(function (require) {
             }
         },
 
-
         onRender: function () {
+            var globalSelf = this;
             var deferred = $.Deferred();
 
             this._initializeControls();
@@ -72,6 +73,15 @@ define(function (require) {
             this._initTransportUI();
             this._updateOperationUI();
             this._renderHelp();
+
+            $(window).off("resize.writetoopcua").on("resize.writetoopcua", function () {
+                if (globalSelf.dataChangeWriteGrid?.widget) {
+                    globalSelf.dataChangeWriteGrid.widget.resize();
+                }
+                if (globalSelf.callMethodGrid?.widget) {
+                    globalSelf.callMethodGrid.widget.resize();
+                }
+            });
 
             deferred.resolve();
 
@@ -172,7 +182,6 @@ define(function (require) {
             CallMethodGridManager.refreshGridMode(this);
         },
 
-
         _updateOperationUI: function () {
             var operation = this.$(".data-change-write-radio").is(":checked")
                 ? Constants.DATA_CHANGE_WRITE
@@ -187,7 +196,6 @@ define(function (require) {
                 DataChangeGridManager.renderDataChangeWriteComponent(this);
             } else {
                 this.$(".data-change-write-container").hide();
-                this.$(".call-method-show");
                 this.$(".call-method-container").show();
 
                 CallMethodGridManager.renderCallMethodComponent(this);
@@ -275,6 +283,8 @@ define(function (require) {
         },
 
         onBeforeDestroy: function () {
+            $(window).off("resize.writetoopcua");
+
             CallMethodGridManager._destroyInputParametersModal(this);
 
             this._destroyComponent(this.dataChangeWriteSearchBar);

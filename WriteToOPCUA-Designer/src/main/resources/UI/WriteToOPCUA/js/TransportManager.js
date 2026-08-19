@@ -133,34 +133,53 @@ define(function (require) {
                 },
                 change: function () {
                     var selectedItem = this.dataItem();
+                    var selectedValue = this.value();
 
-                    if (selectedItem) {
-                        var transport = selectedItem.toJSON
-                            ? selectedItem.toJSON()
-                            : selectedItem;
+                    globalSelf.model.setKey("dataChangeWrite", []);
+                    globalSelf.model.setKey("callMethod", []);
 
-                        globalSelf.model.setKey(
-                            "transportName",
-                            transport.transportName || ""
-                        );
+                    if (globalSelf.dataChangeWriteGrid?.widget?.dataSource) {
+                        globalSelf.dataChangeWriteGrid.widget.dataSource.data([]);
+                    }
+                    if (globalSelf.callMethodGrid?.widget?.dataSource) {
+                        globalSelf.callMethodGrid.widget.dataSource.data([]);
+                    }
 
-                        globalSelf.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
-                            if (opt && !opt.name && opt.dataChangeName) {
-                                opt.name = opt.dataChangeName;
-                            }
-                            return opt;
-                        });
-                        globalSelf.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
-                            if (opt && !opt.name && opt.methodName) {
-                                opt.name = opt.methodName;
-                            }
-                            return opt;
-                        });
+                    if (!selectedValue || !selectedItem || !selectedItem.transportId) {
+                        globalSelf.model.setKey("transportName", "");
+                        globalSelf.dataChangeOptions = [];
+                        globalSelf.callMethodOptions = [];
 
                         DataChangeGridManager.refreshGridMode(globalSelf);
                         CallMethodGridManager.refreshGridMode(globalSelf);
-                        TransportManager.testTransportById(transport.transportId, globalSelf);
+                        return;
                     }
+
+                    var transport = selectedItem.toJSON
+                        ? selectedItem.toJSON()
+                        : selectedItem;
+
+                    globalSelf.model.setKey(
+                        "transportName",
+                        transport.transportName || ""
+                    );
+
+                    globalSelf.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
+                        if (opt && !opt.name && opt.dataChangeName) {
+                            opt.name = opt.dataChangeName;
+                        }
+                        return opt;
+                    });
+                    globalSelf.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
+                        if (opt && !opt.name && opt.methodName) {
+                            opt.name = opt.methodName;
+                        }
+                        return opt;
+                    });
+
+                    DataChangeGridManager.refreshGridMode(globalSelf);
+                    CallMethodGridManager.refreshGridMode(globalSelf);
+                    TransportManager.testTransportById(transport.transportId, globalSelf);
                 }
             });
 
