@@ -241,25 +241,25 @@ define(function (require) {
         highlightErrors: function (errorObjectList) {
             var globalSelf = this;
 
+            if (!errorObjectList || !errorObjectList.length) {
+                return;
+            }
+
             errorObjectList.forEach(function (errorObject) {
-                var element = globalSelf.$el.find("#" + errorObject.path);
+                if (errorObject && errorObject.path && errorObject.path.indexOf("transportName") !== -1) {
+                    var element = globalSelf.$el.find("#transport-selector-dropdown");
+                    if (element.length) {
+                        globalSelf.focusErrorComponent(element);
 
-                if (element.length) {
-                    globalSelf.focusErrorComponent(element);
+                        var dropdownWrapper = element.closest(".k-widget");
+                        if (dropdownWrapper.length) {
+                            dropdownWrapper.addErrorHighlightClass("components-error-red-highlight");
+                        } else {
+                            element.addErrorHighlightClass("components-error-red-highlight");
+                        }
 
-                    if (!element.is(":visible") &&
-                        globalSelf.$el.find("#" + errorObject.path + "_wrapper").length) {
-                        element = globalSelf.$el.find("#" + errorObject.path + "_wrapper");
+                        globalSelf.showErrorTooltip(errorObject, element);
                     }
-
-                    element.addErrorHighlightClass(
-                        "components-error-red-highlight"
-                    );
-
-                    globalSelf.showErrorTooltip(
-                        errorObject,
-                        element
-                    );
                 }
             });
         },
