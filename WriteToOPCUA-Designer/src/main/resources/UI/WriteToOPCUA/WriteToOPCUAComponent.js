@@ -55,18 +55,17 @@ define(function (require) {
             var operationGroupName = "operation-" + actId;
             var executionModeGroupName = "execution-mode-" + actId;
 
-            // change required
             this.$(".data-change-write-radio, .call-method-radio")
                 .attr("name", operationGroupName);
 
             this.$(".parallel-mode-radio, .sequential-mode-radio")
                 .attr("name", executionModeGroupName);
 
-            var operation = this.model.getKey("operation");
+            var operation = this.model.getKey("operation") || Constants.DATA_CHANGE_WRITE;
             this.$(".data-change-write-radio").prop("checked", operation === Constants.DATA_CHANGE_WRITE);
             this.$(".call-method-radio").prop("checked", operation === Constants.CALL_METHOD);
 
-            var executionMode = this.model.getKey("executionMode");
+            var executionMode = this.model.getKey("executionMode") || Constants.PARALLEL;
             this.$(".parallel-mode-radio").prop("checked", executionMode === Constants.PARALLEL);
             this.$(".sequential-mode-radio").prop("checked", executionMode === Constants.SEQUENTIAL);
 
@@ -104,6 +103,7 @@ define(function (require) {
         _initializeControls: function () {
             this.$(".data-change-write-container").hide();
             this.$(".call-method-container").hide();
+            this.$("#transport-name-expression-region").hide();
         },
 
         _getGridInstance: function () {
@@ -270,8 +270,14 @@ define(function (require) {
         },
 
         _destroyComponent: function (component) {
-            if (component && component.destroy) {
+            if (!component || typeof component.destroy !== "function") {
+                return;
+            }
+
+            try {
                 component.destroy();
+            } catch (error) {
+                console.warn("WriteToOPCUA component cleanup failed:", error);
             }
         },
 

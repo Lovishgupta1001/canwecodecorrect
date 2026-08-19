@@ -36,15 +36,6 @@ public class CallMethodItem {
         this.name = name;
     }
 
-    @SuppressWarnings("java:S4144")
-    public String getMethodName() {
-        return name;
-    }
-
-    public void setMethodName(String methodName) {
-        this.name = methodName;
-    }
-
     public String getNodeId() {
         return nodeId;
     }

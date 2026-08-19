@@ -6,6 +6,7 @@ define([
     "use strict";
 
     var CallMethodGridManager = {
+
         _outputValueEditor: function (container, options) {
             var input = $("<input type='text' class='ul-textbox' name='" + options.field + "'/>");
             container.append(input);
@@ -190,19 +191,23 @@ define([
                 }
 
                 var dataItem = grid.dataItem(row);
+
                 if (!dataItem) {
                     return;
                 }
 
                 var cell = element.closest("td");
+
                 cell.off("click.prevent-incell-edit").on("click.prevent-incell-edit", function (e) {
                     e.stopPropagation();
                 });
+
                 element.off("click.prevent-incell-edit").on("click.prevent-incell-edit", function (e) {
                     e.stopPropagation();
                 });
 
                 var existingDropdown = element.data("uilayerDropDownList");
+
                 if (existingDropdown) {
                     if (existingDropdown.setDataSource) {
                         existingDropdown.setDataSource(new uilayer.data.DataSource({
@@ -215,6 +220,7 @@ define([
                 if (element.data("method-dropdown-initialized")) {
                     return;
                 }
+
                 element.data("method-dropdown-initialized", true);
 
                 var dropdown = uilayer.dropDownList({
@@ -229,11 +235,13 @@ define([
                     },
                     change: function () {
                         var selectedValue = this.value();
+
                         if (!selectedValue) {
                             return;
                         }
 
                         var selectedItem = this.dataItem();
+
                         if (!selectedItem) {
                             return;
                         }
@@ -249,17 +257,21 @@ define([
 
                         var nodeIdCell = row.find("td:eq(2)");
                         var inputParamsCell = row.find("td:eq(3)");
+
                         if (nodeIdCell.length && grid.columns[2].template) {
                             nodeIdCell.html(grid.columns[2].template(dataItem));
                         }
+
                         if (inputParamsCell.length && grid.columns[3].template) {
                             inputParamsCell.html(grid.columns[3].template(dataItem));
                         }
+
                         GridUtils.initializeGridHelpTooltips(row);
                     }
                 });
 
                 var initialVal = dataItem.get ? dataItem.get("methodName") : dataItem.methodName;
+
                 if (dropdown?.value) {
                     dropdown.value(initialVal || "");
                 } else if (dropdown?.widget?.value) {
@@ -294,6 +306,7 @@ define([
             }
 
             var dataItem = grid.dataItem(row);
+
             if (!dataItem) {
                 return;
             }
@@ -415,16 +428,26 @@ define([
                     view.callMethodGrid.widget.refresh();
                 }
 
-                if (e?.sender?.close) {
-                    e.sender.close();
+                if (typeof e?.sender?.close === "function") {
+                    try {
+                        e.sender.close();
+                    } catch (err) {
+                        console.warn("Popover close warning:", err);
+                    }
                 }
+
                 manager._destroyInputParametersModal(view, true);
             };
 
             var cancelHandler = function (e) {
-                if (e?.sender?.close) {
-                    e.sender.close();
+                if (e?.sender && typeof e.sender.close === "function") {
+                    try {
+                        e.sender.close();
+                    } catch (err) {
+                        console.warn("Popover cancel warning:", err);
+                    }
                 }
+
                 manager._destroyInputParametersModal(view, true);
             };
 
@@ -482,15 +505,23 @@ define([
                 var popover = view.inputParametersModal;
                 view.inputParametersModal = null;
 
-                if (!isFromCloseCallback && popover.close) {
-                    popover.close();
+                if (!isFromCloseCallback && typeof popover.close === "function") {
+                    try {
+                        popover.close();
+                    } catch (e) {
+                        console.warn("Popover destroy warning:", e);
+                    }
                 }
             }
 
             if (view._inputParametersModalWrapper) {
                 var $wrapper = view._inputParametersModalWrapper;
                 view._inputParametersModalWrapper = null;
-                $wrapper.remove();
+                try {
+                    $wrapper.remove();
+                } catch (e) {
+                    console.warn("Wrapper remove warning:", e);
+                }
             }
         }
     };

@@ -33,14 +33,6 @@ public class DataChangeWriteItem {
         this.name = name;
     }
 
-    public String getDataChangeName() {
-        return name;
-    }
-
-    public void setDataChangeName(String dataChangeName) {
-        this.name = dataChangeName;
-    }
-
     public String getNodeId() {
         return nodeId;
     }
