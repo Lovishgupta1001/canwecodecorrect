@@ -329,12 +329,14 @@ define([
                     {
                         field: "name",
                         title: globalSelf.nls.ParameterName,
-                        editable: false
+                        editable: false,
+                        width: "30%"
                     },
                     {
                         field: "dataType",
                         title: globalSelf.nls.DataType,
-                        editable: false
+                        editable: false,
+                        width: "25%"
                     },
                     {
                         field: "value",
@@ -349,7 +351,8 @@ define([
                                 options,
                                 globalSelf
                             );
-                        }
+                        },
+                        width: "45%"
                     }
                 ],
                 dataSource: {

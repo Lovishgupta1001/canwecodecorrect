@@ -1,66 +1,52 @@
+/*
+ * Toolbar: .writetoopcua-grid-toolbar is a standalone div rendered directly
+ * in the template ABOVE each grid element. It is completely outside the
+ * uilayer/grid structure, so all styles are under full CSS control here.
+ */
+.writetoopcua-grid-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8f9fa;
+    border: 1px solid #d9d9d9;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    box-sizing: border-box;
+
+    .writetoopcua-grid-search {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        max-width: 18rem;
+
+        .ul-compact-search-bar,
+        .ul-search-bar {
+            width: 100%;
+        }
+    }
+
+    .writetoopcua-grid-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+    }
+}
+
 .writetoopcua-div {
     overflow: auto;
 
-    .writetoopcua-div-height {
-        height: 100%
-        }
-
-    .cvt-grid-div.k-grid {
+    /*
+     * .cvt-grid-div is the uilayer grid container element.
+     * Top border-radius removed so it sits flush under the external toolbar.
+     */
+    .cvt-grid-div {
         border: 1px solid #d9d9d9;
-        border-radius: 4px;
+        border-radius: 0 0 4px 4px;
         overflow: hidden;
-
-        .k-grid-toolbar {
-            display: flex;
-            align-items: center;
-            min-height: 3rem;
-            padding: 0.5rem 0.75rem;
-            margin: 0;
-            background: #f8f9fa;
-            border-bottom: 1px solid #d9d9d9;
-            box-sizing: border-box;
-            float: none;
-            clear: both;
-            position: relative;
-            z-index: 1;
-
-            &::before,
-            &::after {
-                display: none;
-            }
-
-            .writetoopcua-grid-toolbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                width: 100%;
-
-                .writetoopcua-grid-search {
-                    display: flex;
-                    align-items: center;
-                    flex: 1;
-                    max-width: 18rem;
-
-                    .ul-compact-search-bar,
-                    .ul-search-bar {
-                        width: 100%;
-                    }
-                }
-
-                .writetoopcua-grid-actions {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    margin-left: auto;
-                }
-            }
-        }
-
-        .k-grid-header {
-            border-top: none;
-            position: relative;
-            z-index: 0;
-        }
     }
 }
 
@@ -148,8 +134,18 @@
     }
 }
 
-.input-parameters-modal-grid {
+.input-parameters-modal-wrapper {
+    display: none;
     width: 100%;
+
+    .input-parameters-modal-grid {
+        width: 100%;
+
+        .k-grid,
+        .cvt-grid-div {
+            width: 100%;
+        }
+    }
 }
 
 .parallel-mode-help-tooltip,
