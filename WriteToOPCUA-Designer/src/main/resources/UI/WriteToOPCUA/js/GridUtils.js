@@ -105,7 +105,7 @@ define(function (require) {
             var addRow = function (label, value) {
                 if (value) {
                     html += "<div>" +
-                        "<span class='ul-body-s-b ul-pad-1x-r writetoopcua-label'>" +
+                        "<span class='ul-body-m-b ul-pad-1x-r writetoopcua-label'>" +
                         label + ":" +
                         "</span>" +
                         "<span>" + _.escape(value) + "</span>" +
@@ -240,8 +240,8 @@ define(function (require) {
             var parsed = JSON.parse(trimmed);
 
             return parsed &&
-            typeof parsed === "object" &&
-            parsed.hasOwnProperty("Value")
+                typeof parsed === "object" &&
+                parsed.hasOwnProperty("Value")
                 ? parsed.Value
                 : parsed;
         },
@@ -259,7 +259,7 @@ define(function (require) {
                 var sampleValueHelpText =
                     "<div class='ul-body-m-b sample-value-tooltip-header'>" +
                     "<span>" + _.escape(nls.SampleValue) + "</span>" +
-                    "<span class='eQ-icon eQ-fonts-copy sample-value-copy-icon eq-cursor-pointer' " +
+                    "<span class='eQ-icon eQ-fonts-copy sample-value-copy-icon eq-cursor-pointer ul-pad-2x-l' " +
                     "data-copy='" + _.escape(contentText) + "' " +
                     "title='" + _.escape(nls.Copy) + "'></span>" +
                     "</div>" +
