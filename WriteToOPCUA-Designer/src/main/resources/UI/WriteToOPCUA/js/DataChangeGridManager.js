@@ -6,22 +6,22 @@ define([
     "use strict";
 
     var DataChangeGridManager = {
-        refreshGridMode: function (view) {
-            if (!view?.dataChangeWriteGrid) {
+        refreshGridMode: function (globalSelf) {
+            if (!globalSelf?.dataChangeWriteGrid) {
                 return;
             }
 
-            view._destroyComponent(view.dataChangeWriteGrid);
-            view.dataChangeWriteGrid = null;
+            globalSelf._destroyComponent(globalSelf.dataChangeWriteGrid);
+            globalSelf.dataChangeWriteGrid = null;
 
-            view.$(".cvt-grid-div-data-change-write").empty();
+            globalSelf.$(".cvt-grid-div-data-change-write").empty();
 
-            if (view.$(".data-change-write-radio").is(":checked")) {
-                this.renderDataChangeWriteComponent(view);
+            if (globalSelf.$(".data-change-write-radio").is(":checked")) {
+                this.renderDataChangeWriteComponent(globalSelf);
             }
         },
 
-        _getDataChangeWriteColumns: function (view) {
+        _getDataChangeWriteColumns: function (globalSelf) {
             return [
                 {
                     selectable: true,
@@ -29,7 +29,7 @@ define([
                 },
                 {
                     field: "name",
-                    title: view.nls.DataChangeName,
+                    title: globalSelf.nls.DataChangeName,
                     template: function (dataItem) {
                         return "<div class='data-change-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
                     },
@@ -40,7 +40,7 @@ define([
                 },
                 {
                     field: "nodeId",
-                    title: view.nls.NodeId,
+                    title: globalSelf.nls.NodeId,
                     editable: function () {
                         return false;
                     },
@@ -49,7 +49,7 @@ define([
                 },
                 {
                     field: "sampleValue",
-                    title: view.nls.SampleValue,
+                    title: globalSelf.nls.SampleValue,
                     editable: function () {
                         return false;
                     },
@@ -58,10 +58,10 @@ define([
                 },
                 {
                     field: "newValue",
-                    title: view.nls.NewValue,
+                    title: globalSelf.nls.NewValue,
                     template: GridUtils.getEditableValueTemplate("newValue", "new-value-edit-icon"),
                     editor: function (container, options) {
-                        ExpressionBuilderManager.newValueEditor(container, options, view);
+                        ExpressionBuilderManager.newValueEditor(container, options, globalSelf);
                     },
                     editable: function () {
                         return true;
@@ -70,8 +70,8 @@ define([
                 },
                 {
                     field: "action",
-                    title: view.nls.Action,
-                    template: GridUtils.getDeleteActionTemplate(view.nls),
+                    title: globalSelf.nls.Action,
+                    template: GridUtils.getDeleteActionTemplate(globalSelf.nls),
                     filterable: false,
                     sortable: false,
                     editable: function () {
@@ -129,16 +129,16 @@ define([
             return false;
         },
 
-        renderDataChangeWriteComponent: function (view) {
-            if (this._resizeGridIfExists(view.dataChangeWriteGrid)) {
+        renderDataChangeWriteComponent: function (globalSelf) {
+            if (this._resizeGridIfExists(globalSelf.dataChangeWriteGrid)) {
                 return;
             }
 
-            var data = view.model.getKey("dataChangeWrite") || [];
+            var data = globalSelf.model.getKey("dataChangeWrite") || [];
 
-            view.dataChangeWriteGrid = uilayer.grid({
-                elem: view.$(".cvt-grid-div-data-change-write"),
-                toolbar: GridUtils.getOperationGridToolbar("data-change-write-search", view.nls),
+            globalSelf.dataChangeWriteGrid = uilayer.grid({
+                elem: globalSelf.$(".cvt-grid-div-data-change-write"),
+                toolbar: GridUtils.getOperationGridToolbar("data-change-write-search", globalSelf.nls),
                 editable: {
                     mode: "incell",
                     createAt: "bottom"
@@ -151,34 +151,34 @@ define([
                 filterable: true,
                 scrollable: true,
                 height: "13rem",
-                columns: this._getDataChangeWriteColumns(view),
+                columns: this._getDataChangeWriteColumns(globalSelf),
                 dataSource: this._getDataChangeWriteDataSource(data)
             });
 
-            if (view.dataChangeWriteGrid?.widget) {
-                view.dataChangeWriteGrid.widget.bind(
+            if (globalSelf.dataChangeWriteGrid?.widget) {
+                globalSelf.dataChangeWriteGrid.widget.bind(
                     "dataBound",
-                    this._initializeDataChangeDropdowns.bind(this, view)
+                    this._initializeDataChangeDropdowns.bind(this, globalSelf)
                 );
             }
 
-            this._initializeDataChangeDropdowns(view);
+            this._initializeDataChangeDropdowns(globalSelf);
 
-            view.dataChangeWriteSearchBar = GridUtils.renderGridSearchBar(
+            globalSelf.dataChangeWriteSearchBar = GridUtils.renderGridSearchBar(
                 "data-change-write-search",
-                view.dataChangeWriteGrid,
+                globalSelf.dataChangeWriteGrid,
                 "name",
-                view,
-                view.nls
+                globalSelf,
+                globalSelf.nls
             );
         },
 
-        _initializeDataChangeDropdowns: function (view) {
-            GridUtils.initializeGridHelpTooltips(view.$el);
-            view.$(".data-change-name-dropdown").each(function () {
+        _initializeDataChangeDropdowns: function (globalSelf) {
+            GridUtils.initializeGridHelpTooltips(globalSelf.$el);
+            globalSelf.$(".data-change-name-dropdown").each(function () {
                 var element = $(this);
                 var row = element.closest("tr");
-                var grid = view.dataChangeWriteGrid ? view.dataChangeWriteGrid.widget : null;
+                var grid = globalSelf.dataChangeWriteGrid ? globalSelf.dataChangeWriteGrid.widget : null;
 
                 if (!grid) {
                     return;
@@ -201,7 +201,7 @@ define([
                 if (existingDropdown) {
                     if (existingDropdown.setDataSource) {
                         existingDropdown.setDataSource(new uilayer.data.DataSource({
-                            data: view.dataChangeOptions || []
+                            data: globalSelf.dataChangeOptions || []
                         }));
                     }
                     return;
@@ -215,12 +215,12 @@ define([
                 var dropdown = uilayer.dropDownList({
                     elem: element,
                     dataSource: new uilayer.data.DataSource({
-                        data: view.dataChangeOptions || []
+                        data: globalSelf.dataChangeOptions || []
                     }),
                     dataTextField: "name",
                     dataValueField: "name",
                     optionLabel: {
-                        name: view.nls.SelectDataChange
+                        name: globalSelf.nls.SelectDataChange
                     },
                     change: function () {
                         var selectedValue = this.value();

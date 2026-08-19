@@ -41,8 +41,8 @@ define(function (require) {
                 "title='" + nls.Delete + "'></span>";
         },
 
-        renderGridSearchBar: function (searchClass, grid, field, view, nls) {
-            var searchElement = view.$("." + searchClass);
+        renderGridSearchBar: function (searchClass, grid, field, globalSelf, nls) {
+            var searchElement = globalSelf.$("." + searchClass);
 
             if (!searchElement.length || !grid?.widget?.dataSource) {
                 return null;
@@ -99,8 +99,8 @@ define(function (require) {
             };
 
             var html = "<div class='ul-header-xxxs-b ul-pad-1x'>" + nls.NodeDetails + "</div>";
-            var isMethod = !!(getVal("name") || getVal("methodName") || getVal("objectNodeId"));
-            var name = getVal("name") || getVal("dataChangeName") || getVal("methodName") || "";
+            var isMethod = !!(getVal("name") || getVal("objectNodeId"));
+            var name = getVal("name") || "";
 
             var addRow = function (label, value) {
                 if (value) {
@@ -266,7 +266,7 @@ define(function (require) {
                     "<pre class='sample-value-tooltip-content'>" +
                     _.escape(contentText) +
                     "</pre>";
-                var selVal = getVal("name") || getVal("dataChangeName");
+                var selVal = getVal("name");
                 var hasSelection = !!(selVal || sampleValue || rawSampleValue);
 
                 return "<div class='writetoopcua-info-cell'>" +
@@ -316,8 +316,8 @@ define(function (require) {
                 "</div>";
         },
 
-        getInputParametersTemplate: function (viewOrDataItem) {
-            var dataItem = viewOrDataItem?.model ? null : (viewOrDataItem || {});
+        getInputParametersTemplate: function (globalSelfOrDataItem) {
+            var dataItem = globalSelfOrDataItem?.model ? null : (globalSelfOrDataItem || {});
 
             return function (item) {
                 var targetItem = dataItem || item || {};

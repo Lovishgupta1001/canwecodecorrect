@@ -9,13 +9,13 @@ define(function (require) {
 
     var ExpressionBuilderManager = {
 
-        renderGridExpressionEditor: function (container, options, view, field) {
+        renderGridExpressionEditor: function (container, options, globalSelf, field) {
             var editorElement = $("<div class='grid-expression-editor'></div>");
             editorElement.appendTo(container);
 
             var configData = {
-                processModel: view.processModel,
-                activityID: view.activityId,
+                processModel: globalSelf.processModel,
+                activityID: globalSelf.activityId,
                 tabName: "CONFIGURATION"
             };
 
@@ -26,7 +26,7 @@ define(function (require) {
                     var expression = ExpressionBuilderUtility.getExpression(event);
 
                     if (!expression || /^[a-zA-Z][a-zA-Z0-9+\-.]*:$/.test(expression)) {
-                        if (typeof event?.sender?.widget?.close === "function") {
+                        if (event?.sender?.widget?.close) {
                             event.sender.widget.close();
                         }
                         return;
@@ -34,19 +34,19 @@ define(function (require) {
 
                     options.model.set(field, expression);
 
-                    if (typeof event?.sender?.widget?.close === "function") {
+                    if (event?.sender?.widget?.close) {
                         event.sender.widget.close();
                     }
                 }
             }, container, options);
         },
 
-        newValueEditor: function (container, options, view) {
-            this.renderGridExpressionEditor(container, options, view, "newValue");
+        newValueEditor: function (container, options, globalSelf) {
+            this.renderGridExpressionEditor(container, options, globalSelf, "newValue");
         },
 
-        parameterValueEditor: function (container, options, view) {
-            this.renderGridExpressionEditor(container, options, view, "value");
+        parameterValueEditor: function (container, options, globalSelf) {
+            this.renderGridExpressionEditor(container, options, globalSelf, "value");
         },
 
         destroy: function (expressionBuilder) {
