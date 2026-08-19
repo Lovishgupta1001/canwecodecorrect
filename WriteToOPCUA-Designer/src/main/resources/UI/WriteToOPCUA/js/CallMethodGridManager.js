@@ -330,13 +330,13 @@ define([
                         field: "name",
                         title: globalSelf.nls.ParameterName,
                         editable: false,
-                        width: "30%"
+                        width: 160
                     },
                     {
                         field: "dataType",
                         title: globalSelf.nls.DataType,
                         editable: false,
-                        width: "25%"
+                        width: 130
                     },
                     {
                         field: "value",
@@ -352,7 +352,7 @@ define([
                                 globalSelf
                             );
                         },
-                        width: "45%"
+                        width: 260
                     }
                 ],
                 dataSource: {
@@ -393,11 +393,11 @@ define([
             this._destroyInputParametersModal(globalSelf);
 
             var $popoverWrapper = $(
-                "<div class='input-parameters-modal-wrapper'>" +
+                "<div class='input-parameters-modal-wrapper' style='min-width: 580px; width: 580px; box-sizing: border-box;'>" +
                 "<div class='ul-pad-2x-b'>" +
                 "<label class='ul-body-m-b'>" + (globalSelf.nls.InputParameters) + "</label>" +
                 "</div>" +
-                "<div class='input-parameters-modal-grid'></div>" +
+                "<div class='input-parameters-modal-grid' style='width: 100%;'></div>" +
                 "</div>"
             );
 
@@ -446,8 +446,8 @@ define([
                 elem: $popoverWrapper,
                 anchor: $anchor,
                 pinPopover: true,
-                width: '40rem',
-                title: (globalSelf.nls.AddMethodCall) + ": " + (methodName || ""),
+                width: 580,
+                title: globalSelf.nls.AddMethodCall + " " + (methodName || ""),
                 popupPosition: "left",
                 actions: ['close'],
                 buttons: [
