@@ -72,17 +72,6 @@ define([
                         return true;
                     },
                     filterable: false
-                },
-                {
-                    field: "action",
-                    title: globalSelf.nls.Action,
-                    template: GridUtils.getDeleteActionTemplate(globalSelf.nls),
-                    filterable: false,
-                    sortable: false,
-                    editable: function () {
-                        return false;
-                    },
-                    width: "6rem"
                 }
             ];
         },
@@ -113,10 +102,6 @@ define([
                             },
                             outputValue: {
                                 type: "string"
-                            },
-                            action: {
-                                type: "string",
-                                editable: false
                             }
                         }
                     }
@@ -138,6 +123,16 @@ define([
             }
 
             var data = globalSelf.model.getKey("callMethod") || [];
+            if (!data.length && globalSelf.transportDropdown?.value()) {
+                data = [{
+                    name: "",
+                    nodeId: "",
+                    objectNodeId: "",
+                    inputParameters: [],
+                    outputValue: ""
+                }];
+                globalSelf.model.setKey("callMethod", data);
+            }
 
             globalSelf.callMethodGrid = uilayer.grid({
                 elem: globalSelf.$(".cvt-grid-div-call-method"),

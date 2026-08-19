@@ -177,6 +177,21 @@ define(function (require) {
                         return opt;
                     });
 
+                    globalSelf.model.setKey("dataChangeWrite", [{
+                        name: "",
+                        nodeId: "",
+                        sampleValue: "",
+                        newValue: ""
+                    }]);
+
+                    globalSelf.model.setKey("callMethod", [{
+                        name: "",
+                        nodeId: "",
+                        objectNodeId: "",
+                        inputParameters: [],
+                        outputValue: ""
+                    }]);
+
                     DataChangeGridManager.refreshGridMode(globalSelf);
                     CallMethodGridManager.refreshGridMode(globalSelf);
                     TransportManager.testTransportById(transport.transportId, globalSelf);

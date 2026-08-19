@@ -67,17 +67,6 @@ define([
                         return true;
                     },
                     filterable: false
-                },
-                {
-                    field: "action",
-                    title: globalSelf.nls.Action,
-                    template: GridUtils.getDeleteActionTemplate(globalSelf.nls),
-                    filterable: false,
-                    sortable: false,
-                    editable: function () {
-                        return false;
-                    },
-                    width: "6rem"
                 }
             ];
         },
@@ -110,10 +99,6 @@ define([
                             newValue: {
                                 type: "string",
                                 parse: GridUtils.parseStringField
-                            },
-                            action: {
-                                type: "string",
-                                editable: false
                             }
                         }
                     }
@@ -135,6 +120,15 @@ define([
             }
 
             var data = globalSelf.model.getKey("dataChangeWrite") || [];
+            if (!data.length && globalSelf.transportDropdown?.value()) {
+                data = [{
+                    name: "",
+                    nodeId: "",
+                    sampleValue: "",
+                    newValue: ""
+                }];
+                globalSelf.model.setKey("dataChangeWrite", data);
+            }
 
             globalSelf.dataChangeWriteGrid = uilayer.grid({
                 elem: globalSelf.$(".cvt-grid-div-data-change-write"),
