@@ -24,18 +24,8 @@ define(function (require) {
                 configData: configData,
                 changeHandler: function (event) {
                     var expression = ExpressionBuilderUtility.getExpression(event);
-
-                    if (!expression || /^[a-zA-Z][a-zA-Z0-9+\-.]*:$/.test(expression)) {
-                        if (event?.sender?.widget?.close) {
-                            event.sender.widget.close();
-                        }
-                        return;
-                    }
-
-                    options.model.set(field, expression);
-
-                    if (event?.sender?.widget?.close) {
-                        event.sender.widget.close();
+                    if (expression !== undefined && expression !== null) {
+                        options.model.set(field, expression);
                     }
                 }
             }, container, options);
