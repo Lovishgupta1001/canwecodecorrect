@@ -10,8 +10,16 @@ define(function (require) {
     var ExpressionBuilderManager = {
 
         renderGridExpressionEditor: function (container, options, globalSelf, field) {
+            container.off("click.prevent-close mousedown.prevent-close").on("click.prevent-close mousedown.prevent-close", function (e) {
+                e.stopPropagation();
+            });
+
             var editorElement = $("<div class='grid-expression-editor'></div>");
             editorElement.appendTo(container);
+
+            editorElement.off("click.prevent-close mousedown.prevent-close").on("click.prevent-close mousedown.prevent-close", function (e) {
+                e.stopPropagation();
+            });
 
             var configData = {
                 processModel: globalSelf.processModel,
