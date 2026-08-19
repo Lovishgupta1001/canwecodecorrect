@@ -10,16 +10,8 @@ define(function (require) {
     var ExpressionBuilderManager = {
 
         renderGridExpressionEditor: function (container, options, globalSelf, field) {
-            container.off("click.prevent-close mousedown.prevent-close").on("click.prevent-close mousedown.prevent-close", function (e) {
-                e.stopPropagation();
-            });
-
-            var editorElement = $("<div class='grid-expression-editor'></div>");
-            editorElement.appendTo(container);
-
-            editorElement.off("click.prevent-close mousedown.prevent-close").on("click.prevent-close mousedown.prevent-close", function (e) {
-                e.stopPropagation();
-            });
+            $('<div class="expression-editor" data-bind="value:' + field + '"></div>').appendTo(container);
+            var element = container.find(".expression-editor");
 
             var configData = {
                 processModel: globalSelf.processModel,
@@ -27,16 +19,25 @@ define(function (require) {
                 tabName: "CONFIGURATION"
             };
 
-            ExpressionBuilderUtility.getExpressionBuilderEditor({
-                launcherType: ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
-                configData: configData,
-                changeHandler: function (event) {
-                    var expression = ExpressionBuilderUtility.getExpression(event);
-                    if (expression !== undefined && expression !== null) {
-                        options.model.set(field, expression);
-                    }
+            var value = "";
+            var rawVal = options.model ? (options.model.get ? options.model.get(field) : options.model[field]) : "";
+
+            if (rawVal) {
+                if (typeof rawVal === "string") {
+                    value = rawVal;
+                } else if (typeof rawVal === "object") {
+                    value = rawVal.value || rawVal.expression || "";
                 }
-            }, container, options);
+            }
+
+            var changeHandler = function (event) {
+                var expression = ExpressionBuilderUtility.getExpression(event);
+                if (expression !== undefined && expression !== null) {
+                    options.model.set(field, expression);
+                }
+            };
+
+            ExpressionBuilderUtility.render(element, ExpressionBuilderLauncherTypes.PROCESS_CONTEXT, configData, value, changeHandler);
         },
 
         newValueEditor: function (container, options, globalSelf) {
