@@ -140,10 +140,12 @@ define(function (require) {
             if (!elem.data("help-initialized")) {
                 elem.data("help-initialized", true);
 
+                var tooltipWidth = elem.find(".sample-value-help-tooltip").length ? "12rem" : "22rem";
+
                 uilayer.help({
                     elem: elem,
                     position: "top",
-                    width: "22rem"
+                    width: tooltipWidth
                 });
             }
         },
