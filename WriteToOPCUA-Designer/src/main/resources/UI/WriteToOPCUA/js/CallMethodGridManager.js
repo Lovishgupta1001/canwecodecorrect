@@ -250,10 +250,8 @@ define([
                             ? selectedItem.toJSON()
                             : selectedItem;
 
-                        var val = selectedData.name || selectedData.methodName || "";
-                        dataItem["name"]            = val;
-                        dataItem["methodName"]      = val;
-                        dataItem["nodeId"]          = selectedData.nodeId     || "";
+                        dataItem["name"]            = selectedData.name || "";
+                        dataItem["nodeId"]          = selectedData.nodeId || "";
                         dataItem["objectNodeId"]    = selectedData.objectNodeId || "";
                         dataItem["inputParameters"] = manager._copyInputParameters(selectedData.inputParameters || selectedData.inputArguments);
 
@@ -272,12 +270,12 @@ define([
                     }
                 });
 
-                var initialVal = (dataItem.get ? (dataItem.get("name") || dataItem.get("methodName")) : (dataItem.name || dataItem.methodName)) || "";
+                var initialVal = dataItem.get ? dataItem.get("name") : dataItem.name;
 
                 if (dropdown?.value) {
-                    dropdown.value(initialVal);
+                    dropdown.value(initialVal || "");
                 } else if (dropdown?.widget?.value) {
-                    dropdown.widget.value(initialVal);
+                    dropdown.widget.value(initialVal || "");
                 }
             });
         },
@@ -383,7 +381,7 @@ define([
         openInputParametersModal: function (view, dataItem, anchorElem) {
             var manager = this;
 
-            var methodName = (dataItem.get ? (dataItem.get("name") || dataItem.get("methodName")) : (dataItem.name || dataItem.methodName)) || "";
+            var methodName = dataItem.get ? dataItem.get("name") : dataItem.name;
 
             var inputParameters = dataItem.get
                 ? dataItem.get("inputParameters")

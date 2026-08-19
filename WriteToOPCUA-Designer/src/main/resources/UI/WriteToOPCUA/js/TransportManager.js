@@ -79,30 +79,13 @@ define(function (require) {
             var dataSource = new uilayer.data.DataSource({
                 transport: {
                     read: function (options) {
-                        if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
-                            AjaxUtility.commonAjaxRequest("GET", "activities/writetoopcua/fetchOPCUATransportList", null, "json")
-                                .done(function (data) {
-                                    options.success(data || []);
-                                })
-                                .fail(function (err) {
-                                    options.error(err);
-                                });
-                        } else {
-                            var requestUrl = typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
-                                ? uilayer.rest.serviceUrl("activities/writetoopcua/fetchOPCUATransportList")
-                                : "activities/writetoopcua/fetchOPCUATransportList";
-
-                            $.ajax({
-                                url: requestUrl,
-                                dataType: "json",
-                                success: function (data) {
-                                    options.success(data || []);
-                                },
-                                error: function (err) {
-                                    options.error(err);
-                                }
+                        AjaxUtility.commonAjaxRequest("GET", "activities/writetoopcua/fetchOPCUATransportList", null, "json")
+                            .done(function (data) {
+                                options.success(data || []);
+                            })
+                            .fail(function (err) {
+                                options.error(err);
                             });
-                        }
                     }
                 }
             });
@@ -128,18 +111,14 @@ define(function (require) {
 
                                 var transport = item.toJSON ? item.toJSON() : item;
                                 view.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
-                                    if (opt) {
-                                        var nameVal = opt.dataChangeName || opt.name || "";
-                                        opt.dataChangeName = nameVal;
-                                        opt.name = nameVal;
+                                    if (opt && !opt.name && opt.dataChangeName) {
+                                        opt.name = opt.dataChangeName;
                                     }
                                     return opt;
                                 });
                                 view.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
-                                    if (opt) {
-                                        var nameVal = opt.methodName || opt.name || "";
-                                        opt.methodName = nameVal;
-                                        opt.name = nameVal;
+                                    if (opt && !opt.name && opt.methodName) {
+                                        opt.name = opt.methodName;
                                     }
                                     return opt;
                                 });
@@ -166,18 +145,14 @@ define(function (require) {
                         );
 
                         view.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
-                            if (opt) {
-                                var nameVal = opt.dataChangeName || opt.name || "";
-                                opt.dataChangeName = nameVal;
-                                opt.name = nameVal;
+                            if (opt && !opt.name && opt.dataChangeName) {
+                                opt.name = opt.dataChangeName;
                             }
                             return opt;
                         });
                         view.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
-                            if (opt) {
-                                var nameVal = opt.methodName || opt.name || "";
-                                opt.methodName = nameVal;
-                                opt.name = nameVal;
+                            if (opt && !opt.name && opt.methodName) {
+                                opt.name = opt.methodName;
                             }
                             return opt;
                         });
@@ -199,49 +174,16 @@ define(function (require) {
 
             var url = "activities/writetoopcua/testTransportById?transportId=" + encodeURIComponent(transportId);
 
-            if (typeof AjaxUtility !== "undefined" && typeof AjaxUtility.commonAjaxRequest === "function") {
-                var promise = AjaxUtility.commonAjaxRequest("GET", url, null, "json");
-                promise.done(function (data) {
-                    if (data === false || (data?.success === false)) {
-                        if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
-                            uilayer.notifier("warning", view.nls.TransportTestFailed);
-                        }
-                    }
-                });
-                promise.fail(function (err) {
-                    if (typeof logger !== "undefined" && typeof logger.error === "function") {
-                        logger.error("testTransportById request failed:", err);
-                    }
-                    if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
-                        uilayer.notifier("warning", view.nls.TransportTestFailed);
-                    }
-                });
-            } else {
-                var requestUrl = typeof uilayer !== "undefined" && typeof uilayer.rest !== "undefined" && typeof uilayer.rest.serviceUrl === "function"
-                    ? uilayer.rest.serviceUrl(url)
-                    : url;
-
-                $.ajax({
-                    url: requestUrl,
-                    type: "GET",
-                    dataType: "json",
-                    success: function (data) {
-                        if (data === false || data?.success === false) {
-                            if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
-                                uilayer.notifier("warning", view.nls.TransportTestFailed);
-                            }
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        if (typeof logger !== "undefined" && typeof logger.error === "function") {
-                            logger.error("testTransportById request failed:", error || status);
-                        }
-                        if (typeof uilayer !== "undefined" && typeof uilayer.notifier === "function") {
-                            uilayer.notifier("warning", view.nls.TransportTestFailed);
-                        }
-                    }
-                });
-            }
+            var promise = AjaxUtility.commonAjaxRequest("GET", url, null, "json");
+            promise.done(function (data) {
+                if (data === false || (data?.success === false)) {
+                    uilayer.notifier("warning", view.nls.TransportTestFailed);
+                }
+            });
+            promise.fail(function (err) {
+                logger.error("testTransportById request failed:", err);
+                uilayer.notifier("warning", view.nls.TransportTestFailed);
+            });
         }
     };
 

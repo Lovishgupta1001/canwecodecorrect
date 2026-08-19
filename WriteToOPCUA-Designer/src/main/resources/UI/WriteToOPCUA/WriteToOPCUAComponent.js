@@ -79,24 +79,22 @@ define(function (require) {
         },
 
         _renderHelp: function () {
-            if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                var parallelElem = this.$el.find("#parallel-mode-help-container");
-                if (parallelElem.length) {
-                    uilayer.help({
-                        elem: parallelElem,
-                        position: "top",
-                        width: "15%"
-                    });
-                }
+            var parallelElem = this.$el.find("#parallel-mode-help-container");
+            if (parallelElem.length) {
+                uilayer.help({
+                    elem: parallelElem,
+                    position: "top",
+                    width: "15%"
+                });
+            }
 
-                var sequentialElem = this.$el.find("#sequential-mode-help-container");
-                if (sequentialElem.length) {
-                    uilayer.help({
-                        elem: sequentialElem,
-                        position: "top",
-                        width: "15%"
-                    });
-                }
+            var sequentialElem = this.$el.find("#sequential-mode-help-container");
+            if (sequentialElem.length) {
+                uilayer.help({
+                    elem: sequentialElem,
+                    position: "top",
+                    width: "15%"
+                });
             }
         },
 
@@ -144,7 +142,7 @@ define(function (require) {
         _onAddDataChangeRow: function () {
             if (this.dataChangeWriteGrid?.widget?.dataSource) {
                 this.dataChangeWriteGrid.widget.dataSource.add({
-                    dataChangeName: "",
+                    name: "",
                     nodeId: "",
                     sampleValue: "",
                     newValue: ""
@@ -155,7 +153,7 @@ define(function (require) {
         _onAddCallMethodRow: function () {
             if (this.callMethodGrid?.widget?.dataSource) {
                 this.callMethodGrid.widget.dataSource.add({
-                    methodName: "",
+                    name: "",
                     nodeId: "",
                     objectNodeId: "",
                     inputParameters: [],
@@ -189,6 +187,7 @@ define(function (require) {
                 DataChangeGridManager.renderDataChangeWriteComponent(this);
             } else {
                 this.$(".data-change-write-container").hide();
+                this.$(".call-method-show");
                 this.$(".call-method-container").show();
 
                 CallMethodGridManager.renderCallMethodComponent(this);

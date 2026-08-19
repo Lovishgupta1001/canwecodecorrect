@@ -127,9 +127,7 @@ define(function (require) {
         },
 
         initializeGridHelpTooltips: function (container) {
-            if (typeof uilayer !== "undefined" && typeof uilayer.help === "function") {
-                container.find(".grid-help-container").each(this._initializeHelpTooltip);
-            }
+            container.find(".grid-help-container").each(this._initializeHelpTooltip);
 
             $(document)
                 .off("click.sampleValueCopy")

@@ -237,11 +237,9 @@ define([
                             ? selectedItem.toJSON()
                             : selectedItem;
 
-                        var val = selectedData.name || selectedData.dataChangeName || "";
-                        dataItem["name"]           = val;
-                        dataItem["dataChangeName"] = val;
-                        dataItem["nodeId"]         = selectedData.nodeId         || "";
-                        dataItem["sampleValue"]    = GridUtils.formatSampleValue(selectedData.sampleValue);
+                        dataItem["name"]        = selectedData.name || "";
+                        dataItem["nodeId"]      = selectedData.nodeId || "";
+                        dataItem["sampleValue"] = GridUtils.formatSampleValue(selectedData.sampleValue);
 
                         var nodeIdCell = row.find("td:eq(2)");
                         var sampleValueCell = row.find("td:eq(3)");
@@ -255,11 +253,11 @@ define([
                     }
                 });
 
-                var initialVal = (dataItem.get ? (dataItem.get("name") || dataItem.get("dataChangeName")) : (dataItem.name || dataItem.dataChangeName)) || "";
+                var initialVal = dataItem.get ? dataItem.get("name") : dataItem.name;
                 if (typeof dropdown?.value === "function") {
-                    dropdown.value(initialVal);
+                    dropdown.value(initialVal || "");
                 } else if (typeof dropdown?.widget?.value === "function") {
-                    dropdown.widget.value(initialVal);
+                    dropdown.widget.value(initialVal || "");
                 }
             });
         }
