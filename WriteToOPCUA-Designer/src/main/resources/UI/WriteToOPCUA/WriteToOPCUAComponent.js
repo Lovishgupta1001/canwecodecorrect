@@ -246,8 +246,19 @@ define(function (require) {
             }
         },
 
-        _getGridRowAndCellByClass: function (gridWidget, rowIndex, fieldClass) {
+        _getGridRowAndCellByField: function (gridWidget, rowIndex, fieldName) {
             if (!gridWidget || !gridWidget.dataSource) {
+                return null;
+            }
+            var colIndex = -1;
+            var columns = gridWidget.columns || [];
+            for (var c = 0; c < columns.length; c++) {
+                if (columns[c].field === fieldName) {
+                    colIndex = c;
+                    break;
+                }
+            }
+            if (colIndex === -1) {
                 return null;
             }
             var pageSize = gridWidget.dataSource.pageSize() || 50;
@@ -268,9 +279,9 @@ define(function (require) {
             if (row[0] && row[0].scrollIntoView) {
                 row[0].scrollIntoView({ behavior: "smooth", block: "center" });
             }
-            var cell = row.find("td." + fieldClass);
+            var cell = row.find("td:eq(" + colIndex + ")");
             if (!cell.length) {
-                cell = row.find("td:first");
+                return null;
             }
             return { row: row, cell: cell };
         },
@@ -358,13 +369,12 @@ define(function (require) {
                     var dcFieldName = dcParts[dcRowPartIndex + 1] || "name";
 
                     if (globalSelf.dataChangeWriteGrid && globalSelf.dataChangeWriteGrid.widget) {
-                        var dcResult = globalSelf._getGridRowAndCellByClass(
+                        var dcResult = globalSelf._getGridRowAndCellByField(
                             globalSelf.dataChangeWriteGrid.widget,
                             dcRowIndex,
                             dcFieldName
                         );
-
-                        if (dcResult && dcResult.cell && dcResult.cell.length) {
+                        if (dcResult && dcResult.cell) {
                             var dcCell = dcResult.cell;
                             var dcKWidget = dcCell.find(".k-widget");
                             var finalDcTarget = dcKWidget.length ? dcKWidget.first() : dcCell;
@@ -413,7 +423,7 @@ define(function (require) {
 
                         if (cmFieldName === "inputParameters") {
                             var paramRowIndex = parseInt(cmParts[cmRowPartIndex + 2], 10) - 1;
-                            var cmParamResult = globalSelf._getGridRowAndCellByClass(cmGridWidget, cmRowIndex, "inputParameters");
+                            var cmParamResult = globalSelf._getGridRowAndCellByField(cmGridWidget, cmRowIndex, "inputParameters");
 
                             if (cmParamResult && cmParamResult.row) {
                                 var cmDataItem = cmGridWidget.dataItem(cmParamResult.row);
@@ -443,13 +453,12 @@ define(function (require) {
                                 }
                             }
                         } else {
-                            var cmResult = globalSelf._getGridRowAndCellByClass(
+                            var cmResult = globalSelf._getGridRowAndCellByField(
                                 cmGridWidget,
                                 cmRowIndex,
                                 cmFieldName
                             );
-
-                            if (cmResult && cmResult.cell && cmResult.cell.length) {
+                            if (cmResult && cmResult.cell) {
                                 var cmCell = cmResult.cell;
                                 var cmKWidget = cmCell.find(".k-widget");
                                 var finalCmTarget = cmKWidget.length ? cmKWidget.first() : cmCell;
