@@ -8,7 +8,8 @@ define([
     var CallMethodGridManager = {
 
         _outputValueEditor: function (container, options) {
-            var input = $("<input type='text' class='ul-textbox' name='" + options.field + "'/>");
+            var input = $("<input type='text' class='ul-textbox' name='" + options.field + "' style='width:100%;box-sizing:border-box;'/>");
+            input.val(options.model.get ? options.model.get(options.field) : options.model[options.field]);
             container.append(input);
         },
 
