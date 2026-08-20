@@ -1,17 +1,10 @@
 define([
     "uilayer",
-    "./GridUtils",
-    "./ExpressionBuilderManager"
-], function (uilayer, GridUtils, ExpressionBuilderManager) {
+    "./GridUtils"
+], function (uilayer, GridUtils) {
     "use strict";
 
     var CallMethodGridManager = {
-
-        _outputValueEditor: function (container, options) {
-            var input = $("<input type='text' class='ul-textbox' name='" + options.field + "'/>");
-            input.val(options.model.get ? options.model.get(options.field) : options.model[options.field]);
-            container.append(input);
-        },
 
         refreshGridMode: function (globalSelf) {
             if (!globalSelf?.callMethodGrid) {
@@ -76,9 +69,8 @@ define([
                     width: "25%",
                     attributes: { "class": "outputValue" },
                     template: GridUtils.getOutputValueTemplate,
-                    editor: this._outputValueEditor,
                     editable: function () {
-                        return true;
+                        return false;
                     },
                     filterable: false
                 }
@@ -353,12 +345,8 @@ define([
                             "value",
                             "parameter-value-edit-icon"
                         ),
-                        editor: function (container, options) {
-                            ExpressionBuilderManager.parameterValueEditor(
-                                container,
-                                options,
-                                globalSelf
-                            );
+                        editable: function () {
+                            return false;
                         }
                     }
                 ],

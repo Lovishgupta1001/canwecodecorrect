@@ -9,6 +9,7 @@ define(function (require) {
         model = require("./model/WriteToOPCUAComponentModel"),
         nls = require("i18n!./nls/WriteToOPCUAComponentNLS"),
         Constants = require("./js/constants"),
+        ExpressionBuilderManager = require("./js/ExpressionBuilderManager"),
         TransportManager = require("./js/TransportManager"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
         CallMethodGridManager = require("./js/CallMethodGridManager");
@@ -25,6 +26,9 @@ define(function (require) {
             "click .input-parameter-badge": "_onInputParameterBadgeClick",
             "click .data-change-write-add-btn": "_onAddDataChangeRow",
             "click .call-method-add-btn": "_onAddCallMethodRow",
+            "click .new-value-edit-icon": "_onNewValueEditIconClick",
+            "click .output-value-edit-icon": "_onOutputValueEditIconClick",
+            "click .parameter-value-edit-icon": "_onParameterValueEditIconClick",
             "change .data-change-write-radio": "_updateOperationUI",
             "change .call-method-radio": "_updateOperationUI"
         },
@@ -206,6 +210,18 @@ define(function (require) {
             CallMethodGridManager.onInputParameterBadgeClick(event, this);
         },
 
+        _onNewValueEditIconClick: function (event) {
+            ExpressionBuilderManager.onEditIconClick(event, this, "newValue", this.dataChangeWriteGrid && this.dataChangeWriteGrid.widget);
+        },
+
+        _onOutputValueEditIconClick: function (event) {
+            ExpressionBuilderManager.onEditIconClick(event, this, "outputValue", this.callMethodGrid && this.callMethodGrid.widget);
+        },
+
+        _onParameterValueEditIconClick: function (event) {
+            ExpressionBuilderManager.onEditIconClick(event, this, "value", this.inputParametersModalGrid && this.inputParametersModalGrid.widget);
+        },
+
         getData: function () {
             this.model.setKey(
                 "operation",
@@ -327,12 +343,8 @@ define(function (require) {
 
                     if (element.length) {
                         globalSelf.focusErrorComponent(element);
-
-                        var dropdownWrapper = element.closest(".k-widget");
-                        var target = dropdownWrapper.length ? dropdownWrapper : element;
-                        target.addErrorHighlightClass("components-error-red-highlight");
-
-                        globalSelf.showErrorTooltip(errorObject, target);
+                        element.addErrorHighlightClass("components-error-red-highlight");
+                        globalSelf.showErrorTooltip(errorObject, element);
                     }
                     return;
                 }

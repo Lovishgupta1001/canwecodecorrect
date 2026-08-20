@@ -1,8 +1,7 @@
 define([
     "uilayer",
-    "./GridUtils",
-    "./ExpressionBuilderManager"
-], function (uilayer, GridUtils, ExpressionBuilderManager) {
+    "./GridUtils"
+], function (uilayer, GridUtils) {
     "use strict";
 
     var DataChangeGridManager = {
@@ -68,11 +67,8 @@ define([
                     width: "25%",
                     attributes: { "class": "newValue" },
                     template: GridUtils.getEditableValueTemplate("newValue", "new-value-edit-icon"),
-                    editor: function (container, options) {
-                        ExpressionBuilderManager.newValueEditor(container, options, globalSelf);
-                    },
                     editable: function () {
-                        return true;
+                        return false;
                     },
                     filterable: false
                 }
