@@ -256,7 +256,8 @@ define(function (require) {
             if (gridWidget.dataSource.page() !== pageNumber) {
                 gridWidget.dataSource.page(pageNumber);
             }
-            var rows = gridWidget.tbody.find("tr");
+            var tbody = gridWidget.tbody || gridWidget.element.find("tbody");
+            var rows = tbody.find("tr");
             if (pageRowIndex < 0 || pageRowIndex >= rows.length) {
                 return null;
             }
@@ -424,7 +425,8 @@ define(function (require) {
 
                                     if (globalSelf.inputParametersModalGrid && globalSelf.inputParametersModalGrid.widget) {
                                         var modalWidget = globalSelf.inputParametersModalGrid.widget;
-                                        var modalRows = modalWidget.tbody.find("tr");
+                                        var modalTbody = modalWidget.tbody || modalWidget.element.find("tbody");
+                                        var modalRows = modalTbody.find("tr");
                                         var modalRow = $(modalRows[paramRowIndex]);
                                         if (modalRow.length) {
                                             var modalCell = modalRow.find("td.value");
