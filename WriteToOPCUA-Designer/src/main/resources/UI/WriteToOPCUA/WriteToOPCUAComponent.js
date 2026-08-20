@@ -246,43 +246,32 @@ define(function (require) {
             }
         },
 
-        _scrollToAndHighlightCell: function (gridWidget, rowIndex, cellColIndex, selectorInCell) {
+        _getGridRowAndCellByClass: function (gridWidget, rowIndex, fieldClass) {
             if (!gridWidget || !gridWidget.dataSource) {
                 return null;
             }
-
             var pageSize = gridWidget.dataSource.pageSize() || 50;
             var pageNumber = Math.floor(rowIndex / pageSize) + 1;
             var pageRowIndex = rowIndex % pageSize;
-
             if (gridWidget.dataSource.page() !== pageNumber) {
                 gridWidget.dataSource.page(pageNumber);
             }
-
             var rows = gridWidget.tbody.find("tr");
             if (pageRowIndex < 0 || pageRowIndex >= rows.length) {
                 return null;
             }
-
             var row = $(rows[pageRowIndex]);
             if (!row.length) {
                 return null;
             }
-
             if (row[0] && row[0].scrollIntoView) {
                 row[0].scrollIntoView({ behavior: "smooth", block: "center" });
             }
-
-            var cell = row.find("td:eq(" + cellColIndex + ")");
+            var cell = row.find("td." + fieldClass);
             if (!cell.length) {
-                return null;
+                cell = row.find("td:first");
             }
-
-            var target = (selectorInCell && cell.find(selectorInCell).length)
-                ? cell.find(selectorInCell)
-                : cell;
-
-            return { row: row, cell: cell, target: target };
+            return { row: row, cell: cell };
         },
 
         highlightErrors: function (errorObjectList) {
@@ -365,17 +354,16 @@ define(function (require) {
                     }
 
                     var dcRowIndex = parseInt(dcParts[dcRowPartIndex], 10) - 1;
-                    var dcFieldName = dcParts[dcRowPartIndex + 1];
+                    var dcFieldName = dcParts[dcRowPartIndex + 1] || "name";
 
                     if (globalSelf.dataChangeWriteGrid && globalSelf.dataChangeWriteGrid.widget) {
-                        var dcResult = globalSelf._scrollToAndHighlightCell(
+                        var dcResult = globalSelf._getGridRowAndCellByClass(
                             globalSelf.dataChangeWriteGrid.widget,
                             dcRowIndex,
-                            (dcFieldName === "newValue") ? 4 : 1,
-                            null
+                            dcFieldName
                         );
 
-                        if (dcResult && dcResult.cell) {
+                        if (dcResult && dcResult.cell && dcResult.cell.length) {
                             var dcCell = dcResult.cell;
                             var dcKWidget = dcCell.find(".k-widget");
                             var finalDcTarget = dcKWidget.length ? dcKWidget.first() : dcCell;
@@ -417,31 +405,14 @@ define(function (require) {
                     }
 
                     var cmRowIndex = parseInt(cmParts[cmRowPartIndex], 10) - 1;
-                    var cmFieldName = cmParts[cmRowPartIndex + 1];
+                    var cmFieldName = cmParts[cmRowPartIndex + 1] || "name";
 
                     if (globalSelf.callMethodGrid && globalSelf.callMethodGrid.widget) {
                         var cmGridWidget = globalSelf.callMethodGrid.widget;
 
-                        if (cmFieldName === "name") {
-                            var cmResult = globalSelf._scrollToAndHighlightCell(
-                                cmGridWidget,
-                                cmRowIndex,
-                                1,
-                                null
-                            );
-
-                            if (cmResult && cmResult.cell) {
-                                var cmCell = cmResult.cell;
-                                var cmKWidget = cmCell.find(".k-widget");
-                                var finalCmTarget = cmKWidget.length ? cmKWidget.first() : cmCell;
-
-                                globalSelf.focusErrorComponent(finalCmTarget);
-                                finalCmTarget.addErrorHighlightClass("components-error-red-highlight");
-                                globalSelf.showErrorTooltip(errorObject, finalCmTarget);
-                            }
-                        } else if (cmFieldName === "inputParameters") {
+                        if (cmFieldName === "inputParameters") {
                             var paramRowIndex = parseInt(cmParts[cmRowPartIndex + 2], 10) - 1;
-                            var cmParamResult = globalSelf._scrollToAndHighlightCell(cmGridWidget, cmRowIndex, 3, null);
+                            var cmParamResult = globalSelf._getGridRowAndCellByClass(cmGridWidget, cmRowIndex, "inputParameters");
 
                             if (cmParamResult && cmParamResult.row) {
                                 var cmDataItem = cmGridWidget.dataItem(cmParamResult.row);
@@ -453,14 +424,37 @@ define(function (require) {
 
                                     if (globalSelf.inputParametersModalGrid && globalSelf.inputParametersModalGrid.widget) {
                                         var modalWidget = globalSelf.inputParametersModalGrid.widget;
-                                        var modalResult = globalSelf._scrollToAndHighlightCell(modalWidget, paramRowIndex, 2, null);
-                                        if (modalResult && modalResult.target) {
-                                            globalSelf.focusErrorComponent(modalResult.target);
-                                            modalResult.target.addErrorHighlightClass("components-error-red-highlight");
-                                            globalSelf.showErrorTooltip(errorObject, modalResult.target);
+                                        var modalRows = modalWidget.tbody.find("tr");
+                                        var modalRow = $(modalRows[paramRowIndex]);
+                                        if (modalRow.length) {
+                                            var modalCell = modalRow.find("td.value");
+                                            if (!modalCell.length) {
+                                                modalCell = modalRow.find("td:last");
+                                            }
+                                            if (modalCell.length) {
+                                                globalSelf.focusErrorComponent(modalCell);
+                                                modalCell.addErrorHighlightClass("components-error-red-highlight");
+                                                globalSelf.showErrorTooltip(errorObject, modalCell);
+                                            }
                                         }
                                     }
                                 }
+                            }
+                        } else {
+                            var cmResult = globalSelf._getGridRowAndCellByClass(
+                                cmGridWidget,
+                                cmRowIndex,
+                                cmFieldName
+                            );
+
+                            if (cmResult && cmResult.cell && cmResult.cell.length) {
+                                var cmCell = cmResult.cell;
+                                var cmKWidget = cmCell.find(".k-widget");
+                                var finalCmTarget = cmKWidget.length ? cmKWidget.first() : cmCell;
+
+                                globalSelf.focusErrorComponent(finalCmTarget);
+                                finalCmTarget.addErrorHighlightClass("components-error-red-highlight");
+                                globalSelf.showErrorTooltip(errorObject, finalCmTarget);
                             }
                         }
                     }
