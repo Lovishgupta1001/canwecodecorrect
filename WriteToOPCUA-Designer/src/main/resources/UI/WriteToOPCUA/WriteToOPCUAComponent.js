@@ -375,13 +375,8 @@ define(function (require) {
                             dcFieldName
                         );
                         if (dcResult && dcResult.cell) {
-                            var dcCell = dcResult.cell;
-                            var dcKWidget = dcCell.find(".k-widget");
-                            var finalDcTarget = dcKWidget.length ? dcKWidget.first() : dcCell;
-
-                            globalSelf.focusErrorComponent(finalDcTarget);
-                            finalDcTarget.addErrorHighlightClass("components-error-red-highlight");
-                            globalSelf.showErrorTooltip(errorObject, finalDcTarget);
+                            dcResult.cell.addErrorHighlightClass("components-error-red-highlight");
+                            globalSelf.showErrorTooltip(errorObject, dcResult.cell);
                         }
                     }
                     return;
@@ -428,28 +423,8 @@ define(function (require) {
                             if (cmParamResult && cmParamResult.row) {
                                 var cmDataItem = cmGridWidget.dataItem(cmParamResult.row);
                                 if (cmDataItem) {
-                                    var badge = cmParamResult.cell.find(".input-parameter-badge");
-                                    var anchor = badge.length ? badge : cmParamResult.cell;
-
-                                    CallMethodGridManager.openInputParametersModal(globalSelf, cmDataItem, anchor);
-
-                                    if (globalSelf.inputParametersModalGrid && globalSelf.inputParametersModalGrid.widget) {
-                                        var modalWidget = globalSelf.inputParametersModalGrid.widget;
-                                        var modalTbody = modalWidget.tbody || modalWidget.element.find("tbody");
-                                        var modalRows = modalTbody.find("tr");
-                                        var modalRow = $(modalRows[paramRowIndex]);
-                                        if (modalRow.length) {
-                                            var modalCell = modalRow.find("td.value");
-                                            if (!modalCell.length) {
-                                                modalCell = modalRow.find("td:last");
-                                            }
-                                            if (modalCell.length) {
-                                                globalSelf.focusErrorComponent(modalCell);
-                                                modalCell.addErrorHighlightClass("components-error-red-highlight");
-                                                globalSelf.showErrorTooltip(errorObject, modalCell);
-                                            }
-                                        }
-                                    }
+                                    cmParamResult.cell.addErrorHighlightClass("components-error-red-highlight");
+                                    globalSelf.showErrorTooltip(errorObject, cmParamResult.cell);
                                 }
                             }
                         } else {
@@ -459,13 +434,8 @@ define(function (require) {
                                 cmFieldName
                             );
                             if (cmResult && cmResult.cell) {
-                                var cmCell = cmResult.cell;
-                                var cmKWidget = cmCell.find(".k-widget");
-                                var finalCmTarget = cmKWidget.length ? cmKWidget.first() : cmCell;
-
-                                globalSelf.focusErrorComponent(finalCmTarget);
-                                finalCmTarget.addErrorHighlightClass("components-error-red-highlight");
-                                globalSelf.showErrorTooltip(errorObject, finalCmTarget);
+                                cmResult.cell.addErrorHighlightClass("components-error-red-highlight");
+                                globalSelf.showErrorTooltip(errorObject, cmResult.cell);
                             }
                         }
                     }
