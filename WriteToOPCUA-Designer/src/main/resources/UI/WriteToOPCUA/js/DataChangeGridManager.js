@@ -25,11 +25,12 @@ define([
             return [
                 {
                     selectable: true,
-                    width: 50
+                    width: "45px"
                 },
                 {
                     field: "name",
                     title: globalSelf.nls.DataChangeName,
+                    width: "25%",
                     template: function (dataItem) {
                         return "<div class='data-change-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
                     },
@@ -41,6 +42,7 @@ define([
                 {
                     field: "nodeId",
                     title: globalSelf.nls.NodeId,
+                    width: "25%",
                     editable: function () {
                         return false;
                     },
@@ -50,6 +52,7 @@ define([
                 {
                     field: "sampleValue",
                     title: globalSelf.nls.SampleValue,
+                    width: "25%",
                     editable: function () {
                         return false;
                     },
@@ -59,6 +62,7 @@ define([
                 {
                     field: "newValue",
                     title: globalSelf.nls.NewValue,
+                    width: "25%",
                     template: GridUtils.getEditableValueTemplate("newValue", "new-value-edit-icon"),
                     editor: function (container, options) {
                         ExpressionBuilderManager.newValueEditor(container, options, globalSelf);
@@ -149,19 +153,10 @@ define([
             });
 
             if (globalSelf.dataChangeWriteGrid?.widget) {
-                var mainGrid = globalSelf.dataChangeWriteGrid.widget;
-
-                mainGrid.bind(
+                globalSelf.dataChangeWriteGrid.widget.bind(
                     "dataBound",
                     this._initializeDataChangeDropdowns.bind(this, globalSelf)
                 );
-
-                mainGrid.element.off("click.cellEdit", "tbody td").on("click.cellEdit", "tbody td", function (e) {
-                    var cell = $(this);
-                    if (!cell.hasClass("k-edit-cell") && cell.find(".new-value-edit-icon").length) {
-                        mainGrid.editCell(cell);
-                    }
-                });
             }
 
             this._initializeDataChangeDropdowns(globalSelf);

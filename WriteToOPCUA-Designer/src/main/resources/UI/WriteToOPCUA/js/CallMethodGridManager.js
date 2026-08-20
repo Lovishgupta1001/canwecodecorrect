@@ -31,11 +31,12 @@ define([
             return [
                 {
                     selectable: true,
-                    width: 50
+                    width: "45px"
                 },
                 {
                     field: "name",
                     title: globalSelf.nls.MethodName,
+                    width: "25%",
                     template: function (dataItem) {
                         return "<div class='method-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
                     },
@@ -47,6 +48,7 @@ define([
                 {
                     field: "nodeId",
                     title: globalSelf.nls.NodeId,
+                    width: "25%",
                     editable: function () {
                         return false;
                     },
@@ -56,6 +58,7 @@ define([
                 {
                     field: "inputParameters",
                     title: globalSelf.nls.InputParameters,
+                    width: "25%",
                     editable: function () {
                         return false;
                     },
@@ -66,6 +69,7 @@ define([
                 {
                     field: "outputValue",
                     title: globalSelf.nls.OutputValue,
+                    width: "25%",
                     template: GridUtils.getOutputValueTemplate,
                     editor: this._outputValueEditor,
                     editable: function () {
@@ -325,17 +329,18 @@ define([
                         field: "name",
                         title: globalSelf.nls.ParameterName,
                         editable: false,
-                        width: 160
+                        width: "30%"
                     },
                     {
                         field: "dataType",
                         title: globalSelf.nls.DataType,
                         editable: false,
-                        width: 130
+                        width: "30%"
                     },
                     {
                         field: "value",
                         title: globalSelf.nls.Value,
+                        width: "40%",
                         template: GridUtils.getEditableValueTemplate(
                             "value",
                             "parameter-value-edit-icon"
@@ -346,8 +351,7 @@ define([
                                 options,
                                 globalSelf
                             );
-                        },
-                        width: 260
+                        }
                     }
                 ],
                 dataSource: {
