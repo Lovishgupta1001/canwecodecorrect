@@ -27,7 +27,6 @@ public class WriteToOPCUAConfigBean extends ActivityConfigBean {
     private String transportName;
 
     private String operation = WriteToOPCUAConstants.DATA_CHANGE_WRITE;
-
     private String executionMode = WriteToOPCUAConstants.PARALLEL;
 
     private List<DataChangeWriteItem> dataChangeWrite = new ArrayList<>();

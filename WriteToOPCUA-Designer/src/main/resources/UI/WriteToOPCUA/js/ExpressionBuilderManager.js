@@ -10,8 +10,9 @@ define(function (require) {
     var ExpressionBuilderManager = {
 
         renderGridExpressionEditor: function (container, options, globalSelf, field) {
-            $('<div class="expression-editor" data-bind="value:' + field + '"></div>').appendTo(container);
-            var element = container.find(".expression-editor");
+
+            var editor = $('<div class="expression-editor" data-bind="value:' + field + '"></div>');
+            editor.appendTo(container);
 
             var configData = {
                 processModel: globalSelf.processModel,
@@ -20,7 +21,9 @@ define(function (require) {
             };
 
             var value = "";
-            var rawVal = options.model ? (options.model.get ? options.model.get(field) : options.model[field]) : "";
+            var rawVal = options.model
+                ? (options.model.get ? options.model.get(field) : options.model[field])
+                : "";
 
             if (rawVal) {
                 if (typeof rawVal === "string") {
@@ -30,14 +33,25 @@ define(function (require) {
                 }
             }
 
-            var changeHandler = function (event) {
-                var expression = ExpressionBuilderUtility.getExpression(event);
+            var expressionBuilder;
+
+            var changeHandler = function () {
+                var expression = ExpressionBuilderUtility.getExpression(expressionBuilder);
+
                 if (expression !== undefined && expression !== null) {
                     options.model.set(field, expression);
                 }
             };
 
-            ExpressionBuilderUtility.render(element, ExpressionBuilderLauncherTypes.PROCESS_CONTEXT, configData, value, changeHandler);
+            expressionBuilder = ExpressionBuilderUtility.render(
+                editor,
+                ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
+                configData,
+                value,
+                changeHandler
+            );
+
+            container.data("expressionBuilder", expressionBuilder);
         },
 
         newValueEditor: function (container, options, globalSelf) {

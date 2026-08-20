@@ -149,10 +149,19 @@ define([
             });
 
             if (globalSelf.dataChangeWriteGrid?.widget) {
-                globalSelf.dataChangeWriteGrid.widget.bind(
+                var mainGrid = globalSelf.dataChangeWriteGrid.widget;
+
+                mainGrid.bind(
                     "dataBound",
                     this._initializeDataChangeDropdowns.bind(this, globalSelf)
                 );
+
+                mainGrid.element.off("click.cellEdit", "tbody td").on("click.cellEdit", "tbody td", function (e) {
+                    var cell = $(this);
+                    if (!cell.hasClass("k-edit-cell") && cell.find(".new-value-edit-icon").length) {
+                        mainGrid.editCell(cell);
+                    }
+                });
             }
 
             this._initializeDataChangeDropdowns(globalSelf);

@@ -2,8 +2,8 @@
     overflow: auto;
 
     .writetoopcua-div-height {
-        height: 100%
-        }
+        height: 100%;
+    }
 
     .cvt-grid-div.k-grid {
         border: 1px solid #d9d9d9;
@@ -125,16 +125,12 @@
     box-sizing: border-box;
     cursor: pointer;
     pointer-events: auto;
-    font-size: 0.75rem;
-    font-weight: 600;
     line-height: 1;
 }
 
 .sample-copy-success {
     margin-left: 4px;
     color: #28a745;
-    font-size: 12px;
-    font-weight: 600;
 }
 
 .data-change-name-dropdown,
@@ -148,10 +144,20 @@
     }
 }
 
-.input-parameters-modal-grid {
-    width: 100%;
-}
+.input-parameters-modal-wrapper {
+    min-width: 580px;
+    width: 580px;
+    box-sizing: border-box;
 
+    .input-parameters-modal-grid {
+        width: 100%;
+
+        .k-grid,
+        .cvt-grid-div {
+            width: 100%;
+        }
+    }
+}
 .parallel-mode-help-tooltip,
 .sequential-mode-help-tooltip,
 .node-id-help-tooltip,
@@ -166,19 +172,9 @@
     margin-right: 1.5rem;
 }
 
-.sample-value-tooltip-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-}
-
 .sample-value-tooltip-content {
     margin: 0;
     padding: 0.25rem;
-    font-family: monospace, sans-serif;
-    font-size: 0.85rem;
     white-space: pre-wrap;
     word-break: break-all;
     overflow-wrap: anywhere;

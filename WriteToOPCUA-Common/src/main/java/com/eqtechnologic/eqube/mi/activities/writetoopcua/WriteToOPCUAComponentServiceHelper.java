@@ -89,7 +89,7 @@ public class WriteToOPCUAComponentServiceHelper {
         dataChangeOption.setNodeId(dataChangeItem.getNodeId());
         dataChangeOption.setDataTypeName(dataChangeItem.getDataTypeName());
         dataChangeOption.setDataTypeNodeId(dataChangeItem.getDataTypeNodeId());
-        dataChangeOption.setSampleValue(dataChangeItem.getSampleValue());
+        dataChangeOption.setSampleValue(dataChangeItem.getValue());
         return dataChangeOption;
     }
 
