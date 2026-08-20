@@ -325,40 +325,42 @@ define(function (require) {
         },
 
         getInputParametersTemplate: function (globalSelfOrDataItem) {
-            var dataItem = globalSelfOrDataItem?.model ? null : (globalSelfOrDataItem || {});
-
+            var dataItem = globalSelfOrDataItem && globalSelfOrDataItem.model ? null : (globalSelfOrDataItem || {});
             return function (item) {
                 var targetItem = dataItem || item || {};
                 var params = targetItem.get ? targetItem.get("inputParameters") : targetItem.inputParameters;
                 var parameters = [];
-
                 if (params) {
                     if (typeof params.toJSON === "function") {
                         parameters = params.toJSON();
                     } else if (params.length !== undefined) {
-                        parameters = params;
+                        parameters = Array.prototype.slice.call(params);
                     }
                 }
-
+                parameters = parameters.map(function (p) {
+                    return (p && typeof p.toJSON === "function") ? p.toJSON() : p;
+                });
                 var count = parameters.length || 0;
                 var firstParam = parameters[0] || {};
-                var displayValue = firstParam.name ||
+                var firstName = firstParam.name ||
                     firstParam.parameterName ||
                     firstParam.displayName ||
                     "";
-
+                var firstValue = firstParam.value || "";
+                var displayValue = firstValue || firstName;
+                var tooltipText = firstName && firstValue
+                    ? firstName + ": " + firstValue
+                    : displayValue;
                 return "<div class='input-parameters-cell'>" +
                     "<span class='input-parameter-value' title='" +
-                    _.escape(displayValue) + "'>" +
+                    _.escape(tooltipText) + "'>" +
                     _.escape(displayValue) +
                     "</span>" +
-                    (count > 0
-                        ? "<button type='button' " +
-                        "class='input-parameter-badge' " +
-                        "title='" + _.escape(nls.ViewInputParameters) + "'>" +
-                        count +
-                        "</button>"
-                        : "") +
+                    "<button type='button' " +
+                    "class='input-parameter-badge' " +
+                    "title='" + _.escape(nls.ViewInputParameters) + "'>" +
+                    count +
+                    "</button>" +
                     "</div>";
             };
         },
