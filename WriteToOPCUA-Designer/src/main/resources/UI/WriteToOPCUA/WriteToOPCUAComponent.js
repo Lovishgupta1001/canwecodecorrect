@@ -246,6 +246,45 @@ define(function (require) {
             }
         },
 
+        _scrollToAndHighlightCell: function (gridWidget, rowIndex, cellColIndex, selectorInCell) {
+            if (!gridWidget || !gridWidget.dataSource) {
+                return null;
+            }
+
+            var pageSize = gridWidget.dataSource.pageSize() || 50;
+            var pageNumber = Math.floor(rowIndex / pageSize) + 1;
+            var pageRowIndex = rowIndex % pageSize;
+
+            if (gridWidget.dataSource.page() !== pageNumber) {
+                gridWidget.dataSource.page(pageNumber);
+            }
+
+            var rows = gridWidget.tbody.find("tr");
+            if (pageRowIndex < 0 || pageRowIndex >= rows.length) {
+                return null;
+            }
+
+            var row = $(rows[pageRowIndex]);
+            if (!row.length) {
+                return null;
+            }
+
+            if (row[0] && row[0].scrollIntoView) {
+                row[0].scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+
+            var cell = row.find("td:eq(" + cellColIndex + ")");
+            if (!cell.length) {
+                return null;
+            }
+
+            var target = (selectorInCell && cell.find(selectorInCell).length)
+                ? cell.find(selectorInCell)
+                : cell;
+
+            return { row: row, cell: cell, target: target };
+        },
+
         highlightErrors: function (errorObjectList) {
             var globalSelf = this;
 
@@ -254,7 +293,14 @@ define(function (require) {
             }
 
             errorObjectList.forEach(function (errorObject) {
-                if (errorObject && errorObject.path && errorObject.path.indexOf("transportName") !== -1) {
+                if (!errorObject || !errorObject.path) {
+                    return;
+                }
+
+                var path = errorObject.path;
+
+                // 1. Transport Dropdown Validation Error
+                if (path.indexOf("transportName") !== -1) {
                     var element = globalSelf.$el.find("#transport-selector-dropdown");
                     if (element.length) {
                         globalSelf.focusErrorComponent(element);
@@ -267,6 +313,109 @@ define(function (require) {
                         }
 
                         globalSelf.showErrorTooltip(errorObject, element);
+                    }
+                    return;
+                }
+
+                // 2. Data Change Write Grid Validation Errors
+                if (path.indexOf("dataChangeWrite") !== -1) {
+                    if (!globalSelf.$(".data-change-write-radio").is(":checked")) {
+                        globalSelf.$(".data-change-write-radio").prop("checked", true);
+                        globalSelf._updateOperationUI();
+                    }
+
+                    var dcParts = path.split("/");
+                    if (dcParts.length <= 2) {
+                        var gridElem = globalSelf.$(".cvt-grid-div-data-change-write");
+                        if (gridElem.length) {
+                            gridElem.addErrorHighlightClass("components-error-red-highlight");
+                            globalSelf.showErrorTooltip(errorObject, gridElem);
+                        }
+                        return;
+                    }
+
+                    var dcRowIndex = parseInt(dcParts[2], 10) - 1;
+                    var dcFieldName = dcParts[3];
+
+                    if (globalSelf.dataChangeWriteGrid && globalSelf.dataChangeWriteGrid.widget) {
+                        var dcResult = globalSelf._scrollToAndHighlightCell(
+                            globalSelf.dataChangeWriteGrid.widget,
+                            dcRowIndex,
+                            (dcFieldName === "newValue") ? 4 : 1,
+                            (dcFieldName === "newValue") ? null : ".data-change-name-dropdown"
+                        );
+
+                        if (dcResult && dcResult.target) {
+                            globalSelf.focusErrorComponent(dcResult.target);
+                            dcResult.target.addErrorHighlightClass("components-error-red-highlight");
+                            globalSelf.showErrorTooltip(errorObject, dcResult.target);
+                        }
+                    }
+                    return;
+                }
+
+                // 3. Method Call Grid Validation Errors
+                if (path.indexOf("callMethod") !== -1) {
+                    if (!globalSelf.$(".call-method-radio").is(":checked")) {
+                        globalSelf.$(".call-method-radio").prop("checked", true);
+                        globalSelf._updateOperationUI();
+                    }
+
+                    var cmParts = path.split("/");
+                    if (cmParts.length <= 2) {
+                        var cmGridElem = globalSelf.$(".cvt-grid-div-call-method");
+                        if (cmGridElem.length) {
+                            cmGridElem.addErrorHighlightClass("components-error-red-highlight");
+                            globalSelf.showErrorTooltip(errorObject, cmGridElem);
+                        }
+                        return;
+                    }
+
+                    var cmRowIndex = parseInt(cmParts[2], 10) - 1;
+                    var cmFieldName = cmParts[3];
+
+                    if (globalSelf.callMethodGrid && globalSelf.callMethodGrid.widget) {
+                        var cmGridWidget = globalSelf.callMethodGrid.widget;
+
+                        if (cmFieldName === "name") {
+                            var cmResult = globalSelf._scrollToAndHighlightCell(
+                                cmGridWidget,
+                                cmRowIndex,
+                                1,
+                                ".method-name-dropdown"
+                            );
+
+                            if (cmResult && cmResult.target) {
+                                globalSelf.focusErrorComponent(cmResult.target);
+                                cmResult.target.addErrorHighlightClass("components-error-red-highlight");
+                                globalSelf.showErrorTooltip(errorObject, cmResult.target);
+                            }
+                        } else if (cmFieldName === "inputParameters") {
+                            var paramRowIndex = parseInt(cmParts[4], 10) - 1;
+                            var cmParamResult = globalSelf._scrollToAndHighlightCell(cmGridWidget, cmRowIndex, 3, null);
+
+                            if (cmParamResult && cmParamResult.row) {
+                                var cmDataItem = cmGridWidget.dataItem(cmParamResult.row);
+                                if (cmDataItem) {
+                                    var badge = cmParamResult.cell.find(".input-parameter-badge");
+                                    var anchor = badge.length ? badge : cmParamResult.cell;
+
+                                    CallMethodGridManager.openInputParametersModal(globalSelf, cmDataItem, anchor);
+
+                                    setTimeout(function () {
+                                        if (globalSelf.inputParametersModalGrid && globalSelf.inputParametersModalGrid.widget) {
+                                            var modalWidget = globalSelf.inputParametersModalGrid.widget;
+                                            var modalResult = globalSelf._scrollToAndHighlightCell(modalWidget, paramRowIndex, 2, null);
+                                            if (modalResult && modalResult.target) {
+                                                globalSelf.focusErrorComponent(modalResult.target);
+                                                modalResult.target.addErrorHighlightClass("components-error-red-highlight");
+                                                globalSelf.showErrorTooltip(errorObject, modalResult.target);
+                                            }
+                                        }
+                                    }, 250);
+                                }
+                            }
+                        }
                     }
                 }
             });
