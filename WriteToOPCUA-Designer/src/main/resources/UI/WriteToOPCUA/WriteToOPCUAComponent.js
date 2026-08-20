@@ -325,13 +325,10 @@ define(function (require) {
                         globalSelf.focusErrorComponent(element);
 
                         var dropdownWrapper = element.closest(".k-widget");
-                        if (dropdownWrapper.length) {
-                            dropdownWrapper.addErrorHighlightClass("components-error-red-highlight");
-                        } else {
-                            element.addErrorHighlightClass("components-error-red-highlight");
-                        }
+                        var target = dropdownWrapper.length ? dropdownWrapper : element;
+                        target.addErrorHighlightClass("components-error-red-highlight");
 
-                        globalSelf.showErrorTooltip(errorObject, element);
+                        globalSelf.showErrorTooltip(errorObject, target);
                     }
                     return;
                 }
@@ -342,44 +339,50 @@ define(function (require) {
                     if (dcRadio.length && !dcRadio.is(":checked")) {
                         dcRadio.prop("checked", true);
                         globalSelf._updateOperationUI();
+                    } else if (!globalSelf.dataChangeWriteGrid) {
+                        DataChangeGridManager.renderDataChangeWriteComponent(globalSelf);
                     }
 
-                    var dcParts = path.split("/");
-                    var dcRowPartIndex = -1;
+                    setTimeout(function () {
+                        var dcParts = path.split("/");
+                        var dcRowPartIndex = -1;
 
-                    for (var i = 0; i < dcParts.length; i++) {
-                        if (dcParts[i] === "dataChangeWrite") {
-                            dcRowPartIndex = i + 1;
-                            break;
+                        for (var i = 0; i < dcParts.length; i++) {
+                            if (dcParts[i] === "dataChangeWrite") {
+                                dcRowPartIndex = i + 1;
+                                break;
+                            }
                         }
-                    }
 
-                    if (dcRowPartIndex === -1 || dcRowPartIndex >= dcParts.length) {
-                        var gridElem = globalSelf.$el.find(".cvt-grid-div-data-change-write");
-                        if (gridElem.length) {
-                            gridElem.addErrorHighlightClass("components-error-red-highlight");
-                            globalSelf.showErrorTooltip(errorObject, gridElem);
+                        if (dcRowPartIndex === -1 || dcRowPartIndex >= dcParts.length || isNaN(parseInt(dcParts[dcRowPartIndex], 10))) {
+                            var gridElem = globalSelf.$el.find(".cvt-grid-div-data-change-write");
+                            if (gridElem.length) {
+                                gridElem.addErrorHighlightClass("components-error-red-highlight");
+                                globalSelf.showErrorTooltip(errorObject, gridElem);
+                            }
+                            return;
                         }
-                        return;
-                    }
 
-                    var dcRowIndex = parseInt(dcParts[dcRowPartIndex], 10) - 1;
-                    var dcFieldName = dcParts[dcRowPartIndex + 1];
+                        var dcRowIndex = parseInt(dcParts[dcRowPartIndex], 10) - 1;
+                        var dcFieldName = dcParts[dcRowPartIndex + 1];
 
-                    if (globalSelf.dataChangeWriteGrid && globalSelf.dataChangeWriteGrid.widget) {
-                        var dcResult = globalSelf._scrollToAndHighlightCell(
-                            globalSelf.dataChangeWriteGrid.widget,
-                            dcRowIndex,
-                            (dcFieldName === "newValue") ? 4 : 1,
-                            (dcFieldName === "newValue") ? null : ".data-change-name-dropdown"
-                        );
+                        if (globalSelf.dataChangeWriteGrid && globalSelf.dataChangeWriteGrid.widget) {
+                            var dcResult = globalSelf._scrollToAndHighlightCell(
+                                globalSelf.dataChangeWriteGrid.widget,
+                                dcRowIndex,
+                                (dcFieldName === "newValue") ? 4 : 1,
+                                (dcFieldName === "newValue") ? null : ".data-change-name-dropdown"
+                            );
 
-                        if (dcResult && dcResult.target) {
-                            globalSelf.focusErrorComponent(dcResult.target);
-                            dcResult.target.addErrorHighlightClass("components-error-red-highlight");
-                            globalSelf.showErrorTooltip(errorObject, dcResult.target);
+                            if (dcResult && dcResult.target) {
+                                globalSelf.focusErrorComponent(dcResult.target);
+                                var targetWidget = dcResult.target.closest(".k-widget");
+                                var finalTarget = targetWidget.length ? targetWidget : dcResult.target;
+                                finalTarget.addErrorHighlightClass("components-error-red-highlight");
+                                globalSelf.showErrorTooltip(errorObject, finalTarget);
+                            }
                         }
-                    }
+                    }, 150);
                     return;
                 }
 
@@ -389,73 +392,79 @@ define(function (require) {
                     if (cmRadio.length && !cmRadio.is(":checked")) {
                         cmRadio.prop("checked", true);
                         globalSelf._updateOperationUI();
+                    } else if (!globalSelf.callMethodGrid) {
+                        CallMethodGridManager.renderCallMethodComponent(globalSelf);
                     }
 
-                    var cmParts = path.split("/");
-                    var cmRowPartIndex = -1;
+                    setTimeout(function () {
+                        var cmParts = path.split("/");
+                        var cmRowPartIndex = -1;
 
-                    for (var j = 0; j < cmParts.length; j++) {
-                        if (cmParts[j] === "callMethod") {
-                            cmRowPartIndex = j + 1;
-                            break;
-                        }
-                    }
-
-                    if (cmRowPartIndex === -1 || cmRowPartIndex >= cmParts.length) {
-                        var cmGridElem = globalSelf.$el.find(".cvt-grid-div-call-method");
-                        if (cmGridElem.length) {
-                            cmGridElem.addErrorHighlightClass("components-error-red-highlight");
-                            globalSelf.showErrorTooltip(errorObject, cmGridElem);
-                        }
-                        return;
-                    }
-
-                    var cmRowIndex = parseInt(cmParts[cmRowPartIndex], 10) - 1;
-                    var cmFieldName = cmParts[cmRowPartIndex + 1];
-
-                    if (globalSelf.callMethodGrid && globalSelf.callMethodGrid.widget) {
-                        var cmGridWidget = globalSelf.callMethodGrid.widget;
-
-                        if (cmFieldName === "name") {
-                            var cmResult = globalSelf._scrollToAndHighlightCell(
-                                cmGridWidget,
-                                cmRowIndex,
-                                1,
-                                ".method-name-dropdown"
-                            );
-
-                            if (cmResult && cmResult.target) {
-                                globalSelf.focusErrorComponent(cmResult.target);
-                                cmResult.target.addErrorHighlightClass("components-error-red-highlight");
-                                globalSelf.showErrorTooltip(errorObject, cmResult.target);
+                        for (var j = 0; j < cmParts.length; j++) {
+                            if (cmParts[j] === "callMethod") {
+                                cmRowPartIndex = j + 1;
+                                break;
                             }
-                        } else if (cmFieldName === "inputParameters") {
-                            var paramRowIndex = parseInt(cmParts[cmRowPartIndex + 2], 10) - 1;
-                            var cmParamResult = globalSelf._scrollToAndHighlightCell(cmGridWidget, cmRowIndex, 3, null);
+                        }
 
-                            if (cmParamResult && cmParamResult.row) {
-                                var cmDataItem = cmGridWidget.dataItem(cmParamResult.row);
-                                if (cmDataItem) {
-                                    var badge = cmParamResult.cell.find(".input-parameter-badge");
-                                    var anchor = badge.length ? badge : cmParamResult.cell;
+                        if (cmRowPartIndex === -1 || cmRowPartIndex >= cmParts.length || isNaN(parseInt(cmParts[cmRowPartIndex], 10))) {
+                            var cmGridElem = globalSelf.$el.find(".cvt-grid-div-call-method");
+                            if (cmGridElem.length) {
+                                cmGridElem.addErrorHighlightClass("components-error-red-highlight");
+                                globalSelf.showErrorTooltip(errorObject, cmGridElem);
+                            }
+                            return;
+                        }
 
-                                    CallMethodGridManager.openInputParametersModal(globalSelf, cmDataItem, anchor);
+                        var cmRowIndex = parseInt(cmParts[cmRowPartIndex], 10) - 1;
+                        var cmFieldName = cmParts[cmRowPartIndex + 1];
 
-                                    setTimeout(function () {
-                                        if (globalSelf.inputParametersModalGrid && globalSelf.inputParametersModalGrid.widget) {
-                                            var modalWidget = globalSelf.inputParametersModalGrid.widget;
-                                            var modalResult = globalSelf._scrollToAndHighlightCell(modalWidget, paramRowIndex, 2, null);
-                                            if (modalResult && modalResult.target) {
-                                                globalSelf.focusErrorComponent(modalResult.target);
-                                                modalResult.target.addErrorHighlightClass("components-error-red-highlight");
-                                                globalSelf.showErrorTooltip(errorObject, modalResult.target);
+                        if (globalSelf.callMethodGrid && globalSelf.callMethodGrid.widget) {
+                            var cmGridWidget = globalSelf.callMethodGrid.widget;
+
+                            if (cmFieldName === "name") {
+                                var cmResult = globalSelf._scrollToAndHighlightCell(
+                                    cmGridWidget,
+                                    cmRowIndex,
+                                    1,
+                                    ".method-name-dropdown"
+                                );
+
+                                if (cmResult && cmResult.target) {
+                                    globalSelf.focusErrorComponent(cmResult.target);
+                                    var cmTargetWidget = cmResult.target.closest(".k-widget");
+                                    var cmFinalTarget = cmTargetWidget.length ? cmTargetWidget : cmResult.target;
+                                    cmFinalTarget.addErrorHighlightClass("components-error-red-highlight");
+                                    globalSelf.showErrorTooltip(errorObject, cmFinalTarget);
+                                }
+                            } else if (cmFieldName === "inputParameters") {
+                                var paramRowIndex = parseInt(cmParts[cmRowPartIndex + 2], 10) - 1;
+                                var cmParamResult = globalSelf._scrollToAndHighlightCell(cmGridWidget, cmRowIndex, 3, null);
+
+                                if (cmParamResult && cmParamResult.row) {
+                                    var cmDataItem = cmGridWidget.dataItem(cmParamResult.row);
+                                    if (cmDataItem) {
+                                        var badge = cmParamResult.cell.find(".input-parameter-badge");
+                                        var anchor = badge.length ? badge : cmParamResult.cell;
+
+                                        CallMethodGridManager.openInputParametersModal(globalSelf, cmDataItem, anchor);
+
+                                        setTimeout(function () {
+                                            if (globalSelf.inputParametersModalGrid && globalSelf.inputParametersModalGrid.widget) {
+                                                var modalWidget = globalSelf.inputParametersModalGrid.widget;
+                                                var modalResult = globalSelf._scrollToAndHighlightCell(modalWidget, paramRowIndex, 2, null);
+                                                if (modalResult && modalResult.target) {
+                                                    globalSelf.focusErrorComponent(modalResult.target);
+                                                    modalResult.target.addErrorHighlightClass("components-error-red-highlight");
+                                                    globalSelf.showErrorTooltip(errorObject, modalResult.target);
+                                                }
                                             }
-                                        }
-                                    }, 250);
+                                        }, 250);
+                                    }
                                 }
                             }
                         }
-                    }
+                    }, 150);
                 }
             });
         },
