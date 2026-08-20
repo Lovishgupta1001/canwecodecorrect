@@ -292,6 +292,11 @@ define(function (require) {
                 return;
             }
 
+            var currentActId = globalSelf.activityId || "";
+            var currentActName = (globalSelf.model && globalSelf.model.getKey)
+                ? (globalSelf.model.getKey("activityName") || globalSelf.model.getKey("name") || "")
+                : "";
+
             errorObjectList.forEach(function (errorObject) {
                 if (!errorObject || !errorObject.path) {
                     return;
@@ -299,9 +304,23 @@ define(function (require) {
 
                 var path = errorObject.path;
 
+                var pathParts = path.split("/");
+                if (pathParts.length > 1) {
+                    var actPrefix = pathParts[0];
+                    if (actPrefix && actPrefix !== "WriteToOPCUA") {
+                        if (currentActId && actPrefix !== currentActId && currentActName && actPrefix !== currentActName) {
+                            return;
+                        }
+                    }
+                }
+
                 // 1. Transport Dropdown Validation Error
                 if (path.indexOf("transportName") !== -1) {
-                    var element = globalSelf.$el.find("#transport-selector-dropdown");
+                    var element = globalSelf.$el.find(".transport-selector-dropdown");
+                    if (!element.length) {
+                        element = globalSelf.$el.find("#transport-selector-dropdown");
+                    }
+
                     if (element.length) {
                         globalSelf.focusErrorComponent(element);
 
@@ -319,14 +338,24 @@ define(function (require) {
 
                 // 2. Data Change Write Grid Validation Errors
                 if (path.indexOf("dataChangeWrite") !== -1) {
-                    if (!globalSelf.$(".data-change-write-radio").is(":checked")) {
-                        globalSelf.$(".data-change-write-radio").prop("checked", true);
+                    var dcRadio = globalSelf.$el.find(".data-change-write-radio");
+                    if (dcRadio.length && !dcRadio.is(":checked")) {
+                        dcRadio.prop("checked", true);
                         globalSelf._updateOperationUI();
                     }
 
                     var dcParts = path.split("/");
-                    if (dcParts.length <= 2) {
-                        var gridElem = globalSelf.$(".cvt-grid-div-data-change-write");
+                    var dcRowPartIndex = -1;
+
+                    for (var i = 0; i < dcParts.length; i++) {
+                        if (dcParts[i] === "dataChangeWrite") {
+                            dcRowPartIndex = i + 1;
+                            break;
+                        }
+                    }
+
+                    if (dcRowPartIndex === -1 || dcRowPartIndex >= dcParts.length) {
+                        var gridElem = globalSelf.$el.find(".cvt-grid-div-data-change-write");
                         if (gridElem.length) {
                             gridElem.addErrorHighlightClass("components-error-red-highlight");
                             globalSelf.showErrorTooltip(errorObject, gridElem);
@@ -334,8 +363,8 @@ define(function (require) {
                         return;
                     }
 
-                    var dcRowIndex = parseInt(dcParts[2], 10) - 1;
-                    var dcFieldName = dcParts[3];
+                    var dcRowIndex = parseInt(dcParts[dcRowPartIndex], 10) - 1;
+                    var dcFieldName = dcParts[dcRowPartIndex + 1];
 
                     if (globalSelf.dataChangeWriteGrid && globalSelf.dataChangeWriteGrid.widget) {
                         var dcResult = globalSelf._scrollToAndHighlightCell(
@@ -356,14 +385,24 @@ define(function (require) {
 
                 // 3. Method Call Grid Validation Errors
                 if (path.indexOf("callMethod") !== -1) {
-                    if (!globalSelf.$(".call-method-radio").is(":checked")) {
-                        globalSelf.$(".call-method-radio").prop("checked", true);
+                    var cmRadio = globalSelf.$el.find(".call-method-radio");
+                    if (cmRadio.length && !cmRadio.is(":checked")) {
+                        cmRadio.prop("checked", true);
                         globalSelf._updateOperationUI();
                     }
 
                     var cmParts = path.split("/");
-                    if (cmParts.length <= 2) {
-                        var cmGridElem = globalSelf.$(".cvt-grid-div-call-method");
+                    var cmRowPartIndex = -1;
+
+                    for (var j = 0; j < cmParts.length; j++) {
+                        if (cmParts[j] === "callMethod") {
+                            cmRowPartIndex = j + 1;
+                            break;
+                        }
+                    }
+
+                    if (cmRowPartIndex === -1 || cmRowPartIndex >= cmParts.length) {
+                        var cmGridElem = globalSelf.$el.find(".cvt-grid-div-call-method");
                         if (cmGridElem.length) {
                             cmGridElem.addErrorHighlightClass("components-error-red-highlight");
                             globalSelf.showErrorTooltip(errorObject, cmGridElem);
@@ -371,8 +410,8 @@ define(function (require) {
                         return;
                     }
 
-                    var cmRowIndex = parseInt(cmParts[2], 10) - 1;
-                    var cmFieldName = cmParts[3];
+                    var cmRowIndex = parseInt(cmParts[cmRowPartIndex], 10) - 1;
+                    var cmFieldName = cmParts[cmRowPartIndex + 1];
 
                     if (globalSelf.callMethodGrid && globalSelf.callMethodGrid.widget) {
                         var cmGridWidget = globalSelf.callMethodGrid.widget;
@@ -391,7 +430,7 @@ define(function (require) {
                                 globalSelf.showErrorTooltip(errorObject, cmResult.target);
                             }
                         } else if (cmFieldName === "inputParameters") {
-                            var paramRowIndex = parseInt(cmParts[4], 10) - 1;
+                            var paramRowIndex = parseInt(cmParts[cmRowPartIndex + 2], 10) - 1;
                             var cmParamResult = globalSelf._scrollToAndHighlightCell(cmGridWidget, cmRowIndex, 3, null);
 
                             if (cmParamResult && cmParamResult.row) {
