@@ -1,54 +1,51 @@
 /**
  * Created by Lovish.
- * Delegates to CVTComponent methods (mixed-in on globalSelf in WriteToOPCUAComponent.onInitialize)
- * for correct edit-icon rendering and EB back/close behavior — same pattern as AddTab.js.
+ * Delegates to CVTComponent methods (mixed-in on globalSelf in WriteToOPCUAComponent.onInitialize).
+ * Pattern exactly matches AddTab.js:
+ *   template: this.getExpressionBuilderTemplate.bind(this, "expression")
+ *   editor:   this.getExpressionBuilderEditor.bind(this, { launcherType, configData, changeHandler })
  */
 define(function (require) {
     "use strict";
 
-    var ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility");
+    var ExpressionBuilderLauncherTypes = require("Widgets/Designer/ExpressionBuilder/ExpressionBuilder").ExpressionBuilderLauncherTypes;
 
     var ExpressionBuilderManager = {
 
         /**
-         * Returns the column template function.
-         * Delegates to globalSelf.getExpressionBuilderTemplate (CVTComponent method)
-         * which renders the cell with the correct edit icon and handles hover/visibility.
+         * Returns a bound template function — same as AddTab.js:
+         *   this.getExpressionBuilderTemplate.bind(this, "expression")
+         * Grid calls it as: template(dataItem) → getExpressionBuilderTemplate(field, dataItem)
          */
         getTemplate: function (field, globalSelf) {
-            // CVTComponent.prototype.getExpressionBuilderTemplate is bound onto globalSelf in onInitialize
-            return globalSelf.getExpressionBuilderTemplate(field);
+            return globalSelf.getExpressionBuilderTemplate.bind(globalSelf, field);
         },
 
         /**
-         * Returns the column editor function.
-         * Delegates to globalSelf.getExpressionBuilderEditor (CVTComponent method)
-         * which handles: EB open, back/close (restores cell view), changeHandler.
+         * Returns a bound editor function — same as AddTab.js:
+         *   this.getExpressionBuilderEditor.bind(this, { configData, changeHandler })
+         * Grid calls it as: editor(container, options) → getExpressionBuilderEditor({...}, container, options)
          */
         getEditor: function (field, globalSelf) {
-            // CVTComponent.prototype.getExpressionBuilderEditor is bound onto globalSelf in onInitialize
-            return globalSelf.getExpressionBuilderEditor({
+            return globalSelf.getExpressionBuilderEditor.bind(globalSelf, {
+                launcherType: ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
                 configData: {
                     tabName: "CONFIGURATION"
                 },
-                field: field,
-                changeHandler: function (expressionBuilder) {
-                    // no-op: CVTComponent changeHandler updates the model internally
-                }
+                changeHandler: null
             });
         },
 
-        /**
-         * Extracts the plain string expression from an EB object or string value.
-         */
-        getExpression: function (value, globalSelf) {
-            if (!value) return "";
-            return ExpressionBuilderUtility.getExpression(value) || "";
-        },
-
         destroy: function (expressionBuilder) {
-            if (expressionBuilder) {
-                ExpressionBuilderUtility.destroy(expressionBuilder);
+            if (expressionBuilder && expressionBuilder.destroy) {
+                var elem = expressionBuilder.$el && expressionBuilder.$el.find(".ul-minified-ee-container .ul-nxt-ee-editor");
+                if (elem && elem.length) {
+                    elem.off(".editorHover");
+                }
+                expressionBuilder.destroy();
+                if (expressionBuilder.$el) {
+                    expressionBuilder.$el.empty();
+                }
             }
         }
     };
