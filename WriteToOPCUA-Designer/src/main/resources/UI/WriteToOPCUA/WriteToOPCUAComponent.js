@@ -5,16 +5,18 @@ define(function (require) {
     "use strict";
 
     var uilayer = require("uilayer"),
+        _ = require("underscore"),
         template = require("tpl!./template/WriteToOPCUAComponentTemplate"),
         model = require("./model/WriteToOPCUAComponentModel"),
         nls = require("i18n!./nls/WriteToOPCUAComponentNLS"),
         Constants = require("./js/constants"),
-        CVTComponent = require("Components/CVTComponent/CVTComponent"),
+        MIUIComponentI = require("MIUIComponentI"),
+        ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility"),
         TransportManager = require("./js/TransportManager"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
         CallMethodGridManager = require("./js/CallMethodGridManager");
 
-    var WriteToOPCUAUIComponent = CVTComponent.extend({
+    var WriteToOPCUAUIComponent = MIUIComponentI.extend({
 
         model: model,
         template: template,
@@ -31,7 +33,6 @@ define(function (require) {
         },
 
         onInitialize: function (options) {
-            CVTComponent.prototype.onInitialize.call(this, options);
             this.activityId = options.activityId;
             this.designerReqres = options.reqres;
             this.processModel = this.designerReqres.request("getCurrentActiveEntityModelFromDataStore");
@@ -231,7 +232,7 @@ define(function (require) {
                 var dcData = this.dataChangeWriteGrid.widget.dataSource.data().toJSON();
                 _.each(dcData, function (item) {
                     if (item?.newValue && typeof item.newValue === "object") {
-                        item.newValue = globalSelf.getExpression(item.newValue);
+                        item.newValue = ExpressionBuilderUtility.getExpression(item.newValue) || item.newValue;
                     }
                 });
                 this.model.setKey("dataChangeWrite", dcData);
@@ -243,7 +244,7 @@ define(function (require) {
                     if (item?.inputParameters?.length) {
                         _.each(item.inputParameters, function (param) {
                             if (param?.value && typeof param.value === "object") {
-                                param.value = globalSelf.getExpression(param.value);
+                                param.value = ExpressionBuilderUtility.getExpression(param.value) || param.value;
                             }
                         });
                     }
