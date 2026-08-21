@@ -6,8 +6,7 @@ define(function (require) {
 
     var uilayer = require("uilayer"),
         Constants = require("./constants"),
-        DataChangeGridManager = require("./DataChangeGridManager"),
-        CallMethodGridManager = require("./CallMethodGridManager");
+        AjaxUtility = require("Widgets/common/utilities/utilities").AjaxUtility;
 
     var TransportManager = {
 
@@ -123,8 +122,7 @@ define(function (require) {
                                     return opt;
                                 });
 
-                                DataChangeGridManager.refreshGridMode(globalSelf);
-                                CallMethodGridManager.refreshGridMode(globalSelf);
+                                globalSelf._refreshGrids?.();
                                 TransportManager.testTransportById(item.transportId, globalSelf);
                                 break;
                             }
@@ -150,8 +148,7 @@ define(function (require) {
                         globalSelf.dataChangeOptions = [];
                         globalSelf.callMethodOptions = [];
 
-                        DataChangeGridManager.refreshGridMode(globalSelf);
-                        CallMethodGridManager.refreshGridMode(globalSelf);
+                        globalSelf._refreshGrids?.();
                         return;
                     }
 
@@ -192,8 +189,7 @@ define(function (require) {
                         outputValue: ""
                     }]);
 
-                    DataChangeGridManager.refreshGridMode(globalSelf);
-                    CallMethodGridManager.refreshGridMode(globalSelf);
+                    globalSelf._refreshGrids?.();
                     TransportManager.testTransportById(transport.transportId, globalSelf);
                 }
             });
@@ -215,7 +211,6 @@ define(function (require) {
                 }
             });
             promise.fail(function (err) {
-                logger.error("testTransportById request failed:", err);
                 uilayer.notifier("warning", globalSelf.nls.TransportTestFailed);
             });
         }

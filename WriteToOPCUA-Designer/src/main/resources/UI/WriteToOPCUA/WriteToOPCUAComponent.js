@@ -177,10 +177,14 @@ define(function (require) {
             TransportManager.updateTransportUI(this);
         },
 
-        _updateTransportUI: function () {
-            TransportManager.updateTransportUI(this);
+        _refreshGrids: function () {
             DataChangeGridManager.refreshGridMode(this);
             CallMethodGridManager.refreshGridMode(this);
+        },
+
+        _updateTransportUI: function () {
+            TransportManager.updateTransportUI(this);
+            this._refreshGrids();
         },
 
         _updateOperationUI: function () {
