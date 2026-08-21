@@ -4,40 +4,71 @@
 define(function (require) {
     "use strict";
 
-    var CVTComponent = require("Components/CVTComponent/CVTComponent"),
-        ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility");
+    var ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility"),
+        ExpressionBuilderLauncherTypes = require("Widgets/Designer/ExpressionBuilder/ExpressionBuilder").ExpressionBuilderLauncherTypes;
 
     var ExpressionBuilderManager = {
 
-        getTemplate: function (field, globalSelf) {
-            return function (dataItem) {
-                if (globalSelf?.getExpressionBuilderTemplate) {
-                    return globalSelf.getExpressionBuilderTemplate(field, dataItem);
-                }
-                return CVTComponent.prototype.getExpressionBuilderTemplate.call(globalSelf, field, dataItem);
+        renderGridExpressionEditor: function (container, options, globalSelf, field) {
+
+            var editor = $('<div class="expression-editor" data-bind="value:' + field + '"></div>');
+            editor.appendTo(container);
+
+            var configData = {
+                processModel: globalSelf.processModel,
+                activityID: globalSelf.activityId,
+                tabName: "CONFIGURATION"
             };
+
+            var value = "";
+            var rawVal = "";
+            if (options.model) {
+                rawVal = options.model.get ? options.model.get(field) : options.model[field];
+            }
+
+            if (rawVal) {
+                if (typeof rawVal === "string") {
+                    value = rawVal;
+                } else if (typeof rawVal === "object") {
+                    value = rawVal.value || rawVal.expression || "";
+                }
+            }
+
+            var expressionBuilder;
+
+            var changeHandler = function () {
+                var expression = ExpressionBuilderUtility.getExpression(expressionBuilder);
+
+                if (expression !== undefined && expression !== null) {
+                    options.model.set(field, expression);
+                }
+            };
+
+            expressionBuilder = ExpressionBuilderUtility.render(
+                editor,
+                ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
+                configData,
+                value,
+                changeHandler
+            );
+
+            container.data("expressionBuilder", expressionBuilder);
         },
 
-        getEditor: function (field, globalSelf, changeHandler) {
-            return function (container, options) {
-                var config = {
-                    configData: {
-                        tabName: "CONFIGURATION"
-                    },
-                    changeHandler: changeHandler || function () {}
-                };
-                if (globalSelf?.getExpressionBuilderEditor) {
-                    return globalSelf.getExpressionBuilderEditor(config, container, options);
-                }
-                return CVTComponent.prototype.getExpressionBuilderEditor.call(globalSelf, config, container, options);
-            };
+        newValueEditor: function (container, options, globalSelf) {
+            this.renderGridExpressionEditor(container, options, globalSelf, "newValue");
+        },
+
+        parameterValueEditor: function (container, options, globalSelf) {
+            this.renderGridExpressionEditor(container, options, globalSelf, "value");
         },
 
         destroy: function (expressionBuilder) {
-            expressionBuilder?.destroy?.();
+            if (expressionBuilder) {
+                ExpressionBuilderUtility.destroy(expressionBuilder);
+            }
         }
     };
 
     return ExpressionBuilderManager;
 });
-

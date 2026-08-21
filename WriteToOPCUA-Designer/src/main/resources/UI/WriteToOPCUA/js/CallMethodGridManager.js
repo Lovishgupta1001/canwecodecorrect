@@ -6,10 +6,9 @@ define([
     "use strict";
 
     var CallMethodGridManager = {
-
         _outputValueEditor: function (container, options) {
             var input = $("<input type='text' class='ul-textbox' name='" + options.field + "'/>");
-            input.val(options.model?.get ? options.model.get(options.field) : options.model?.[options.field]);
+            input.val(options.model.get ? options.model.get(options.field) : options.model[options.field]);
             container.append(input);
         },
 
@@ -187,7 +186,7 @@ define([
             globalSelf.$(".method-name-dropdown").each(function () {
                 var element = $(this);
                 var row = element.closest("tr");
-                var grid = globalSelf.callMethodGrid?.widget || null;
+                var grid = globalSelf.callMethodGrid ? globalSelf.callMethodGrid.widget : null;
 
                 if (!grid) {
                     return;
@@ -212,7 +211,7 @@ define([
                 var existingDropdown = element.data("uilayerDropDownList");
 
                 if (existingDropdown) {
-                    if (existingDropdown?.setDataSource) {
+                    if (existingDropdown.setDataSource) {
                         existingDropdown.setDataSource(new uilayer.data.DataSource({
                             data: globalSelf.callMethodOptions || []
                         }));
@@ -249,23 +248,23 @@ define([
                             return;
                         }
 
-                        var selectedData = selectedItem?.toJSON
+                        var selectedData = selectedItem.toJSON
                             ? selectedItem.toJSON()
                             : selectedItem;
 
-                        dataItem["name"]            = selectedData?.name || "";
-                        dataItem["nodeId"]          = selectedData?.nodeId || "";
-                        dataItem["objectNodeId"]    = selectedData?.objectNodeId || "";
-                        dataItem["inputParameters"] = manager._copyInputParameters(selectedData?.inputParameters || selectedData?.inputArguments);
+                        dataItem["name"]            = selectedData.name || "";
+                        dataItem["nodeId"]          = selectedData.nodeId || "";
+                        dataItem["objectNodeId"]    = selectedData.objectNodeId || "";
+                        dataItem["inputParameters"] = manager._copyInputParameters(selectedData.inputParameters || selectedData.inputArguments);
 
                         var nodeIdCell = row.find("td:eq(2)");
                         var inputParamsCell = row.find("td:eq(3)");
 
-                        if (nodeIdCell?.length && grid?.columns?.[2]?.template) {
+                        if (nodeIdCell.length && grid.columns[2].template) {
                             nodeIdCell.html(grid.columns[2].template(dataItem));
                         }
 
-                        if (inputParamsCell?.length && grid?.columns?.[3]?.template) {
+                        if (inputParamsCell.length && grid.columns[3].template) {
                             inputParamsCell.html(grid.columns[3].template(dataItem));
                         }
 
@@ -273,7 +272,7 @@ define([
                     }
                 });
 
-                var initialVal = dataItem?.get ? dataItem.get("name") : dataItem?.name;
+                var initialVal = dataItem.get ? dataItem.get("name") : dataItem.name;
 
                 if (dropdown?.value) {
                     dropdown.value(initialVal || "");
@@ -302,7 +301,7 @@ define([
 
             var badge = $(event.currentTarget);
             var row = badge.closest("tr");
-            var grid = globalSelf.callMethodGrid?.widget || null;
+            var grid = globalSelf.callMethodGrid ? globalSelf.callMethodGrid.widget : null;
 
             if (!grid) {
                 return;
@@ -348,10 +347,18 @@ define([
                         field: "value",
                         title: globalSelf.nls.Value,
                         width: "40%",
-                        customEditor: true,
                         attributes: { "class": "value" },
-                        template: ExpressionBuilderManager.getTemplate("value", globalSelf),
-                        editor: ExpressionBuilderManager.getEditor("value", globalSelf)
+                        template: GridUtils.getEditableValueTemplate(
+                            "value",
+                            "parameter-value-edit-icon"
+                        ),
+                        editor: function (container, options) {
+                            ExpressionBuilderManager.parameterValueEditor(
+                                container,
+                                options,
+                                globalSelf
+                            );
+                        }
                     }
                 ],
                 dataSource: {
@@ -381,11 +388,11 @@ define([
         openInputParametersModal: function (globalSelf, dataItem, anchorElem) {
             var manager = this;
 
-            var methodName = dataItem?.get ? dataItem.get("name") : dataItem?.name;
+            var methodName = dataItem.get ? dataItem.get("name") : dataItem.name;
 
-            var inputParameters = dataItem?.get
+            var inputParameters = dataItem.get
                 ? dataItem.get("inputParameters")
-                : dataItem?.inputParameters;
+                : dataItem.inputParameters;
 
             inputParameters = this._copyInputParameters(inputParameters || []);
 
@@ -406,7 +413,7 @@ define([
             var gridElement = $popoverWrapper.find(".input-parameters-modal-grid");
             globalSelf.inputParametersModalGrid = this._createInputParametersModalGrid(gridElement, inputParameters, globalSelf);
 
-            var $anchor = $(anchorElem)?.length ? $(anchorElem) : globalSelf.$el;
+            var $anchor = (anchorElem && $(anchorElem).length) ? $(anchorElem) : globalSelf.$el;
 
             var saveHandler = function (e) {
                 var updatedParameters = [];
@@ -474,11 +481,11 @@ define([
             });
 
             if (globalSelf.inputParametersModal) {
-                if (typeof globalSelf.inputParametersModal?.open === "function") {
+                if (typeof globalSelf.inputParametersModal.open === "function") {
                     globalSelf.inputParametersModal.open($anchor);
-                } else if (typeof globalSelf.inputParametersModal?.widget?.open === "function") {
+                } else if (globalSelf.inputParametersModal.widget && typeof globalSelf.inputParametersModal.widget.open === "function") {
                     globalSelf.inputParametersModal.widget.open($anchor);
-                } else if (typeof globalSelf.inputParametersModal?.show === "function") {
+                } else if (typeof globalSelf.inputParametersModal.show === "function") {
                     globalSelf.inputParametersModal.show();
                 }
             }
@@ -494,8 +501,8 @@ define([
                 var popover = globalSelf.inputParametersModal;
                 globalSelf.inputParametersModal = null;
 
-                if (!isFromCloseCallback) {
-                    popover?.close?.();
+                if (!isFromCloseCallback && popover.close) {
+                    popover.close();
                 }
             }
 

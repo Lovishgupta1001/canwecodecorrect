@@ -5,13 +5,10 @@ define(function (require) {
     "use strict";
 
     var uilayer = require("uilayer"),
-        _ = require("underscore"),
         template = require("tpl!./template/WriteToOPCUAComponentTemplate"),
         model = require("./model/WriteToOPCUAComponentModel"),
         nls = require("i18n!./nls/WriteToOPCUAComponentNLS"),
         Constants = require("./js/constants"),
-        MIUIComponentI = require("MIUIComponentI"),
-        ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility"),
         TransportManager = require("./js/TransportManager"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
         CallMethodGridManager = require("./js/CallMethodGridManager");
@@ -114,6 +111,7 @@ define(function (require) {
         _initializeControls: function () {
             this.$(".data-change-write-container").hide();
             this.$(".call-method-container").hide();
+            this.$("#transport-name-expression-region").hide();
         },
 
         _getGridInstance: function () {
@@ -130,8 +128,8 @@ define(function (require) {
             var row = $(event.currentTarget).closest("tr");
             var grid = this._getGridInstance();
 
-            if (row?.length) {
-                grid?.removeRow?.(row);
+            if (grid && row.length) {
+                grid.removeRow(row);
             }
         },
 
@@ -178,14 +176,10 @@ define(function (require) {
             TransportManager.updateTransportUI(this);
         },
 
-        _refreshGrids: function () {
-            DataChangeGridManager.refreshGridMode(this);
-            CallMethodGridManager.refreshGridMode(this);
-        },
-
         _updateTransportUI: function () {
             TransportManager.updateTransportUI(this);
-            this._refreshGrids();
+            DataChangeGridManager.refreshGridMode(this);
+            CallMethodGridManager.refreshGridMode(this);
         },
 
         _updateOperationUI: function () {
@@ -213,7 +207,6 @@ define(function (require) {
         },
 
         getData: function () {
-            var globalSelf = this;
             this.model.setKey(
                 "operation",
                 this.$(".data-change-write-radio").is(":checked")
@@ -229,27 +222,17 @@ define(function (require) {
             );
 
             if (this.dataChangeWriteGrid?.widget?.dataSource) {
-                var dcData = this.dataChangeWriteGrid.widget.dataSource.data().toJSON();
-                _.each(dcData, function (item) {
-                    if (item?.newValue && typeof item.newValue === "object") {
-                        item.newValue = ExpressionBuilderUtility.getExpression(item.newValue) || item.newValue;
-                    }
-                });
-                this.model.setKey("dataChangeWrite", dcData);
+                this.model.setKey(
+                    "dataChangeWrite",
+                    this.dataChangeWriteGrid.widget.dataSource.data().toJSON()
+                );
             }
 
             if (this.callMethodGrid?.widget?.dataSource) {
-                var cmData = this.callMethodGrid.widget.dataSource.data().toJSON();
-                _.each(cmData, function (item) {
-                    if (item?.inputParameters?.length) {
-                        _.each(item.inputParameters, function (param) {
-                            if (param?.value && typeof param.value === "object") {
-                                param.value = ExpressionBuilderUtility.getExpression(param.value) || param.value;
-                            }
-                        });
-                    }
-                });
-                this.model.setKey("callMethod", cmData);
+                this.model.setKey(
+                    "callMethod",
+                    this.callMethodGrid.widget.dataSource.data().toJSON()
+                );
             }
 
             return this.model.toJSON();
@@ -264,7 +247,7 @@ define(function (require) {
         },
 
         _getGridRowAndCellByField: function (gridWidget, rowIndex, fieldName) {
-            if (!gridWidget || !gridWidget.dataSource) {
+            if (!gridWidget?.dataSource) {
                 return null;
             }
             var colIndex = -1;
@@ -293,7 +276,9 @@ define(function (require) {
             if (!row.length) {
                 return null;
             }
-            row?.[0]?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+            if (row[0]?.scrollIntoView) {
+                row[0].scrollIntoView({ behavior: "smooth", block: "center" });
+            }
             var cell = row.find("td:eq(" + colIndex + ")");
             if (!cell.length) {
                 return null;
@@ -342,8 +327,12 @@ define(function (require) {
 
                     if (element.length) {
                         globalSelf.focusErrorComponent(element);
-                        element.addErrorHighlightClass("components-error-red-highlight");
-                        globalSelf.showErrorTooltip(errorObject, element);
+
+                        var dropdownWrapper = element.closest(".k-widget");
+                        var target = dropdownWrapper.length ? dropdownWrapper : element;
+                        target.addErrorHighlightClass("components-error-red-highlight");
+
+                        globalSelf.showErrorTooltip(errorObject, target);
                     }
                     return;
                 }
@@ -428,7 +417,6 @@ define(function (require) {
                         var cmGridWidget = globalSelf.callMethodGrid.widget;
 
                         if (cmFieldName === "inputParameters") {
-                            var paramRowIndex = parseInt(cmParts[cmRowPartIndex + 2], 10) - 1;
                             var cmParamResult = globalSelf._getGridRowAndCellByField(cmGridWidget, cmRowIndex, "inputParameters");
 
                             if (cmParamResult?.row) {
@@ -459,7 +447,9 @@ define(function (require) {
         },
 
         _destroyComponent: function (component) {
-            component?.destroy?.();
+            if (component?.destroy) {
+                component.destroy();
+            }
         },
 
         onBeforeDestroy: function () {
