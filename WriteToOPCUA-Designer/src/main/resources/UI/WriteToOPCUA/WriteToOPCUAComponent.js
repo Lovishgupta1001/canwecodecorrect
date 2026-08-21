@@ -131,29 +131,69 @@ define(function (require) {
             var grid = this._getGridInstance();
 
             if (grid && row.length) {
-                grid.removeRow(row);
+                var dataItem = grid.dataItem ? grid.dataItem(row) : null;
+                if (dataItem && grid.dataSource) {
+                    grid.dataSource.remove(dataItem);
+                } else if (grid.removeRow) {
+                    grid.removeRow(row);
+                }
             }
         },
 
         _onDeleteToolbarRow: function () {
             var grid = this._getGridInstance();
 
-            if (grid) {
-                var selected = grid.select();
-                if (selected?.length) {
-                    var uniqueRows = [];
-                    selected.each(function () {
-                        var row = $(this).closest("tr");
-                        if (row.length && uniqueRows.indexOf(row[0]) === -1) {
-                            uniqueRows.push(row[0]);
-                        }
-                    });
-                    $.each(uniqueRows, function (index, rowElem) {
-                        grid.removeRow($(rowElem));
+            if (!grid) {
+                return;
+            }
+
+            var selectedElements = grid.select ? grid.select() : [];
+            var checkedBoxes = grid.tbody ? grid.tbody.find("input:checked, .k-checkbox:checked") : [];
+            var uniqueRowElements = [];
+
+            if (selectedElements && selectedElements.length) {
+                selectedElements.each(function () {
+                    var row = $(this).closest("tr");
+                    if (row.length && uniqueRowElements.indexOf(row[0]) === -1) {
+                        uniqueRowElements.push(row[0]);
+                    }
+                });
+            }
+
+            if (checkedBoxes && checkedBoxes.length) {
+                checkedBoxes.each(function () {
+                    var row = $(this).closest("tr");
+                    if (row.length && uniqueRowElements.indexOf(row[0]) === -1) {
+                        uniqueRowElements.push(row[0]);
+                    }
+                });
+            }
+
+            if (uniqueRowElements.length) {
+                var dataItems = [];
+                $.each(uniqueRowElements, function (index, rowElem) {
+                    var item = grid.dataItem ? grid.dataItem(rowElem) : null;
+                    if (item && dataItems.indexOf(item) === -1) {
+                        dataItems.push(item);
+                    }
+                });
+
+                if (dataItems.length && grid.dataSource) {
+                    $.each(dataItems, function (index, item) {
+                        grid.dataSource.remove(item);
                     });
                 } else {
-                    var lastRow = grid.tbody.find("tr:last");
-                    if (lastRow.length) {
+                    $.each(uniqueRowElements, function (index, rowElem) {
+                        grid.removeRow($(rowElem));
+                    });
+                }
+            } else {
+                var lastRow = grid.tbody ? grid.tbody.find("tr:last") : [];
+                if (lastRow.length) {
+                    var lastItem = grid.dataItem ? grid.dataItem(lastRow) : null;
+                    if (lastItem && grid.dataSource) {
+                        grid.dataSource.remove(lastItem);
+                    } else if (grid.removeRow) {
                         grid.removeRow(lastRow);
                     }
                 }
