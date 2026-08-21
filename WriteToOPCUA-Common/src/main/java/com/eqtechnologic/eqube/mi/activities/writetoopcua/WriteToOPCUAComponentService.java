@@ -70,6 +70,10 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
             }
         } catch (BusinessException e) {
             LOGGER.error("Error while fetching Transport details", e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("Unexpected error while fetching Transport details", e);
+            throw new BusinessException("Error while fetching Transport details", e);
         }
         return opcuaHelper.convertTransportClientToTransportInfoBeanList(transportType, transportClientBeans);
     }

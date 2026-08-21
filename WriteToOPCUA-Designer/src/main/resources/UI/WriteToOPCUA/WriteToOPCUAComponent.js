@@ -139,9 +139,18 @@ define(function (require) {
             var grid = this._getGridInstance();
 
             if (grid) {
-                var selectedRow = grid.select();
-                if (selectedRow?.length) {
-                    grid.removeRow(selectedRow);
+                var selected = grid.select();
+                if (selected?.length) {
+                    var uniqueRows = [];
+                    selected.each(function () {
+                        var row = $(this).closest("tr");
+                        if (row.length && uniqueRows.indexOf(row[0]) === -1) {
+                            uniqueRows.push(row[0]);
+                        }
+                    });
+                    $.each(uniqueRows, function (index, rowElem) {
+                        grid.removeRow($(rowElem));
+                    });
                 } else {
                     var lastRow = grid.tbody.find("tr:last");
                     if (lastRow.length) {

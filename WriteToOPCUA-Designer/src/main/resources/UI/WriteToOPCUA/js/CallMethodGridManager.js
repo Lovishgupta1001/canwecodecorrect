@@ -105,6 +105,10 @@ define([
                                 type: "string",
                                 editable: false
                             },
+                            objectNodeId: {
+                                type: "string",
+                                editable: false
+                            },
                             inputParameters: {
                                 defaultValue: [],
                                 editable: true
@@ -173,7 +177,7 @@ define([
             globalSelf.callMethodSearchBar = GridUtils.renderGridSearchBar(
                 "call-method-search",
                 globalSelf.callMethodGrid,
-                "name",
+                ["name", "nodeId", "objectNodeId", "outputValue"],
                 globalSelf,
                 globalSelf.nls
             );

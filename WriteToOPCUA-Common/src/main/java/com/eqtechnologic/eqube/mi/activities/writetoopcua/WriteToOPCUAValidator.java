@@ -10,6 +10,7 @@
 package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 
 import com.eqtechnologic.eqube.commonui.components.eQError;
+import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.CallMethodItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.DataChangeWriteItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.InputParameterItem;
@@ -35,6 +36,7 @@ import java.util.Map;
 @SuppressWarnings({"java:S3740", "rawtypes"})
 public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
 
+    private static final Logger LOGGER = Logger.getLogger(WriteToOPCUAValidator.class.getName());
     public static final String COMPONENT_ERR = "ComponentErr";
     private static final String EXPRESSION_BUILDER_SERVICE = "expressionBuilderService";
     private static final String CALL_METHOD_PREFIX = "callMethod/";
@@ -196,6 +198,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 errorList.add(error);
             }
         } catch (Exception e) {
+            LOGGER.error("Error while validating transport: " + transportName, e);
             eQError errorMsg = new eQError("writetoopcua.transportFrameworkError_transport", COMPONENT_ERR,
                     null, true);
             errorList.add(errorMsg);
@@ -220,7 +223,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 }
             }
         } catch (Exception e) {
-            // Ignore if ExpressionBuilder service is not registered in unit test environment
+            LOGGER.warn("Expression builder service validation failed for expression: " + expressionValue, e);
         }
     }
 }

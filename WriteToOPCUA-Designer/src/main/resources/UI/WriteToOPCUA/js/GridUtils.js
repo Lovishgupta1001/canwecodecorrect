@@ -41,7 +41,7 @@ define(function (require) {
                 "title='" + nls.Delete + "'></span>";
         },
 
-        renderGridSearchBar: function (searchClass, grid, field, globalSelf, nls) {
+        renderGridSearchBar: function (searchClass, grid, fields, globalSelf, nls) {
             var searchElement = globalSelf.$("." + searchClass);
 
             if (!searchElement.length || !grid?.widget?.dataSource) {
@@ -49,6 +49,7 @@ define(function (require) {
             }
 
             var ds = grid.widget.dataSource;
+            var searchFields = Array.isArray(fields) ? fields : [fields, "nodeId"];
 
             searchElement.off("keyup.gridSearch input.gridSearch").on("keyup.gridSearch input.gridSearch", function () {
                 var val = $(this).val();
@@ -56,14 +57,18 @@ define(function (require) {
                     ds.filter([]);
                 } else {
                     var query = val.trim();
+                    var filterList = searchFields.map(function (f) {
+                        return { field: f, operator: "contains", value: query };
+                    });
                     ds.filter({
                         logic: "or",
-                        filters: [
-                            { field: field, operator: "contains", value: query },
-                            { field: "nodeId", operator: "contains", value: query }
-                        ]
+                        filters: filterList
                     });
                 }
+            });
+
+            var searchBarFilters = searchFields.map(function (f) {
+                return { field: f, operator: "contains" };
             });
 
             return uilayer.searchBar({
@@ -72,10 +77,7 @@ define(function (require) {
                 dataSource: ds,
                 filter: {
                     logic: "or",
-                    filters: [
-                        { field: field, operator: "contains" },
-                        { field: "nodeId", operator: "contains" }
-                    ]
+                    filters: searchBarFilters
                 },
                 placeholder: nls.Search,
                 filterAfter: 1

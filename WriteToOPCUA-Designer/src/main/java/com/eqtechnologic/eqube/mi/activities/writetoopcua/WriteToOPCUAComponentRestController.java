@@ -12,7 +12,6 @@ package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 import com.eqtechnologic.eqube.exception.BusinessException;
 import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
-import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
 import com.eqtechnologic.eqube.mi.ui.MIOperation;
 import com.eqtechnologic.eqube.soa.methodauthorization.annotations.Authorize;
 import com.eqtechnologic.eqube.soa.methodauthorization.annotations.OperationNames;
@@ -45,21 +44,20 @@ public class WriteToOPCUAComponentRestController {
         this.opcuaHelper = opcuaHelper;
     }
 
-    @GetMapping(value = "/fetchTransportListByType")
-    public List<TransportInfo> fetchTransportListByType(@RequestParam("transportType") String transportType) throws BusinessException {
+    @GetMapping(value = "/fetchOPCUATransportList")
+    public List<TransportInfo> fetchOPCUATransportList() throws BusinessException {
         checkMultipleOperations(operations);
         List<TransportInfo> transportInfos = new ArrayList<>();
         try {
-            transportInfos = opcuaHelper.getWriteToOPCUAService().fetchTransportListByType(transportType);
+            transportInfos = opcuaHelper.getWriteToOPCUAService().fetchOPCUATransportList();
         } catch (BusinessException e) {
-            LOGGER.error("Error while fetching Transport", e);
+            LOGGER.error("Error while fetching OPC UA Transport list", e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("Unexpected error while fetching OPC UA Transport list", e);
+            throw new BusinessException("Error while fetching OPC UA Transport list", e);
         }
         return transportInfos;
-    }
-
-    @GetMapping(value = "/fetchOPCUATransportList")
-    public List<TransportInfo> fetchOPCUATransportList() throws BusinessException {
-        return fetchTransportListByType(WriteToOPCUAConstants.OPCUA_TYPE);
     }
 
     @GetMapping(value = "/testTransportById")
