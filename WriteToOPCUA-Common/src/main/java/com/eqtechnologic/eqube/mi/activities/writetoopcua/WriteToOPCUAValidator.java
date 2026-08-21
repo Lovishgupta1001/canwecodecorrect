@@ -10,11 +10,13 @@
 package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 
 import com.eqtechnologic.eqube.commonui.components.eQError;
+import com.eqtechnologic.eqube.logging.LogTemplate;
 import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.CallMethodItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.DataChangeWriteItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.InputParameterItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAErrorCode;
 import com.eqtechnologic.eqube.mi.component.service.ComponentService;
 import com.eqtechnologic.eqube.mi.component.service.ComponentValidator;
 import com.eqtechnologic.eqube.mi.component.utility.ComponentUtility;
@@ -198,7 +200,8 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 errorList.add(error);
             }
         } catch (Exception e) {
-            LOGGER.error("Error while validating transport: " + transportName, e);
+            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_VALIDATING_TRANSPORT.getMessage());
+            LOGGER.error(lt, e);
             eQError errorMsg = new eQError("writetoopcua.transportFrameworkError_transport", COMPONENT_ERR,
                     null, true);
             errorList.add(errorMsg);
@@ -223,7 +226,8 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 }
             }
         } catch (Exception e) {
-            LOGGER.warn("Expression builder service validation failed for expression: " + expressionValue, e);
+            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_VALIDATING_EXPRESSION.getMessage());
+            LOGGER.warn(lt, e);
         }
     }
 }

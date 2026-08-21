@@ -9,12 +9,16 @@
  */
 package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 
+import com.eqtechnologic.eqube.exception.BusinessException;
+import com.eqtechnologic.eqube.logging.LogTemplate;
 import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.CallMethodItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.DataChangeWriteItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.InputParameterItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAErrorCode;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAExceptionType;
 import com.eqtechnologic.eqube.platform.transport.client.beans.OpcUaTransportClientInfoBean;
 import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
@@ -118,7 +122,7 @@ public class WriteToOPCUAComponentServiceHelper {
         return ServiceRegistry.getInstance().getService(WriteToOPCUAConstants.WRITE_TO_OPCUA);
     }
 
-    public boolean testTransportById(Long transportId) {
+    public boolean testTransportById(Long transportId) throws BusinessException {
         if (transportId == null) {
             return false;
         }
@@ -126,8 +130,10 @@ public class WriteToOPCUAComponentServiceHelper {
             TransportRESTServiceHelper.testTransportByID(transportId);
             return true;
         } catch (Exception e) {
-            LOGGER.error("Error testing transport by ID: " + transportId, e);
-            return false;
+            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_TESTING_TRANSPORT.getMessage());
+            LOGGER.error(lt, e);
+            throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
+                    WriteToOPCUAErrorCode.ERROR_WHILE_TESTING_TRANSPORT, e.getMessage());
         }
     }
 }

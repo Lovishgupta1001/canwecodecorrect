@@ -10,8 +10,11 @@
 package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 
 import com.eqtechnologic.eqube.exception.BusinessException;
+import com.eqtechnologic.eqube.logging.LogTemplate;
 import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAErrorCode;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAExceptionType;
 import com.eqtechnologic.eqube.mi.ui.MIOperation;
 import com.eqtechnologic.eqube.soa.methodauthorization.annotations.Authorize;
 import com.eqtechnologic.eqube.soa.methodauthorization.annotations.OperationNames;
@@ -51,11 +54,15 @@ public class WriteToOPCUAComponentRestController {
         try {
             transportInfos = opcuaHelper.getWriteToOPCUAService().fetchOPCUATransportList();
         } catch (BusinessException e) {
-            LOGGER.error("Error while fetching OPC UA Transport list", e);
-            throw e;
+            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST.getMessage());
+            LOGGER.error(lt, e);
+            throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
+                    WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST, e.getMessage());
         } catch (Exception e) {
-            LOGGER.error("Unexpected error while fetching OPC UA Transport list", e);
-            throw new BusinessException("Error while fetching OPC UA Transport list", e);
+            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST.getMessage());
+            LOGGER.error(lt, e);
+            throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
+                    WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST, e.getMessage());
         }
         return transportInfos;
     }
@@ -66,7 +73,8 @@ public class WriteToOPCUAComponentRestController {
         try {
             return opcuaHelper.testTransportById(transportId);
         } catch (Exception e) {
-            LOGGER.error("Error testing transport ID: " + transportId, e);
+            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_TESTING_TRANSPORT.getMessage());
+            LOGGER.error(lt, e);
             return false;
         }
     }

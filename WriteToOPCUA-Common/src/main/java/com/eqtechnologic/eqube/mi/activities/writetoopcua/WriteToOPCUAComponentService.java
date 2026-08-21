@@ -10,10 +10,13 @@
 package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 
 import com.eqtechnologic.eqube.exception.BusinessException;
+import com.eqtechnologic.eqube.logging.LogTemplate;
 import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.WriteToOPCUAConfigBean;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAErrorCode;
+import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAExceptionType;
 import com.eqtechnologic.eqube.mi.activitymanagement.ActivityService;
 import com.eqtechnologic.eqube.mi.activitymanagement.handlers.OutputHintHandler;
 import com.eqtechnologic.eqube.mi.activitymanagement.handlers.PrePostStepConfigurationHandler;
@@ -69,11 +72,15 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
                 transportClientBeans = new ArrayList<>(service.getTransportDetails().values());
             }
         } catch (BusinessException e) {
-            LOGGER.error("Error while fetching Transport details", e);
-            throw e;
+            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS.getMessage());
+            LOGGER.error(lt, e);
+            throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
+                    WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS, e.getMessage());
         } catch (Exception e) {
-            LOGGER.error("Unexpected error while fetching Transport details", e);
-            throw new BusinessException("Error while fetching Transport details", e);
+            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS.getMessage());
+            LOGGER.error(lt, e);
+            throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
+                    WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS, e.getMessage());
         }
         return opcuaHelper.convertTransportClientToTransportInfoBeanList(transportType, transportClientBeans);
     }
