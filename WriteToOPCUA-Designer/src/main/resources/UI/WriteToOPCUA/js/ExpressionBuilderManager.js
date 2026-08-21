@@ -23,7 +23,7 @@ define(function (require) {
                     "<span class='writetoopcua-editable-cell-value' title='" + value + "'>" +
                     value +
                     "</span>" +
-                    "<span class='eQ-icon eQ-fonts-expression eq-cursor-pointer writetoopcua-editable-cell-icon'></span>" +
+                    "<span class='eQ-icon eQ-fonts-edit eq-cursor-pointer writetoopcua-editable-cell-icon'></span>" +
                     "</div>";
             };
         },
@@ -55,6 +55,13 @@ define(function (require) {
                     var expression = ExpressionBuilderUtility.getExpression(expressionBuilder);
                     if (expression !== undefined && expression !== null) {
                         options.model.set(field, expression);
+                    }
+
+                    var gridWidget = (globalSelf.inputParametersModalGrid?.widget)
+                        || (globalSelf._getGridInstance ? globalSelf._getGridInstance() : null);
+
+                    if (gridWidget?.closeCell) {
+                        gridWidget.closeCell();
                     }
                 };
 
