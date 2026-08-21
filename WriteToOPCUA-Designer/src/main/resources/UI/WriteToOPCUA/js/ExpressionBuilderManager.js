@@ -1,51 +1,78 @@
 /**
  * Created by Lovish.
- * Delegates to CVTComponent methods (mixed-in on globalSelf in WriteToOPCUAComponent.onInitialize).
- * Pattern exactly matches AddTab.js:
- *   template: this.getExpressionBuilderTemplate.bind(this, "expression")
- *   editor:   this.getExpressionBuilderEditor.bind(this, { launcherType, configData, changeHandler })
  */
 define(function (require) {
     "use strict";
 
-    var ExpressionBuilderLauncherTypes = require("Widgets/Designer/ExpressionBuilder/ExpressionBuilder").ExpressionBuilderLauncherTypes;
+    var ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility"),
+        ExpressionBuilderLauncherTypes = require("Widgets/Designer/ExpressionBuilder/ExpressionBuilder").ExpressionBuilderLauncherTypes;
 
     var ExpressionBuilderManager = {
 
-        /**
-         * Returns a bound template function — same as AddTab.js:
-         *   this.getExpressionBuilderTemplate.bind(this, "expression")
-         * Grid calls it as: template(dataItem) → getExpressionBuilderTemplate(field, dataItem)
-         */
         getTemplate: function (field, globalSelf) {
-            return globalSelf.getExpressionBuilderTemplate.bind(globalSelf, field);
+            return function (dataItem) {
+                var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
+                var value = "";
+                if (typeof rawVal === "string") {
+                    value = rawVal;
+                } else if (rawVal && typeof rawVal === "object") {
+                    value = rawVal.value || rawVal.expression || "";
+                }
+                var isEmpty = !value;
+                return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
+                    "<span class='writetoopcua-editable-cell-value' title='" + value + "'>" +
+                    value +
+                    "</span>" +
+                    "<span class='eQ-icon eQ-fonts-expression eq-cursor-pointer writetoopcua-editable-cell-icon'></span>" +
+                    "</div>";
+            };
         },
 
-        /**
-         * Returns a bound editor function — same as AddTab.js:
-         *   this.getExpressionBuilderEditor.bind(this, { configData, changeHandler })
-         * Grid calls it as: editor(container, options) → getExpressionBuilderEditor({...}, container, options)
-         */
         getEditor: function (field, globalSelf) {
-            return globalSelf.getExpressionBuilderEditor.bind(globalSelf, {
-                launcherType: ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
-                configData: {
+            return function (container, options) {
+                var editor = $('<div class="expression-editor" data-bind="value:' + field + '"></div>');
+                editor.appendTo(container);
+
+                var configData = {
+                    processModel: globalSelf.processModel,
+                    activityID: globalSelf.activityId,
                     tabName: "CONFIGURATION"
-                },
-                changeHandler: null
-            });
+                };
+
+                var value = "";
+                var rawVal = options.model.get ? options.model.get(field) : options.model[field];
+                if (rawVal) {
+                    if (typeof rawVal === "string") {
+                        value = rawVal;
+                    } else if (typeof rawVal === "object") {
+                        value = rawVal.value || rawVal.expression || "";
+                    }
+                }
+
+                var expressionBuilder;
+
+                var changeHandler = function () {
+                    var expression = ExpressionBuilderUtility.getExpression(expressionBuilder);
+                    if (expression !== undefined && expression !== null) {
+                        options.model.set(field, expression);
+                    }
+                };
+
+                expressionBuilder = ExpressionBuilderUtility.render(
+                    editor,
+                    ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
+                    configData,
+                    value,
+                    changeHandler
+                );
+
+                container.data("expressionBuilder", expressionBuilder);
+            };
         },
 
         destroy: function (expressionBuilder) {
-            if (expressionBuilder && expressionBuilder.destroy) {
-                var elem = expressionBuilder.$el && expressionBuilder.$el.find(".ul-minified-ee-container .ul-nxt-ee-editor");
-                if (elem && elem.length) {
-                    elem.off(".editorHover");
-                }
-                expressionBuilder.destroy();
-                if (expressionBuilder.$el) {
-                    expressionBuilder.$el.empty();
-                }
+            if (expressionBuilder) {
+                ExpressionBuilderUtility.destroy(expressionBuilder);
             }
         }
     };

@@ -10,7 +10,6 @@ define(function (require) {
         model = require("./model/WriteToOPCUAComponentModel"),
         nls = require("i18n!./nls/WriteToOPCUAComponentNLS"),
         Constants = require("./js/constants"),
-        CVTComponent = require("Components/CVTComponent/CVTComponent"),
         ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility"),
         TransportManager = require("./js/TransportManager"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
@@ -36,13 +35,6 @@ define(function (require) {
             this.activityId = options.activityId;
             this.designerReqres = options.reqres;
             this.processModel = this.designerReqres.request("getCurrentActiveEntityModelFromDataStore");
-
-            // Mixin CVTComponent EB methods so getExpressionBuilderTemplate/Editor work
-            // (MIUIComponentI stays as base class — same pattern as FileZip.js)
-            this.getExpressionBuilderTemplate = CVTComponent.prototype.getExpressionBuilderTemplate.bind(this);
-            this.getExpressionBuilderEditor = CVTComponent.prototype.getExpressionBuilderEditor.bind(this);
-            this.getExpression = CVTComponent.prototype.getExpression.bind(this);
-            this.prepareGridElementWithEditIcon = CVTComponent.prototype.prepareGridElementWithEditIcon.bind(this);
 
             this.dataChangeOptions = [];
             this.callMethodOptions = [];
