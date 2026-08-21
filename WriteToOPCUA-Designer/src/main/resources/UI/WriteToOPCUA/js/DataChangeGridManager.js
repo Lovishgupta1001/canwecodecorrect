@@ -32,8 +32,13 @@ define([
                     title: globalSelf.nls.DataChangeName,
                     width: "25%",
                     attributes: { "class": "name" },
-                    template: GridUtils.getNameDropdownTemplate("data-change-name-dropdown"),
-                    filterable: true
+                    template: function (dataItem) {
+                        return "<div class='data-change-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
+                    },
+                    editable: function () {
+                        return false;
+                    },
+                    filterable: false
                 },
                 {
                     field: "nodeId",
