@@ -113,7 +113,6 @@ define(function (require) {
         _initializeControls: function () {
             this.$(".data-change-write-container").hide();
             this.$(".call-method-container").hide();
-            this.$("#transport-name-expression-region").hide();
         },
 
         _getGridInstance: function () {

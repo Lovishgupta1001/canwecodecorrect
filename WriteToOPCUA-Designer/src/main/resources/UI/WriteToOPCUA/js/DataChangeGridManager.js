@@ -29,7 +29,7 @@ define([
                 },
                 {
                     field: "name",
-                    title: globalSelf.nls.NodeName,
+                    title: globalSelf.nls.DataChangeName,
                     width: "25%",
                     attributes: { "class": "name" },
                     template: GridUtils.getNameDropdownTemplate("data-change-name-dropdown"),

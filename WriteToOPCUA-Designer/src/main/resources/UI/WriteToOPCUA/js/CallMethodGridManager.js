@@ -7,6 +7,12 @@ define([
 
     var CallMethodGridManager = {
 
+        _outputValueEditor: function (container, options) {
+            var input = $("<input type='text' class='ul-textbox' name='" + options.field + "'/>");
+            input.val(options.model?.get ? options.model.get(options.field) : options.model?.[options.field]);
+            container.append(input);
+        },
+
         refreshGridMode: function (globalSelf) {
             if (!globalSelf?.callMethodGrid) {
                 return;
@@ -70,11 +76,7 @@ define([
                     width: "25%",
                     attributes: { "class": "outputValue" },
                     template: GridUtils.getOutputValueTemplate,
-                    editor: function (container, options) {
-                        var input = $('<input type="text" class="ul-textbox" name="' + options.field + '"/>');
-                        input.val(options.model.get ? options.model.get(options.field) : options.model[options.field]);
-                        container.append(input);
-                    },
+                    editor: this._outputValueEditor,
                     editable: function () {
                         return true;
                     },
