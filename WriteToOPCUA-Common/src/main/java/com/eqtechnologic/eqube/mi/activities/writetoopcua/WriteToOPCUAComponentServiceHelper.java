@@ -129,7 +129,7 @@ public class WriteToOPCUAComponentServiceHelper {
         try {
             TransportRESTServiceHelper.testTransportByID(transportId);
             return true;
-        } catch (Exception e) {
+        } catch (BusinessException e) {
             LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_TESTING_TRANSPORT.getMessage());
             LOGGER.error(lt, e);
             throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,

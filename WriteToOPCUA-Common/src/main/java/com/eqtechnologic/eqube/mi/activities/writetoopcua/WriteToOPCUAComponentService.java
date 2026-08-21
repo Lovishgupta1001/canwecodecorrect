@@ -76,11 +76,6 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
             LOGGER.error(lt, e);
             throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
                     WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS, e.getMessage());
-        } catch (Exception e) {
-            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS.getMessage());
-            LOGGER.error(lt, e);
-            throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
-                    WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS, e.getMessage());
         }
         return opcuaHelper.convertTransportClientToTransportInfoBeanList(transportType, transportClientBeans);
     }

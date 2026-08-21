@@ -58,11 +58,6 @@ public class WriteToOPCUAComponentRestController {
             LOGGER.error(lt, e);
             throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
                     WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST, e.getMessage());
-        } catch (Exception e) {
-            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST.getMessage());
-            LOGGER.error(lt, e);
-            throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
-                    WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST, e.getMessage());
         }
         return transportInfos;
     }
@@ -72,7 +67,7 @@ public class WriteToOPCUAComponentRestController {
         checkMultipleOperations(operations);
         try {
             return opcuaHelper.testTransportById(transportId);
-        } catch (Exception e) {
+        } catch (BusinessException e) {
             LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_TESTING_TRANSPORT.getMessage());
             LOGGER.error(lt, e);
             return false;

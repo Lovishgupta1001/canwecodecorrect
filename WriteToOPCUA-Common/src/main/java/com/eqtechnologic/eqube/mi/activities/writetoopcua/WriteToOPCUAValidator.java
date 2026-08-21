@@ -10,6 +10,7 @@
 package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 
 import com.eqtechnologic.eqube.commonui.components.eQError;
+import com.eqtechnologic.eqube.exception.BusinessException;
 import com.eqtechnologic.eqube.logging.LogTemplate;
 import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.CallMethodItem;
@@ -199,7 +200,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                         false);
                 errorList.add(error);
             }
-        } catch (Exception e) {
+        } catch (BusinessException e) {
             LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_VALIDATING_TRANSPORT.getMessage());
             LOGGER.error(lt, e);
             eQError errorMsg = new eQError("writetoopcua.transportFrameworkError_transport", COMPONENT_ERR,
@@ -225,7 +226,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                     errors.addAll(generatedErrors);
                 }
             }
-        } catch (Exception e) {
+        } catch (BusinessException e) {
             LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_VALIDATING_EXPRESSION.getMessage());
             LOGGER.warn(lt, e);
         }
