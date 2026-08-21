@@ -9,19 +9,42 @@
  */
 package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
 
+import com.eqtechnologic.eqube.commonui.components.eQCVTBeans;
+import com.eqtechnologic.eqube.entitydiff.api.Entity;
+import com.eqtechnologic.eqube.entitydiff.api.annotations.ComparableEntity;
+import com.eqtechnologic.eqube.entitydiff.api.annotations.EntityAttribute;
+import com.eqtechnologic.eqube.mi.component.annotations.ComponentData;
+import com.eqtechnologic.eqube.mi.componentservices.exprbuilder.constants.ExpressionBuilderConstants;
+import com.eqtechnologic.eqube.mi.util.eQStatusMessage;
+
+import java.util.List;
+
 /**
  * Bean to hold Data Change Write grid item details aligned with OpcUaDataChangeWriteItem
  *
  * @author Lovish
  */
-public class DataChangeWriteItem {
+@ComparableEntity(name = "WriteToOPCUADataChangeWrite")
+public class DataChangeWriteItem implements eQCVTBeans, Entity {
 
+    private boolean isDisable;
+
+    @EntityAttribute(index = 0, attrName = "Data Change Name", partOfKey = true, displayName = true)
     private String name;
+
+    @EntityAttribute(index = 1, attrName = "Node ID")
     private String nodeId;
+
     private String dataTypeName;
     private String dataTypeNodeId;
+
+    @EntityAttribute(index = 2, attrName = "Sample Value")
     private String sampleValue;
+
+    @EntityAttribute(index = 3, attrName = "New Value")
+    @ComponentData(componentName = ExpressionBuilderConstants.EXPRESSION_BUILDER_SERVICE, mandatory = false)
     private String newValue;
+
     private String nodeIdHelpText;
     private String sampleValueHelpText;
 
@@ -87,5 +110,25 @@ public class DataChangeWriteItem {
 
     public void setSampleValueHelpText(String sampleValueHelpText) {
         this.sampleValueHelpText = sampleValueHelpText;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return (name == null || name.isEmpty()) && (nodeId == null || nodeId.isEmpty());
+    }
+
+    @Override
+    public boolean isSelectTable() {
+        return isDisable;
+    }
+
+    @Override
+    public void setSelectTable(boolean disabled) {
+        this.isDisable = disabled;
+    }
+
+    @Override
+    public List<eQStatusMessage> validate() {
+        return null;
     }
 }

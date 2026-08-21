@@ -5,23 +5,12 @@
         <component name="i18n:writetoopcua.Operation" id="operation"/>
         <component name="i18n:writetoopcua.ExecutionMode" id="executionMode"/>
 
-        <group name="i18n:writetoopcua.DataChangeWrite" id="dataChangeWrite">
-            <component name="i18n:writetoopcua.DataChangeName" id="name"/>
-            <component name="i18n:writetoopcua.NodeId" id="nodeId"/>
-            <component name="i18n:writetoopcua.SampleValue" id="sampleValue"/>
-            <component name="i18n:writetoopcua.NewValue" id="newValue"/>
+        <group name="i18n:writetoopcua.DataChangeWrite">
+            <component id="WriteToOPCUADataChangeWrite" addHeader="true"/>
         </group>
 
-        <group name="i18n:writetoopcua.CallMethod" id="callMethod">
-            <component name="i18n:writetoopcua.MethodName" id="name"/>
-            <component name="i18n:writetoopcua.NodeId" id="nodeId"/>
-            <component name="i18n:writetoopcua.ObjectNodeId" id="objectNodeId"/>
-            <group name="i18n:writetoopcua.InputParameters" id="inputParameters">
-                <component name="i18n:writetoopcua.ParameterName" id="name"/>
-                <component name="i18n:writetoopcua.DataType" id="dataTypeName"/>
-                <component name="i18n:writetoopcua.Value" id="value"/>
-            </group>
-            <component name="i18n:writetoopcua.OutputValue" id="outputValue"/>
+        <group name="i18n:writetoopcua.CallMethod">
+            <component id="WriteToOPCUACallMethod" addHeader="true"/>
         </group>
     </capability>
     <capability name="Output">

@@ -9,6 +9,12 @@
  */
 package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
 
+import com.eqtechnologic.eqube.commonui.components.eQCVTBeans;
+import com.eqtechnologic.eqube.entitydiff.api.Entity;
+import com.eqtechnologic.eqube.entitydiff.api.annotations.ComparableEntity;
+import com.eqtechnologic.eqube.entitydiff.api.annotations.EntityAttribute;
+import com.eqtechnologic.eqube.mi.util.eQStatusMessage;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,15 +23,27 @@ import java.util.List;
  *
  * @author Lovish
  */
-public class CallMethodItem {
+@ComparableEntity(name = "WriteToOPCUACallMethod")
+public class CallMethodItem implements eQCVTBeans, Entity {
 
+    private boolean isDisable;
+
+    @EntityAttribute(index = 0, attrName = "Method Name", partOfKey = true, displayName = true)
     private String name;
+
+    @EntityAttribute(index = 1, attrName = "Node ID")
     private String nodeId;
+
+    @EntityAttribute(index = 2, attrName = "Object Node ID")
     private String objectNodeId;
-    private Object inputParameters; // Can be List<InputParameterItem> or expression String when dynamic
+
+    private Object inputParameters;
     private List<InputParameterItem> inputArguments = new ArrayList<>();
     private List<InputParameterItem> outputArguments = new ArrayList<>();
+
+    @EntityAttribute(index = 3, attrName = "Output Value")
     private String outputValue;
+
     private String nodeIdHelpText;
 
     public String getName() {
@@ -90,5 +108,25 @@ public class CallMethodItem {
 
     public void setNodeIdHelpText(String nodeIdHelpText) {
         this.nodeIdHelpText = nodeIdHelpText;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return (name == null || name.isEmpty()) && (nodeId == null || nodeId.isEmpty());
+    }
+
+    @Override
+    public boolean isSelectTable() {
+        return isDisable;
+    }
+
+    @Override
+    public void setSelectTable(boolean disabled) {
+        this.isDisable = disabled;
+    }
+
+    @Override
+    public List<eQStatusMessage> validate() {
+        return null;
     }
 }
