@@ -51,36 +51,19 @@ define(function (require) {
             var ds = grid.widget.dataSource;
             var searchFields = Array.isArray(fields) ? fields : [fields, "nodeId"];
 
-            searchElement.off("keyup.gridSearch input.gridSearch").on("keyup.gridSearch input.gridSearch", function () {
-                var val = $(this).val();
-                if (!val || val.trim() === "") {
-                    ds.filter([]);
-                } else {
-                    var query = val.trim();
-                    var filterList = searchFields.map(function (f) {
-                        return { field: f, operator: "contains", value: query };
-                    });
-                    ds.filter({
-                        logic: "or",
-                        filters: filterList
-                    });
-                }
-            });
-
             var searchBarFilters = searchFields.map(function (f) {
                 return { field: f, operator: "contains" };
             });
 
             return uilayer.searchBar({
                 elem: searchElement,
-                uiStyle: "",
+                filterAfter: 1,
                 dataSource: ds,
                 filter: {
                     logic: "or",
                     filters: searchBarFilters
                 },
-                placeholder: nls.Search,
-                filterAfter: 1
+                placeholder: nls.Search
             });
         },
 
