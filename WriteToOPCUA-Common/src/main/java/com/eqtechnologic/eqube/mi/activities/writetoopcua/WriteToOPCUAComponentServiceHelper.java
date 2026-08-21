@@ -122,18 +122,11 @@ public class WriteToOPCUAComponentServiceHelper {
         return ServiceRegistry.getInstance().getService(WriteToOPCUAConstants.WRITE_TO_OPCUA);
     }
 
-    public boolean testTransportById(Long transportId) throws BusinessException {
+    public boolean testTransportById(Long transportId) {
         if (transportId == null) {
             return false;
         }
-        try {
-            TransportRESTServiceHelper.testTransportByID(transportId);
-            return true;
-        } catch (BusinessException e) {
-            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_TESTING_TRANSPORT.getMessage());
-            LOGGER.error(lt, e);
-            throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
-                    WriteToOPCUAErrorCode.ERROR_WHILE_TESTING_TRANSPORT, e.getMessage());
-        }
+        TransportRESTServiceHelper.testTransportByID(transportId);
+        return true;
     }
 }

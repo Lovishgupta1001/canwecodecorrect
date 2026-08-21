@@ -217,18 +217,13 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
         if (expressionValue == null || expressionValue.isEmpty()) {
             return;
         }
-        try {
-            ComponentService expressionBuilderService = ServiceRegistry.getInstance().getService(EXPRESSION_BUILDER_SERVICE);
-            if (expressionBuilderService != null && expressionBuilderService.getValidator() != null) {
-                List<eQError> generatedErrors = expressionBuilderService.getValidator().validate(expressionValue, map);
-                if (generatedErrors != null) {
-                    generatedErrors.forEach(er -> er.setResource(WriteToOPCUAConstants.WRITE_TO_OPCUA + "/" + resource));
-                    errors.addAll(generatedErrors);
-                }
+        ComponentService expressionBuilderService = ServiceRegistry.getInstance().getService(EXPRESSION_BUILDER_SERVICE);
+        if (expressionBuilderService != null && expressionBuilderService.getValidator() != null) {
+            List<eQError> generatedErrors = expressionBuilderService.getValidator().validate(expressionValue, map);
+            if (generatedErrors != null) {
+                generatedErrors.forEach(er -> er.setResource(WriteToOPCUAConstants.WRITE_TO_OPCUA + "/" + resource));
+                errors.addAll(generatedErrors);
             }
-        } catch (BusinessException e) {
-            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_VALIDATING_EXPRESSION.getMessage());
-            LOGGER.warn(lt, e);
         }
     }
 }

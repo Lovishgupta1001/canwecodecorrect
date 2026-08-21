@@ -65,13 +65,7 @@ public class WriteToOPCUAComponentRestController {
     @GetMapping(value = "/testTransportById")
     public boolean testTransportById(@RequestParam("transportId") Long transportId) {
         checkMultipleOperations(operations);
-        try {
-            return opcuaHelper.testTransportById(transportId);
-        } catch (BusinessException e) {
-            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_TESTING_TRANSPORT.getMessage());
-            LOGGER.error(lt, e);
-            return false;
-        }
+        return opcuaHelper.testTransportById(transportId);
     }
 
     @Authorize
