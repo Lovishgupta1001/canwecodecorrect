@@ -20,14 +20,15 @@ define(function (require) {
             this.renderTransportDropdown(globalSelf);
         },
 
-        navigateToCAC: function (response, additionalURLForDistributed, additionalURLForMonolithic) {
+        navigateToCAC: function (response, hashPath) {
             var navigationURL;
             if (response && response.IS_DISTRIBUTED_DEPLOYMENT === "TRUE") {
-                navigationURL = response.URL + "/" + encodeURIComponent(response.ENVIRONMENT_ID) + "/EXECUTOR/" + additionalURLForDistributed;
+                navigationURL = response.URL + "/" + encodeURIComponent(response.ENVIRONMENT_ID) + "/EXECUTOR/" + encodeURIComponent(hashPath);
             } else {
-                navigationURL = window.location.origin + "/" + window.location.pathname.split("/")[1] + additionalURLForMonolithic;
+                var appPath = window.location.pathname.split("/")[1] || "eQubeMI";
+                navigationURL = window.location.origin + "/" + appPath + "/AdminConsole#" + hashPath;
             }
-            window.open(navigationURL);
+            window.open(navigationURL, "_blank");
         },
 
         renderTransportButtons: function (globalSelf) {
@@ -54,16 +55,10 @@ define(function (require) {
                     click: function () {
                         var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
                         promise.done(function (response) {
-                            self.navigateToCAC(
-                                response,
-                                encodeURIComponent("transports/create?defaultType=OPCUA"),
-                                "/ADMINCONSOLE?servicePath=transports/create&hashParams=" + encodeURIComponent("defaultType=OPCUA")
-                            );
+                            self.navigateToCAC(response, "transports/create");
                         });
-                        promise.fail(function (e) {
-                            if (window.app && window.app.reqres) {
-                                uilayer.notifier("error", window.app.reqres.request("getError", e).message);
-                            }
+                        promise.fail(function () {
+                            self.navigateToCAC(null, "transports/create");
                         });
                     }
                 });
@@ -74,25 +69,21 @@ define(function (require) {
                     elem: globalSelf.$(".transports-open-button"),
                     uiStyle: "tertiary",
                     click: function () {
+                        var selectedTransportId = null;
                         if (globalSelf.transportDropdown && globalSelf.transportDropdown.dataItem()) {
                             var item = globalSelf.transportDropdown.dataItem();
-                            var selectedTransportId = item.toJSON ? item.toJSON().transportId : item.transportId;
-                            if (selectedTransportId) {
-                                var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
-                                promise.done(function (response) {
-                                    self.navigateToCAC(
-                                        response,
-                                        encodeURIComponent("transports/edit/") + selectedTransportId,
-                                        "/ADMINCONSOLE?servicePath=transports/edit/" + selectedTransportId
-                                    );
-                                });
-                                promise.fail(function (e) {
-                                    if (window.app && window.app.reqres) {
-                                        uilayer.notifier("error", window.app.reqres.request("getError", e).message);
-                                    }
-                                });
-                            }
+                            selectedTransportId = item.toJSON ? item.toJSON().transportId : item.transportId;
                         }
+
+                        var hashPath = selectedTransportId ? ("transports/edit/" + selectedTransportId) : "transports";
+
+                        var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
+                        promise.done(function (response) {
+                            self.navigateToCAC(response, hashPath);
+                        });
+                        promise.fail(function () {
+                            self.navigateToCAC(null, hashPath);
+                        });
                     }
                 });
             }
