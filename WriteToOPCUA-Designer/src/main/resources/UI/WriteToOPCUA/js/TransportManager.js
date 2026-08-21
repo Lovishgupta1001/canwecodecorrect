@@ -20,18 +20,29 @@ define(function (require) {
             this.renderTransportDropdown(globalSelf);
         },
 
+        navigateToCAC: function (response, additionalURLForDistributed, additionalURLForMonolithic) {
+            var navigationURL;
+            if (response && response.IS_DISTRIBUTED_DEPLOYMENT === "TRUE") {
+                navigationURL = response.URL + "/" + encodeURIComponent(response.ENVIRONMENT_ID) + "/EXECUTOR/" + additionalURLForDistributed;
+            } else {
+                navigationURL = window.location.origin + "/" + window.location.pathname.split("/")[1] + additionalURLForMonolithic;
+            }
+            window.open(navigationURL);
+        },
+
         renderTransportButtons: function (globalSelf) {
+            var self = this;
+
             if (!globalSelf.refreshButton) {
                 globalSelf.refreshButton = uilayer.button({
                     elem: globalSelf.$(".transports-refresh-button"),
                     uiStyle: "tertiary",
                     click: function () {
                         if (globalSelf.transportDropdown) {
-                            globalSelf.transportDropdown.destroy();
-                            globalSelf.transportDropdown = null;
-                            globalSelf.$(".transport-selector-dropdown").empty();
+                            globalSelf.transportDropdown.dataSource.read();
+                        } else {
+                            self.renderTransportDropdown(globalSelf);
                         }
-                        TransportManager.renderTransportDropdown(globalSelf);
                     }
                 });
             }
@@ -41,10 +52,19 @@ define(function (require) {
                     elem: globalSelf.$(".transports-create-button"),
                     uiStyle: "tertiary",
                     click: function () {
-                        window.open(
-                            Constants.CREATE_TRANSPORT_URL,
-                            "_blank"
-                        );
+                        var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
+                        promise.done(function (response) {
+                            self.navigateToCAC(
+                                response,
+                                encodeURIComponent("transports/create?defaultType=OPCUA"),
+                                "/ADMINCONSOLE?servicePath=transports/create&hashParams=" + encodeURIComponent("defaultType=OPCUA")
+                            );
+                        });
+                        promise.fail(function (e) {
+                            if (window.app && window.app.reqres) {
+                                uilayer.notifier("error", window.app.reqres.request("getError", e).message);
+                            }
+                        });
                     }
                 });
             }
@@ -54,18 +74,24 @@ define(function (require) {
                     elem: globalSelf.$(".transports-open-button"),
                     uiStyle: "tertiary",
                     click: function () {
-                        if (!globalSelf.transportDropdown?.dataItem()) {
-                            return;
-                        }
-
-                        var item = globalSelf.transportDropdown.dataItem();
-                        var transportId = item.toJSON ? item.toJSON().transportId : item.transportId;
-
-                        if (transportId) {
-                            window.open(
-                                Constants.EDIT_TRANSPORT_URL + transportId,
-                                "_blank"
-                            );
+                        if (globalSelf.transportDropdown && globalSelf.transportDropdown.dataItem()) {
+                            var item = globalSelf.transportDropdown.dataItem();
+                            var selectedTransportId = item.toJSON ? item.toJSON().transportId : item.transportId;
+                            if (selectedTransportId) {
+                                var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
+                                promise.done(function (response) {
+                                    self.navigateToCAC(
+                                        response,
+                                        encodeURIComponent("transports/edit/") + selectedTransportId,
+                                        "/ADMINCONSOLE?servicePath=transports/edit/" + selectedTransportId
+                                    );
+                                });
+                                promise.fail(function (e) {
+                                    if (window.app && window.app.reqres) {
+                                        uilayer.notifier("error", window.app.reqres.request("getError", e).message);
+                                    }
+                                });
+                            }
                         }
                     }
                 });
