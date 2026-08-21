@@ -51,19 +51,17 @@ define(function (require) {
             var ds = grid.widget.dataSource;
             var searchFields = Array.isArray(fields) ? fields : [fields, "nodeId"];
 
-            var searchBarFilters = searchFields.map(function (f) {
-                return { field: f, operator: "contains" };
-            });
-
             return uilayer.searchBar({
                 elem: searchElement,
-                filterAfter: 1,
-                dataSource: ds,
+                uiStyle: "",
+                dataSource: [ds],
                 filter: {
-                    logic: "or",
-                    filters: searchBarFilters
+                    field: searchFields,
+                    operator: "contains"
                 },
-                placeholder: nls.Search
+                placeholder: nls.Search,
+                filterAfter: 0,
+                filterEvent: "keyup"
             });
         },
 
