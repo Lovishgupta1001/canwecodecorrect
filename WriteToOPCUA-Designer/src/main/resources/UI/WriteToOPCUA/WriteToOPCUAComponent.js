@@ -5,10 +5,12 @@ define(function (require) {
     "use strict";
 
     var uilayer = require("uilayer"),
+        _ = require("underscore"),
         template = require("tpl!./template/WriteToOPCUAComponentTemplate"),
         model = require("./model/WriteToOPCUAComponentModel"),
         nls = require("i18n!./nls/WriteToOPCUAComponentNLS"),
         Constants = require("./js/constants"),
+        ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility"),
         TransportManager = require("./js/TransportManager"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
         CallMethodGridManager = require("./js/CallMethodGridManager");
@@ -207,6 +209,7 @@ define(function (require) {
         },
 
         getData: function () {
+            var globalSelf = this;
             this.model.setKey(
                 "operation",
                 this.$(".data-change-write-radio").is(":checked")
@@ -222,17 +225,27 @@ define(function (require) {
             );
 
             if (this.dataChangeWriteGrid?.widget?.dataSource) {
-                this.model.setKey(
-                    "dataChangeWrite",
-                    this.dataChangeWriteGrid.widget.dataSource.data().toJSON()
-                );
+                var dcData = this.dataChangeWriteGrid.widget.dataSource.data().toJSON();
+                _.each(dcData, function (item) {
+                    if (item?.newValue && typeof item.newValue === "object") {
+                        item.newValue = ExpressionBuilderUtility.getExpression(item.newValue);
+                    }
+                });
+                this.model.setKey("dataChangeWrite", dcData);
             }
 
             if (this.callMethodGrid?.widget?.dataSource) {
-                this.model.setKey(
-                    "callMethod",
-                    this.callMethodGrid.widget.dataSource.data().toJSON()
-                );
+                var cmData = this.callMethodGrid.widget.dataSource.data().toJSON();
+                _.each(cmData, function (item) {
+                    if (item?.inputParameters?.length) {
+                        _.each(item.inputParameters, function (param) {
+                            if (param?.value && typeof param.value === "object") {
+                                param.value = ExpressionBuilderUtility.getExpression(param.value);
+                            }
+                        });
+                    }
+                });
+                this.model.setKey("callMethod", cmData);
             }
 
             return this.model.toJSON();

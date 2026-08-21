@@ -1,8 +1,9 @@
 define([
     "uilayer",
     "./GridUtils",
-    "./ExpressionBuilderManager"
-], function (uilayer, GridUtils, ExpressionBuilderManager) {
+    "./ExpressionBuilderManager",
+    "Components/ExpressionBuilderUtility/ExpressionBuilderUtility"
+], function (uilayer, GridUtils, ExpressionBuilderManager, ExpressionBuilderUtility) {
     "use strict";
 
     var CallMethodGridManager = {
@@ -347,18 +348,10 @@ define([
                         field: "value",
                         title: globalSelf.nls.Value,
                         width: "40%",
+                        customEditor: true,
                         attributes: { "class": "value" },
-                        template: GridUtils.getEditableValueTemplate(
-                            "value",
-                            "parameter-value-edit-icon"
-                        ),
-                        editor: function (container, options) {
-                            ExpressionBuilderManager.parameterValueEditor(
-                                container,
-                                options,
-                                globalSelf
-                            );
-                        }
+                        template: ExpressionBuilderManager.getTemplate("value", globalSelf),
+                        editor: ExpressionBuilderManager.getEditor("value", globalSelf)
                     }
                 ],
                 dataSource: {
@@ -422,6 +415,12 @@ define([
                     updatedParameters = globalSelf.inputParametersModalGrid
                         .widget.dataSource.data().toJSON();
                 }
+
+                _.each(updatedParameters, function (param) {
+                    if (param?.value && typeof param.value === "object") {
+                        param.value = ExpressionBuilderUtility.getExpression(param.value);
+                    }
+                });
 
                 if (dataItem.set) {
                     dataItem.set("inputParameters", updatedParameters);

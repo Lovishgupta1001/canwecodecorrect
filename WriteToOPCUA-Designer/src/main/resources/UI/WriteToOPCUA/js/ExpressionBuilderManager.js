@@ -9,58 +9,65 @@ define(function (require) {
 
     var ExpressionBuilderManager = {
 
-        renderGridExpressionEditor: function (container, options, globalSelf, field) {
-
-            var editor = $('<div class="expression-editor" data-bind="value:' + field + '"></div>');
-            editor.appendTo(container);
-
-            var configData = {
-                processModel: globalSelf.processModel,
-                activityID: globalSelf.activityId,
-                tabName: "CONFIGURATION"
-            };
-
-            var value = "";
-            var rawVal = "";
-            if (options.model) {
-                rawVal = options.model.get ? options.model.get(field) : options.model[field];
-            }
-
-            if (rawVal) {
+        getTemplate: function (field, globalSelf) {
+            return function (dataItem) {
+                var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
+                var value = "";
                 if (typeof rawVal === "string") {
                     value = rawVal;
-                } else if (typeof rawVal === "object") {
+                } else if (rawVal && typeof rawVal === "object") {
                     value = rawVal.value || rawVal.expression || "";
                 }
-            }
-
-            var expressionBuilder;
-
-            var changeHandler = function () {
-                var expression = ExpressionBuilderUtility.getExpression(expressionBuilder);
-
-                if (expression !== undefined && expression !== null) {
-                    options.model.set(field, expression);
-                }
+                var isEmpty = !value;
+                return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
+                    "<span class='writetoopcua-editable-cell-value' title='" + value + "'>" +
+                    value +
+                    "</span>" +
+                    "<span class='eQ-icon eQ-fonts-expression eq-cursor-pointer writetoopcua-editable-cell-icon'></span>" +
+                    "</div>";
             };
-
-            expressionBuilder = ExpressionBuilderUtility.render(
-                editor,
-                ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
-                configData,
-                value,
-                changeHandler
-            );
-
-            container.data("expressionBuilder", expressionBuilder);
         },
 
-        newValueEditor: function (container, options, globalSelf) {
-            this.renderGridExpressionEditor(container, options, globalSelf, "newValue");
-        },
+        getEditor: function (field, globalSelf) {
+            return function (container, options) {
+                var editor = $('<div class="expression-editor" data-bind="value:' + field + '"></div>');
+                editor.appendTo(container);
 
-        parameterValueEditor: function (container, options, globalSelf) {
-            this.renderGridExpressionEditor(container, options, globalSelf, "value");
+                var configData = {
+                    processModel: globalSelf.processModel,
+                    activityID: globalSelf.activityId,
+                    tabName: "CONFIGURATION"
+                };
+
+                var value = "";
+                var rawVal = options.model.get ? options.model.get(field) : options.model[field];
+                if (rawVal) {
+                    if (typeof rawVal === "string") {
+                        value = rawVal;
+                    } else if (typeof rawVal === "object") {
+                        value = rawVal.value || rawVal.expression || "";
+                    }
+                }
+
+                var expressionBuilder;
+
+                var changeHandler = function () {
+                    var expression = ExpressionBuilderUtility.getExpression(expressionBuilder);
+                    if (expression !== undefined && expression !== null) {
+                        options.model.set(field, expression);
+                    }
+                };
+
+                expressionBuilder = ExpressionBuilderUtility.render(
+                    editor,
+                    ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
+                    configData,
+                    value,
+                    changeHandler
+                );
+
+                container.data("expressionBuilder", expressionBuilder);
+            };
         },
 
         destroy: function (expressionBuilder) {

@@ -66,14 +66,10 @@ define([
                     field: "newValue",
                     title: globalSelf.nls.NewValue,
                     width: "25%",
+                    customEditor: true,
                     attributes: { "class": "newValue" },
-                    template: GridUtils.getEditableValueTemplate("newValue", "new-value-edit-icon"),
-                    editor: function (container, options) {
-                        ExpressionBuilderManager.newValueEditor(container, options, globalSelf);
-                    },
-                    editable: function () {
-                        return true;
-                    },
+                    template: ExpressionBuilderManager.getTemplate("newValue", globalSelf),
+                    editor: ExpressionBuilderManager.getEditor("newValue", globalSelf),
                     filterable: false
                 }
             ];
