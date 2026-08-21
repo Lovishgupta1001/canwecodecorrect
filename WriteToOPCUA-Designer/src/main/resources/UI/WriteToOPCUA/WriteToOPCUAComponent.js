@@ -9,12 +9,12 @@ define(function (require) {
         model = require("./model/WriteToOPCUAComponentModel"),
         nls = require("i18n!./nls/WriteToOPCUAComponentNLS"),
         Constants = require("./js/constants"),
-        ExpressionBuilderManager = require("./js/ExpressionBuilderManager"),
+        CVTComponent = require("Components/CVTComponent/CVTComponent"),
         TransportManager = require("./js/TransportManager"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
         CallMethodGridManager = require("./js/CallMethodGridManager");
 
-    var WriteToOPCUAUIComponent = MIUIComponentI.extend({
+    var WriteToOPCUAUIComponent = CVTComponent.extend({
 
         model: model,
         template: template,
@@ -26,14 +26,12 @@ define(function (require) {
             "click .input-parameter-badge": "_onInputParameterBadgeClick",
             "click .data-change-write-add-btn": "_onAddDataChangeRow",
             "click .call-method-add-btn": "_onAddCallMethodRow",
-            "click .new-value-edit-icon": "_onNewValueEditIconClick",
-            "click .output-value-edit-icon": "_onOutputValueEditIconClick",
-            "click .parameter-value-edit-icon": "_onParameterValueEditIconClick",
             "change .data-change-write-radio": "_updateOperationUI",
             "change .call-method-radio": "_updateOperationUI"
         },
 
         onInitialize: function (options) {
+            CVTComponent.prototype.onInitialize.call(this, options);
             this.activityId = options.activityId;
             this.designerReqres = options.reqres;
             this.processModel = this.designerReqres.request("getCurrentActiveEntityModelFromDataStore");
@@ -132,8 +130,8 @@ define(function (require) {
             var row = $(event.currentTarget).closest("tr");
             var grid = this._getGridInstance();
 
-            if (grid && row.length) {
-                grid.removeRow(row);
+            if (row?.length) {
+                grid?.removeRow?.(row);
             }
         },
 
@@ -210,19 +208,8 @@ define(function (require) {
             CallMethodGridManager.onInputParameterBadgeClick(event, this);
         },
 
-        _onNewValueEditIconClick: function (event) {
-            ExpressionBuilderManager.onEditIconClick(event, this, "newValue", this.dataChangeWriteGrid && this.dataChangeWriteGrid.widget);
-        },
-
-        _onOutputValueEditIconClick: function (event) {
-            ExpressionBuilderManager.onEditIconClick(event, this, "outputValue", this.callMethodGrid && this.callMethodGrid.widget);
-        },
-
-        _onParameterValueEditIconClick: function (event) {
-            ExpressionBuilderManager.onEditIconClick(event, this, "value", this.inputParametersModalGrid && this.inputParametersModalGrid.widget);
-        },
-
         getData: function () {
+            var globalSelf = this;
             this.model.setKey(
                 "operation",
                 this.$(".data-change-write-radio").is(":checked")
@@ -238,17 +225,27 @@ define(function (require) {
             );
 
             if (this.dataChangeWriteGrid?.widget?.dataSource) {
-                this.model.setKey(
-                    "dataChangeWrite",
-                    this.dataChangeWriteGrid.widget.dataSource.data().toJSON()
-                );
+                var dcData = this.dataChangeWriteGrid.widget.dataSource.data().toJSON();
+                _.each(dcData, function (item) {
+                    if (item?.newValue && typeof item.newValue === "object") {
+                        item.newValue = globalSelf.getExpression(item.newValue);
+                    }
+                });
+                this.model.setKey("dataChangeWrite", dcData);
             }
 
             if (this.callMethodGrid?.widget?.dataSource) {
-                this.model.setKey(
-                    "callMethod",
-                    this.callMethodGrid.widget.dataSource.data().toJSON()
-                );
+                var cmData = this.callMethodGrid.widget.dataSource.data().toJSON();
+                _.each(cmData, function (item) {
+                    if (item?.inputParameters?.length) {
+                        _.each(item.inputParameters, function (param) {
+                            if (param?.value && typeof param.value === "object") {
+                                param.value = globalSelf.getExpression(param.value);
+                            }
+                        });
+                    }
+                });
+                this.model.setKey("callMethod", cmData);
             }
 
             return this.model.toJSON();
@@ -292,9 +289,7 @@ define(function (require) {
             if (!row.length) {
                 return null;
             }
-            if (row[0] && row[0].scrollIntoView) {
-                row[0].scrollIntoView({ behavior: "smooth", block: "center" });
-            }
+            row?.[0]?.scrollIntoView?.({ behavior: "smooth", block: "center" });
             var cell = row.find("td:eq(" + colIndex + ")");
             if (!cell.length) {
                 return null;
@@ -305,12 +300,12 @@ define(function (require) {
         highlightErrors: function (errorObjectList) {
             var globalSelf = this;
 
-            if (!errorObjectList || !errorObjectList.length) {
+            if (!errorObjectList?.length) {
                 return;
             }
 
             var currentActId = globalSelf.activityId || "";
-            var currentActName = (globalSelf.model && globalSelf.model.getKey)
+            var currentActName = globalSelf.model?.getKey
                 ? (globalSelf.model.getKey("activityName") || globalSelf.model.getKey("name") || "")
                 : "";
 
@@ -380,13 +375,13 @@ define(function (require) {
                     var dcRowIndex = parseInt(dcParts[dcRowPartIndex], 10) - 1;
                     var dcFieldName = dcParts[dcRowPartIndex + 1] || "name";
 
-                    if (globalSelf.dataChangeWriteGrid && globalSelf.dataChangeWriteGrid.widget) {
+                    if (globalSelf.dataChangeWriteGrid?.widget) {
                         var dcResult = globalSelf._getGridRowAndCellByField(
                             globalSelf.dataChangeWriteGrid.widget,
                             dcRowIndex,
                             dcFieldName
                         );
-                        if (dcResult && dcResult.cell) {
+                        if (dcResult?.cell) {
                             dcResult.cell.addErrorHighlightClass("components-error-red-highlight");
                             globalSelf.showErrorTooltip(errorObject, dcResult.cell);
                         }
@@ -425,14 +420,14 @@ define(function (require) {
                     var cmRowIndex = parseInt(cmParts[cmRowPartIndex], 10) - 1;
                     var cmFieldName = cmParts[cmRowPartIndex + 1] || "name";
 
-                    if (globalSelf.callMethodGrid && globalSelf.callMethodGrid.widget) {
+                    if (globalSelf.callMethodGrid?.widget) {
                         var cmGridWidget = globalSelf.callMethodGrid.widget;
 
                         if (cmFieldName === "inputParameters") {
                             var paramRowIndex = parseInt(cmParts[cmRowPartIndex + 2], 10) - 1;
                             var cmParamResult = globalSelf._getGridRowAndCellByField(cmGridWidget, cmRowIndex, "inputParameters");
 
-                            if (cmParamResult && cmParamResult.row) {
+                            if (cmParamResult?.row) {
                                 var cmDataItem = cmGridWidget.dataItem(cmParamResult.row);
                                 if (cmDataItem) {
                                     cmParamResult.cell.addErrorHighlightClass("components-error-red-highlight");
@@ -445,7 +440,7 @@ define(function (require) {
                                 cmRowIndex,
                                 cmFieldName
                             );
-                            if (cmResult && cmResult.cell) {
+                            if (cmResult?.cell) {
                                 cmResult.cell.addErrorHighlightClass("components-error-red-highlight");
                                 globalSelf.showErrorTooltip(errorObject, cmResult.cell);
                             }
@@ -460,9 +455,7 @@ define(function (require) {
         },
 
         _destroyComponent: function (component) {
-            if (component && component.destroy) {
-                component.destroy();
-            }
+            component?.destroy?.();
         },
 
         onBeforeDestroy: function () {

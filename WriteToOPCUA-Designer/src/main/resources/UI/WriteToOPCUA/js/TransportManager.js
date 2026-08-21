@@ -58,7 +58,7 @@ define(function (require) {
                         }
 
                         var item = globalSelf.transportDropdown.dataItem();
-                        var transportId = item.toJSON ? item.toJSON().transportId : item.transportId;
+                        var transportId = item?.toJSON ? item.toJSON().transportId : item?.transportId;
 
                         if (transportId) {
                             window.open(
@@ -101,23 +101,23 @@ define(function (require) {
                     transportName: globalSelf.nls.SelectTransport
                 },
                 dataBound: function () {
-                    var savedTransportName = globalSelf.model.getKey("transportName");
-                    if (savedTransportName && this.dataSource) {
+                    var savedTransportName = globalSelf.model?.getKey("transportName");
+                    if (savedTransportName && this?.dataSource) {
                         var items = this.dataSource.data();
                         for (var item of items) {
-                            var tName = item.transportName || item.name;
+                            var tName = item?.transportName || item?.name;
                             if (tName === savedTransportName) {
                                 this.value(item.transportId);
 
-                                var transport = item.toJSON ? item.toJSON() : item;
-                                globalSelf.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
-                                    if (opt && !opt.name && opt.dataChangeName) {
+                                var transport = item?.toJSON ? item.toJSON() : item;
+                                globalSelf.dataChangeOptions = (transport?.dataChangeOptions || transport?.dataChangeWriteOptions || []).map(function (opt) {
+                                    if (!opt?.name && opt?.dataChangeName) {
                                         opt.name = opt.dataChangeName;
                                     }
                                     return opt;
                                 });
-                                globalSelf.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
-                                    if (opt && !opt.name && opt.methodName) {
+                                globalSelf.callMethodOptions = (transport?.callMethodOptions || []).map(function (opt) {
+                                    if (!opt?.name && opt?.methodName) {
                                         opt.name = opt.methodName;
                                     }
                                     return opt;
@@ -145,7 +145,7 @@ define(function (require) {
                         globalSelf.callMethodGrid.widget.dataSource.data([]);
                     }
 
-                    if (!selectedValue || !selectedItem || !selectedItem.transportId) {
+                    if (!selectedValue || !selectedItem?.transportId) {
                         globalSelf.model.setKey("transportName", "");
                         globalSelf.dataChangeOptions = [];
                         globalSelf.callMethodOptions = [];
@@ -155,23 +155,23 @@ define(function (require) {
                         return;
                     }
 
-                    var transport = selectedItem.toJSON
+                    var transport = selectedItem?.toJSON
                         ? selectedItem.toJSON()
                         : selectedItem;
 
                     globalSelf.model.setKey(
                         "transportName",
-                        transport.transportName || ""
+                        transport?.transportName || ""
                     );
 
-                    globalSelf.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
-                        if (opt && !opt.name && opt.dataChangeName) {
+                    globalSelf.dataChangeOptions = (transport?.dataChangeOptions || transport?.dataChangeWriteOptions || []).map(function (opt) {
+                        if (!opt?.name && opt?.dataChangeName) {
                             opt.name = opt.dataChangeName;
                         }
                         return opt;
                     });
-                    globalSelf.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
-                        if (opt && !opt.name && opt.methodName) {
+                    globalSelf.callMethodOptions = (transport?.callMethodOptions || []).map(function (opt) {
+                        if (!opt?.name && opt?.methodName) {
                             opt.name = opt.methodName;
                         }
                         return opt;

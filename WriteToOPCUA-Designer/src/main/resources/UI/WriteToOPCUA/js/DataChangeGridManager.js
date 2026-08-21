@@ -1,7 +1,8 @@
 define([
     "uilayer",
-    "./GridUtils"
-], function (uilayer, GridUtils) {
+    "./GridUtils",
+    "./ExpressionBuilderManager"
+], function (uilayer, GridUtils, ExpressionBuilderManager) {
     "use strict";
 
     var DataChangeGridManager = {
@@ -28,16 +29,11 @@ define([
                 },
                 {
                     field: "name",
-                    title: globalSelf.nls.DataChangeName,
+                    title: globalSelf.nls.NodeName,
                     width: "25%",
                     attributes: { "class": "name" },
-                    template: function (dataItem) {
-                        return "<div class='data-change-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
-                    },
-                    editable: function () {
-                        return false;
-                    },
-                    filterable: false
+                    template: GridUtils.getNameDropdownTemplate("data-change-name-dropdown"),
+                    filterable: true
                 },
                 {
                     field: "nodeId",
@@ -65,11 +61,10 @@ define([
                     field: "newValue",
                     title: globalSelf.nls.NewValue,
                     width: "25%",
+                    customEditor: true,
                     attributes: { "class": "newValue" },
-                    template: GridUtils.getEditableValueTemplate("newValue", "new-value-edit-icon"),
-                    editable: function () {
-                        return false;
-                    },
+                    template: ExpressionBuilderManager.getTemplate("newValue", globalSelf),
+                    editor: ExpressionBuilderManager.getEditor("newValue", globalSelf),
                     filterable: false
                 }
             ];
@@ -175,7 +170,7 @@ define([
             globalSelf.$(".data-change-name-dropdown").each(function () {
                 var element = $(this);
                 var row = element.closest("tr");
-                var grid = globalSelf.dataChangeWriteGrid ? globalSelf.dataChangeWriteGrid.widget : null;
+                var grid = globalSelf.dataChangeWriteGrid?.widget || null;
 
                 if (!grid) {
                     return;
@@ -196,7 +191,7 @@ define([
 
                 var existingDropdown = element.data("uilayerDropDownList");
                 if (existingDropdown) {
-                    if (existingDropdown.setDataSource) {
+                    if (existingDropdown?.setDataSource) {
                         existingDropdown.setDataSource(new uilayer.data.DataSource({
                             data: globalSelf.dataChangeOptions || []
                         }));
@@ -230,27 +225,27 @@ define([
                             return;
                         }
 
-                        var selectedData = selectedItem.toJSON
+                        var selectedData = selectedItem?.toJSON
                             ? selectedItem.toJSON()
                             : selectedItem;
 
-                        dataItem["name"]        = selectedData.name || "";
-                        dataItem["nodeId"]      = selectedData.nodeId || "";
-                        dataItem["sampleValue"] = GridUtils.formatSampleValue(selectedData.sampleValue);
+                        dataItem["name"]        = selectedData?.name || "";
+                        dataItem["nodeId"]      = selectedData?.nodeId || "";
+                        dataItem["sampleValue"] = GridUtils.formatSampleValue(selectedData?.sampleValue);
 
                         var nodeIdCell = row.find("td:eq(2)");
                         var sampleValueCell = row.find("td:eq(3)");
-                        if (nodeIdCell.length && grid.columns[2].template) {
+                        if (nodeIdCell?.length && grid?.columns?.[2]?.template) {
                             nodeIdCell.html(grid.columns[2].template(dataItem));
                         }
-                        if (sampleValueCell.length && grid.columns[3].template) {
+                        if (sampleValueCell?.length && grid?.columns?.[3]?.template) {
                             sampleValueCell.html(grid.columns[3].template(dataItem));
                         }
                         GridUtils.initializeGridHelpTooltips(row);
                     }
                 });
 
-                var initialVal = dataItem.get ? dataItem.get("name") : dataItem.name;
+                var initialVal = dataItem?.get ? dataItem.get("name") : dataItem?.name;
                 if (typeof dropdown?.value === "function") {
                     dropdown.value(initialVal || "");
                 } else if (typeof dropdown?.widget?.value === "function") {

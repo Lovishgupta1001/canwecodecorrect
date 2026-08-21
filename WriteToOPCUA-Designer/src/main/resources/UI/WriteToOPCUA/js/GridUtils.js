@@ -95,7 +95,7 @@ define(function (require) {
             }
 
             var getVal = function (key) {
-                return dataItem.get ? dataItem.get(key) : dataItem[key];
+                return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
             };
 
             var html = "<div class='ul-header-xxxs-b ul-pad-1x'>" + nls.NodeDetails + "</div>";
@@ -157,7 +157,7 @@ define(function (require) {
             var $copyBtn = $(this);
             var text = $("<textarea/>").html($copyBtn.attr("data-copy") || "").text();
 
-            if (navigator.clipboard && navigator.clipboard.writeText) {
+            if (navigator.clipboard ?.writeText) {
                 navigator.clipboard.writeText(text);
             } else {
                 var $temp = $("<textarea style='position:absolute; left:-9999px; top:-9999px;'>");
@@ -189,7 +189,7 @@ define(function (require) {
         getNodeIdTemplate: function (selectionField) {
             return function (dataItem) {
                 var getVal = function (key) {
-                    return dataItem.get ? dataItem.get(key) : dataItem[key];
+                    return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
                 };
 
                 var nodeId = getVal("nodeId") || "";
@@ -231,7 +231,7 @@ define(function (require) {
                 return this._extractFromString(value);
             }
 
-            if (typeof value === "object" && value !== null && value.hasOwnProperty("Value")) {
+            if (value?.hasOwnProperty?.("Value")) {
                 return value.Value;
             }
 
@@ -247,9 +247,7 @@ define(function (require) {
 
             var parsed = JSON.parse(trimmed);
 
-            return parsed &&
-            typeof parsed === "object" &&
-            parsed.hasOwnProperty("Value")
+            return parsed?.Value !== undefined
                 ? parsed.Value
                 : parsed;
         },
@@ -257,7 +255,7 @@ define(function (require) {
         getSampleValueTemplate: function () {
             return function (dataItem) {
                 var getVal = function (key) {
-                    return dataItem.get ? dataItem.get(key) : dataItem[key];
+                    return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
                 };
 
                 var rawSampleValue = getVal("sampleValue");
@@ -309,7 +307,7 @@ define(function (require) {
 
         getOutputValueTemplate: function (dataItem) {
             var getVal = function (key) {
-                return dataItem.get ? dataItem.get(key) : dataItem[key];
+                return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
             };
             var outputValue = getVal("outputValue") || "";
             var isEmpty = !outputValue;
@@ -325,10 +323,10 @@ define(function (require) {
         },
 
         getInputParametersTemplate: function (globalSelfOrDataItem) {
-            var dataItem = globalSelfOrDataItem && globalSelfOrDataItem.model ? null : (globalSelfOrDataItem || {});
+            var dataItem = globalSelfOrDataItem?.model ? null : (globalSelfOrDataItem || {});
             return function (item) {
                 var targetItem = dataItem || item || {};
-                var params = targetItem.get ? targetItem.get("inputParameters") : targetItem.inputParameters;
+                var params = targetItem?.get ? targetItem.get("inputParameters") : targetItem?.inputParameters;
                 var parameters = [];
                 if (params) {
                     if (typeof params.toJSON === "function") {
@@ -338,7 +336,7 @@ define(function (require) {
                     }
                 }
                 parameters = parameters.map(function (p) {
-                    return (p && typeof p.toJSON === "function") ? p.toJSON() : p;
+                    return p?.toJSON ? p.toJSON() : p;
                 });
                 var count = parameters.length || 0;
                 var firstParam = parameters[0] || {};
@@ -367,7 +365,7 @@ define(function (require) {
 
         getEditableValueTemplate: function (field, iconClass) {
             return function (dataItem) {
-                var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
+                var rawVal = dataItem?.get ? dataItem.get(field) : dataItem?.[field];
                 var value = "";
                 if (typeof rawVal === "string") {
                     value = rawVal;
