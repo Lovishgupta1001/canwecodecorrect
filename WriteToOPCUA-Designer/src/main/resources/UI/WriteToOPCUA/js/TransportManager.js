@@ -20,30 +20,18 @@ define(function (require) {
             this.renderTransportDropdown(globalSelf);
         },
 
-        navigateToCAC: function (response, hashPath) {
-            var navigationURL;
-            if (response && response.IS_DISTRIBUTED_DEPLOYMENT === "TRUE") {
-                navigationURL = response.URL + "/" + encodeURIComponent(response.ENVIRONMENT_ID) + "/EXECUTOR/" + encodeURIComponent(hashPath);
-            } else {
-                var appPath = window.location.pathname.split("/")[1] || "eQubeMI";
-                navigationURL = window.location.origin + "/" + appPath + "/AdminConsole#" + hashPath;
-            }
-            window.open(navigationURL, "_blank");
-        },
-
         renderTransportButtons: function (globalSelf) {
-            var self = this;
-
             if (!globalSelf.refreshButton) {
                 globalSelf.refreshButton = uilayer.button({
                     elem: globalSelf.$(".transports-refresh-button"),
                     uiStyle: "tertiary",
                     click: function () {
                         if (globalSelf.transportDropdown) {
-                            globalSelf.transportDropdown.dataSource.read();
-                        } else {
-                            self.renderTransportDropdown(globalSelf);
+                            globalSelf.transportDropdown.destroy();
+                            globalSelf.transportDropdown = null;
+                            globalSelf.$(".transport-selector-dropdown").empty();
                         }
+                        TransportManager.renderTransportDropdown(globalSelf);
                     }
                 });
             }
@@ -53,13 +41,10 @@ define(function (require) {
                     elem: globalSelf.$(".transports-create-button"),
                     uiStyle: "tertiary",
                     click: function () {
-                        var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
-                        promise.done(function (response) {
-                            self.navigateToCAC(response, "transports/create");
-                        });
-                        promise.fail(function () {
-                            self.navigateToCAC(null, "transports/create");
-                        });
+                        window.open(
+                            Constants.CREATE_TRANSPORT_URL,
+                            "_blank"
+                        );
                     }
                 });
             }
@@ -69,21 +54,19 @@ define(function (require) {
                     elem: globalSelf.$(".transports-open-button"),
                     uiStyle: "tertiary",
                     click: function () {
-                        var selectedTransportId = null;
-                        if (globalSelf.transportDropdown && globalSelf.transportDropdown.dataItem()) {
-                            var item = globalSelf.transportDropdown.dataItem();
-                            selectedTransportId = item.toJSON ? item.toJSON().transportId : item.transportId;
+                        if (!globalSelf.transportDropdown?.dataItem()) {
+                            return;
                         }
 
-                        var hashPath = selectedTransportId ? ("transports/edit/" + selectedTransportId) : "transports";
+                        var item = globalSelf.transportDropdown.dataItem();
+                        var transportId = item.toJSON ? item.toJSON().transportId : item.transportId;
 
-                        var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
-                        promise.done(function (response) {
-                            self.navigateToCAC(response, hashPath);
-                        });
-                        promise.fail(function () {
-                            self.navigateToCAC(null, hashPath);
-                        });
+                        if (transportId) {
+                            window.open(
+                                Constants.EDIT_TRANSPORT_URL + transportId,
+                                "_blank"
+                            );
+                        }
                     }
                 });
             }

@@ -1,0 +1,264 @@
+diff --git a/WriteToOPCUA-Designer/src/main/resources/ComparisonUIFormat.xml b/WriteToOPCUA-Designer/src/main/resources/ComparisonUIFormat.xml
+index cbfe319..47c33a1 100644
+--- a/WriteToOPCUA-Designer/src/main/resources/ComparisonUIFormat.xml
++++ b/WriteToOPCUA-Designer/src/main/resources/ComparisonUIFormat.xml
+@@ -1,9 +1,17 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <activity xmlns="http://www.w3.org/activitycomparison/activitycapabilitiescomparison">
+     <capability name="Configuration">
+-        <component name="i18n:writetoopcua.transport" id="transportName"/>
+-        <component name="i18n:writetoopcua.operation" id="operation"/>
+-        <component name="i18n:writetoopcua.executionMode" id="executionMode"/>
++        <component name="i18n:writetoopcua.TransportName" id="transportName"/>
++        <component name="i18n:writetoopcua.Operation" id="operation"/>
++        <component name="i18n:writetoopcua.ExecutionMode" id="executionMode"/>
++
++        <group name="i18n:writetoopcua.DataChangeWrite">
++            <component id="WriteToOPCUADataChangeWrite" addHeader="true"/>
++        </group>
++
++        <group name="i18n:writetoopcua.CallMethod">
++            <component id="WriteToOPCUACallMethod" addHeader="true"/>
++        </group>
+     </capability>
+     <capability name="Output">
+         <component name="i18n:writetoopcua.outputSuccessfulWriteItems" id="successfulWriteItems"/>
+diff --git a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/WriteToOPCUAComponent.js b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/WriteToOPCUAComponent.js
+index 83c5cf0..fe85570 100644
+--- a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/WriteToOPCUAComponent.js
++++ b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/WriteToOPCUAComponent.js
+@@ -131,29 +131,69 @@ define(function (require) {
+             var grid = this._getGridInstance();
+ 
+             if (grid && row.length) {
+-                grid.removeRow(row);
++                var dataItem = grid.dataItem ? grid.dataItem(row) : null;
++                if (dataItem && grid.dataSource) {
++                    grid.dataSource.remove(dataItem);
++                } else if (grid.removeRow) {
++                    grid.removeRow(row);
++                }
+             }
+         },
+ 
+         _onDeleteToolbarRow: function () {
+             var grid = this._getGridInstance();
+ 
+-            if (grid) {
+-                var selected = grid.select();
+-                if (selected?.length) {
+-                    var uniqueRows = [];
+-                    selected.each(function () {
+-                        var row = $(this).closest("tr");
+-                        if (row.length && uniqueRows.indexOf(row[0]) === -1) {
+-                            uniqueRows.push(row[0]);
+-                        }
++            if (!grid) {
++                return;
++            }
++
++            var selectedElements = grid.select ? grid.select() : [];
++            var checkedBoxes = grid.tbody ? grid.tbody.find("input:checked, .k-checkbox:checked") : [];
++            var uniqueRowElements = [];
++
++            if (selectedElements && selectedElements.length) {
++                selectedElements.each(function () {
++                    var row = $(this).closest("tr");
++                    if (row.length && uniqueRowElements.indexOf(row[0]) === -1) {
++                        uniqueRowElements.push(row[0]);
++                    }
++                });
++            }
++
++            if (checkedBoxes && checkedBoxes.length) {
++                checkedBoxes.each(function () {
++                    var row = $(this).closest("tr");
++                    if (row.length && uniqueRowElements.indexOf(row[0]) === -1) {
++                        uniqueRowElements.push(row[0]);
++                    }
++                });
++            }
++
++            if (uniqueRowElements.length) {
++                var dataItems = [];
++                $.each(uniqueRowElements, function (index, rowElem) {
++                    var item = grid.dataItem ? grid.dataItem(rowElem) : null;
++                    if (item && dataItems.indexOf(item) === -1) {
++                        dataItems.push(item);
++                    }
++                });
++
++                if (dataItems.length && grid.dataSource) {
++                    $.each(dataItems, function (index, item) {
++                        grid.dataSource.remove(item);
+                     });
+-                    $.each(uniqueRows, function (index, rowElem) {
++                } else {
++                    $.each(uniqueRowElements, function (index, rowElem) {
+                         grid.removeRow($(rowElem));
+                     });
+-                } else {
+-                    var lastRow = grid.tbody.find("tr:last");
+-                    if (lastRow.length) {
++                }
++            } else {
++                var lastRow = grid.tbody ? grid.tbody.find("tr:last") : [];
++                if (lastRow.length) {
++                    var lastItem = grid.dataItem ? grid.dataItem(lastRow) : null;
++                    if (lastItem && grid.dataSource) {
++                        grid.dataSource.remove(lastItem);
++                    } else if (grid.removeRow) {
+                         grid.removeRow(lastRow);
+                     }
+                 }
+diff --git a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/GridUtils.js b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/GridUtils.js
+index e6bc80d..17453ac 100644
+--- a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/GridUtils.js
++++ b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/GridUtils.js
+@@ -51,36 +51,17 @@ define(function (require) {
+             var ds = grid.widget.dataSource;
+             var searchFields = Array.isArray(fields) ? fields : [fields, "nodeId"];
+ 
+-            searchElement.off("keyup.gridSearch input.gridSearch").on("keyup.gridSearch input.gridSearch", function () {
+-                var val = $(this).val();
+-                if (!val || val.trim() === "") {
+-                    ds.filter([]);
+-                } else {
+-                    var query = val.trim();
+-                    var filterList = searchFields.map(function (f) {
+-                        return { field: f, operator: "contains", value: query };
+-                    });
+-                    ds.filter({
+-                        logic: "or",
+-                        filters: filterList
+-                    });
+-                }
+-            });
+-
+-            var searchBarFilters = searchFields.map(function (f) {
+-                return { field: f, operator: "contains" };
+-            });
+-
+             return uilayer.searchBar({
+                 elem: searchElement,
+                 uiStyle: "",
+-                dataSource: ds,
++                dataSource: [ds],
+                 filter: {
+-                    logic: "or",
+-                    filters: searchBarFilters
++                    field: searchFields,
++                    operator: "contains"
+                 },
+                 placeholder: nls.Search,
+-                filterAfter: 1
++                filterAfter: 0,
++                filterEvent: "keyup"
+             });
+         },
+ 
+diff --git a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/TransportManager.js b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/TransportManager.js
+index cc8d627..13afb4f 100644
+--- a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/TransportManager.js
++++ b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/TransportManager.js
+@@ -20,18 +20,30 @@ define(function (require) {
+             this.renderTransportDropdown(globalSelf);
+         },
+ 
++        navigateToCAC: function (response, hashPath) {
++            var navigationURL;
++            if (response && response.IS_DISTRIBUTED_DEPLOYMENT === "TRUE") {
++                navigationURL = response.URL + "/" + encodeURIComponent(response.ENVIRONMENT_ID) + "/EXECUTOR/" + encodeURIComponent(hashPath);
++            } else {
++                var appPath = window.location.pathname.split("/")[1] || "eQubeMI";
++                navigationURL = window.location.origin + "/" + appPath + "/AdminConsole#" + hashPath;
++            }
++            window.open(navigationURL, "_blank");
++        },
++
+         renderTransportButtons: function (globalSelf) {
++            var self = this;
++
+             if (!globalSelf.refreshButton) {
+                 globalSelf.refreshButton = uilayer.button({
+                     elem: globalSelf.$(".transports-refresh-button"),
+                     uiStyle: "tertiary",
+                     click: function () {
+                         if (globalSelf.transportDropdown) {
+-                            globalSelf.transportDropdown.destroy();
+-                            globalSelf.transportDropdown = null;
+-                            globalSelf.$(".transport-selector-dropdown").empty();
++                            globalSelf.transportDropdown.dataSource.read();
++                        } else {
++                            self.renderTransportDropdown(globalSelf);
+                         }
+-                        TransportManager.renderTransportDropdown(globalSelf);
+                     }
+                 });
+             }
+@@ -41,10 +53,13 @@ define(function (require) {
+                     elem: globalSelf.$(".transports-create-button"),
+                     uiStyle: "tertiary",
+                     click: function () {
+-                        window.open(
+-                            Constants.CREATE_TRANSPORT_URL,
+-                            "_blank"
+-                        );
++                        var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
++                        promise.done(function (response) {
++                            self.navigateToCAC(response, "transports/create");
++                        });
++                        promise.fail(function () {
++                            self.navigateToCAC(null, "transports/create");
++                        });
+                     }
+                 });
+             }
+@@ -54,19 +69,21 @@ define(function (require) {
+                     elem: globalSelf.$(".transports-open-button"),
+                     uiStyle: "tertiary",
+                     click: function () {
+-                        if (!globalSelf.transportDropdown?.dataItem()) {
+-                            return;
++                        var selectedTransportId = null;
++                        if (globalSelf.transportDropdown && globalSelf.transportDropdown.dataItem()) {
++                            var item = globalSelf.transportDropdown.dataItem();
++                            selectedTransportId = item.toJSON ? item.toJSON().transportId : item.transportId;
+                         }
+ 
+-                        var item = globalSelf.transportDropdown.dataItem();
+-                        var transportId = item.toJSON ? item.toJSON().transportId : item.transportId;
++                        var hashPath = selectedTransportId ? ("transports/edit/" + selectedTransportId) : "transports";
+ 
+-                        if (transportId) {
+-                            window.open(
+-                                Constants.EDIT_TRANSPORT_URL + transportId,
+-                                "_blank"
+-                            );
+-                        }
++                        var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
++                        promise.done(function (response) {
++                            self.navigateToCAC(response, hashPath);
++                        });
++                        promise.fail(function () {
++                            self.navigateToCAC(null, hashPath);
++                        });
+                     }
+                 });
+             }
+diff --git a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/constants.js b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/constants.js
+index 2a74426..b6bfe0b 100644
+--- a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/constants.js
++++ b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/constants.js
+@@ -13,8 +13,9 @@ define(function () {
+         PARALLEL: "Parallel",
+         SEQUENTIAL: "Sequential",
+ 
+-        CREATE_TRANSPORT_URL: "/ADMINCONSOLE?servicePath=transports/create",
+-        EDIT_TRANSPORT_URL: "/ADMINCONSOLE?servicePath=transports/edit/"
++        TRANSPORTS_URL: "/AdminConsole#transports",
++        CREATE_TRANSPORT_URL: "/AdminConsole#transports/create",
++        EDIT_TRANSPORT_URL: "/AdminConsole#transports/edit/"
+     };
+ 
+     return Object.freeze(CONSTANTS);

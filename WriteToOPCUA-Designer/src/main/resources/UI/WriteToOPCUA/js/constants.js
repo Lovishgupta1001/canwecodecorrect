@@ -13,9 +13,8 @@ define(function () {
         PARALLEL: "Parallel",
         SEQUENTIAL: "Sequential",
 
-        TRANSPORTS_URL: "/AdminConsole#transports",
-        CREATE_TRANSPORT_URL: "/AdminConsole#transports/create",
-        EDIT_TRANSPORT_URL: "/AdminConsole#transports/edit/"
+        CREATE_TRANSPORT_URL: "/ADMINCONSOLE?servicePath=transports/create",
+        EDIT_TRANSPORT_URL: "/ADMINCONSOLE?servicePath=transports/edit/"
     };
 
     return Object.freeze(CONSTANTS);

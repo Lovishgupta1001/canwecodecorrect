@@ -41,7 +41,7 @@ define(function (require) {
                 "title='" + nls.Delete + "'></span>";
         },
 
-        renderGridSearchBar: function (searchClass, grid, fields, globalSelf, nls) {
+        renderGridSearchBar: function (searchClass, grid, field, globalSelf, nls) {
             var searchElement = globalSelf.$("." + searchClass);
 
             if (!searchElement.length || !grid?.widget?.dataSource) {
@@ -49,19 +49,36 @@ define(function (require) {
             }
 
             var ds = grid.widget.dataSource;
-            var searchFields = Array.isArray(fields) ? fields : [fields, "nodeId"];
+
+            searchElement.off("keyup.gridSearch input.gridSearch").on("keyup.gridSearch input.gridSearch", function () {
+                var val = $(this).val();
+                if (!val || val.trim() === "") {
+                    ds.filter([]);
+                } else {
+                    var query = val.trim();
+                    ds.filter({
+                        logic: "or",
+                        filters: [
+                            { field: field, operator: "contains", value: query },
+                            { field: "nodeId", operator: "contains", value: query }
+                        ]
+                    });
+                }
+            });
 
             return uilayer.searchBar({
                 elem: searchElement,
                 uiStyle: "",
-                dataSource: [ds],
+                dataSource: ds,
                 filter: {
-                    field: searchFields,
-                    operator: "contains"
+                    logic: "or",
+                    filters: [
+                        { field: field, operator: "contains" },
+                        { field: "nodeId", operator: "contains" }
+                    ]
                 },
                 placeholder: nls.Search,
-                filterAfter: 0,
-                filterEvent: "keyup"
+                filterAfter: 1
             });
         },
 

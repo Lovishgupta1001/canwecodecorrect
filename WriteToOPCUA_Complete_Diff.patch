@@ -1,0 +1,816 @@
+diff --git a/WriteToOPCUA-Common/proguard.conf b/WriteToOPCUA-Common/proguard.conf
+index 8b7a499..6e1504f 100644
+--- a/WriteToOPCUA-Common/proguard.conf
++++ b/WriteToOPCUA-Common/proguard.conf
+@@ -1,5 +1,17 @@
+--keepclassmembers class * {
+-    @org.springframework.beans.factory.annotation.Autowired *;
+-    @org.springframework.beans.factory.annotation.Value *;
++-dontnote
++-dontwarn
++-dontshrink
++-dontoptimize
++
++-keeppackagenames
++
++-keepattributes Signature,InnerClasses,SourceFile,LineNumberTable
++-keepnames class com.eqtechnologic.eqube.mi.activities.writetoopcua.**
++
++-keep class com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.**{
++	*;
++}
++
++-keep class com.eqtechnologic.eqube.mi.activities.writetoopcua.**{
++	public *;
+ }
+--keep class com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.** { *; }
+diff --git a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentService.java b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentService.java
+index c7b2cfb..dc44f99 100644
+--- a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentService.java
++++ b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentService.java
+@@ -10,10 +10,13 @@
+ package com.eqtechnologic.eqube.mi.activities.writetoopcua;
+ 
+ import com.eqtechnologic.eqube.exception.BusinessException;
++import com.eqtechnologic.eqube.logging.LogTemplate;
+ import com.eqtechnologic.eqube.logging.Logger;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.WriteToOPCUAConfigBean;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
++import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAErrorCode;
++import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAExceptionType;
+ import com.eqtechnologic.eqube.mi.activitymanagement.ActivityService;
+ import com.eqtechnologic.eqube.mi.activitymanagement.handlers.OutputHintHandler;
+ import com.eqtechnologic.eqube.mi.activitymanagement.handlers.PrePostStepConfigurationHandler;
+@@ -69,11 +72,10 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
+                 transportClientBeans = new ArrayList<>(service.getTransportDetails().values());
+             }
+         } catch (BusinessException e) {
+-            LOGGER.error("Error while fetching Transport details", e);
+-            throw e;
+-        } catch (Exception e) {
+-            LOGGER.error("Unexpected error while fetching Transport details", e);
+-            throw new BusinessException("Error while fetching Transport details", e);
++            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS.getMessage());
++            LOGGER.error(lt, e);
++            throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
++                    WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS, e.getMessage());
+         }
+         return opcuaHelper.convertTransportClientToTransportInfoBeanList(transportType, transportClientBeans);
+     }
+diff --git a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentServiceHelper.java b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentServiceHelper.java
+index 7ee5fb5..ed2e722 100644
+--- a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentServiceHelper.java
++++ b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentServiceHelper.java
+@@ -9,12 +9,16 @@
+  */
+ package com.eqtechnologic.eqube.mi.activities.writetoopcua;
+ 
++import com.eqtechnologic.eqube.exception.BusinessException;
++import com.eqtechnologic.eqube.logging.LogTemplate;
+ import com.eqtechnologic.eqube.logging.Logger;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.CallMethodItem;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.DataChangeWriteItem;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.InputParameterItem;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
++import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAErrorCode;
++import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAExceptionType;
+ import com.eqtechnologic.eqube.platform.transport.client.beans.OpcUaTransportClientInfoBean;
+ import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
+ import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
+@@ -122,12 +126,7 @@ public class WriteToOPCUAComponentServiceHelper {
+         if (transportId == null) {
+             return false;
+         }
+-        try {
+-            TransportRESTServiceHelper.testTransportByID(transportId);
+-            return true;
+-        } catch (Exception e) {
+-            LOGGER.error("Error testing transport by ID: " + transportId, e);
+-            return false;
+-        }
++        TransportRESTServiceHelper.testTransportByID(transportId);
++        return true;
+     }
+ }
+diff --git a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAValidator.java b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAValidator.java
+index 9d279c3..0ad8c75 100644
+--- a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAValidator.java
++++ b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAValidator.java
+@@ -10,11 +10,14 @@
+ package com.eqtechnologic.eqube.mi.activities.writetoopcua;
+ 
+ import com.eqtechnologic.eqube.commonui.components.eQError;
++import com.eqtechnologic.eqube.exception.BusinessException;
++import com.eqtechnologic.eqube.logging.LogTemplate;
+ import com.eqtechnologic.eqube.logging.Logger;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.CallMethodItem;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.DataChangeWriteItem;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.InputParameterItem;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
++import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAErrorCode;
+ import com.eqtechnologic.eqube.mi.component.service.ComponentService;
+ import com.eqtechnologic.eqube.mi.component.service.ComponentValidator;
+ import com.eqtechnologic.eqube.mi.component.utility.ComponentUtility;
+@@ -197,8 +200,9 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
+                         false);
+                 errorList.add(error);
+             }
+-        } catch (Exception e) {
+-            LOGGER.error("Error while validating transport: " + transportName, e);
++        } catch (BusinessException e) {
++            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_VALIDATING_TRANSPORT.getMessage());
++            LOGGER.error(lt, e);
+             eQError errorMsg = new eQError("writetoopcua.transportFrameworkError_transport", COMPONENT_ERR,
+                     null, true);
+             errorList.add(errorMsg);
+@@ -213,17 +217,13 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
+         if (expressionValue == null || expressionValue.isEmpty()) {
+             return;
+         }
+-        try {
+-            ComponentService expressionBuilderService = ServiceRegistry.getInstance().getService(EXPRESSION_BUILDER_SERVICE);
+-            if (expressionBuilderService != null && expressionBuilderService.getValidator() != null) {
+-                List<eQError> generatedErrors = expressionBuilderService.getValidator().validate(expressionValue, map);
+-                if (generatedErrors != null) {
+-                    generatedErrors.forEach(er -> er.setResource(WriteToOPCUAConstants.WRITE_TO_OPCUA + "/" + resource));
+-                    errors.addAll(generatedErrors);
+-                }
++        ComponentService expressionBuilderService = ServiceRegistry.getInstance().getService(EXPRESSION_BUILDER_SERVICE);
++        if (expressionBuilderService != null && expressionBuilderService.getValidator() != null) {
++            List<eQError> generatedErrors = expressionBuilderService.getValidator().validate(expressionValue, map);
++            if (generatedErrors != null) {
++                generatedErrors.forEach(er -> er.setResource(WriteToOPCUAConstants.WRITE_TO_OPCUA + "/" + resource));
++                errors.addAll(generatedErrors);
+             }
+-        } catch (Exception e) {
+-            LOGGER.warn("Expression builder service validation failed for expression: " + expressionValue, e);
+         }
+     }
+ }
+diff --git a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/CallMethodItem.java b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/CallMethodItem.java
+index 2cbabdd..76c772f 100644
+--- a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/CallMethodItem.java
++++ b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/CallMethodItem.java
+@@ -9,6 +9,12 @@
+  */
+ package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
+ 
++import com.eqtechnologic.eqube.commonui.components.eQCVTBeans;
++import com.eqtechnologic.eqube.entitydiff.api.Entity;
++import com.eqtechnologic.eqube.entitydiff.api.annotations.ComparableEntity;
++import com.eqtechnologic.eqube.entitydiff.api.annotations.EntityAttribute;
++import com.eqtechnologic.eqube.mi.util.eQStatusMessage;
++
+ import java.util.ArrayList;
+ import java.util.List;
+ 
+@@ -17,15 +23,27 @@ import java.util.List;
+  *
+  * @author Lovish
+  */
+-public class CallMethodItem {
++@ComparableEntity(name = "WriteToOPCUACallMethod")
++public class CallMethodItem implements eQCVTBeans, Entity {
++
++    private boolean isDisable;
+ 
++    @EntityAttribute(index = 0, attrName = "Method Name", partOfKey = true, displayName = true)
+     private String name;
++
++    @EntityAttribute(index = 1, attrName = "Node ID")
+     private String nodeId;
++
++    @EntityAttribute(index = 2, attrName = "Object Node ID")
+     private String objectNodeId;
+-    private Object inputParameters; // Can be List<InputParameterItem> or expression String when dynamic
++
++    private Object inputParameters;
+     private List<InputParameterItem> inputArguments = new ArrayList<>();
+     private List<InputParameterItem> outputArguments = new ArrayList<>();
++
++    @EntityAttribute(index = 3, attrName = "Output Value")
+     private String outputValue;
++
+     private String nodeIdHelpText;
+ 
+     public String getName() {
+@@ -91,4 +109,24 @@ public class CallMethodItem {
+     public void setNodeIdHelpText(String nodeIdHelpText) {
+         this.nodeIdHelpText = nodeIdHelpText;
+     }
++
++    @Override
++    public boolean isEmpty() {
++        return (name == null || name.isEmpty()) && (nodeId == null || nodeId.isEmpty());
++    }
++
++    @Override
++    public boolean isSelectTable() {
++        return isDisable;
++    }
++
++    @Override
++    public void setSelectTable(boolean disabled) {
++        this.isDisable = disabled;
++    }
++
++    @Override
++    public List<eQStatusMessage> validate() {
++        return null;
++    }
+ }
+diff --git a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/DataChangeWriteItem.java b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/DataChangeWriteItem.java
+index 4c23f24..0f1a5a4 100644
+--- a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/DataChangeWriteItem.java
++++ b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/DataChangeWriteItem.java
+@@ -9,19 +9,42 @@
+  */
+ package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
+ 
++import com.eqtechnologic.eqube.commonui.components.eQCVTBeans;
++import com.eqtechnologic.eqube.entitydiff.api.Entity;
++import com.eqtechnologic.eqube.entitydiff.api.annotations.ComparableEntity;
++import com.eqtechnologic.eqube.entitydiff.api.annotations.EntityAttribute;
++import com.eqtechnologic.eqube.mi.component.annotations.ComponentData;
++import com.eqtechnologic.eqube.mi.componentservices.exprbuilder.constants.ExpressionBuilderConstants;
++import com.eqtechnologic.eqube.mi.util.eQStatusMessage;
++
++import java.util.List;
++
+ /**
+  * Bean to hold Data Change Write grid item details aligned with OpcUaDataChangeWriteItem
+  *
+  * @author Lovish
+  */
+-public class DataChangeWriteItem {
++@ComparableEntity(name = "WriteToOPCUADataChangeWrite")
++public class DataChangeWriteItem implements eQCVTBeans, Entity {
+ 
++    private boolean isDisable;
++
++    @EntityAttribute(index = 0, attrName = "Data Change Name", partOfKey = true, displayName = true)
+     private String name;
++
++    @EntityAttribute(index = 1, attrName = "Node ID")
+     private String nodeId;
++
+     private String dataTypeName;
+     private String dataTypeNodeId;
++
++    @EntityAttribute(index = 2, attrName = "Sample Value")
+     private String sampleValue;
++
++    @EntityAttribute(index = 3, attrName = "New Value")
++    @ComponentData(componentName = ExpressionBuilderConstants.EXPRESSION_BUILDER_SERVICE, mandatory = false)
+     private String newValue;
++
+     private String nodeIdHelpText;
+     private String sampleValueHelpText;
+ 
+@@ -88,4 +111,24 @@ public class DataChangeWriteItem {
+     public void setSampleValueHelpText(String sampleValueHelpText) {
+         this.sampleValueHelpText = sampleValueHelpText;
+     }
++
++    @Override
++    public boolean isEmpty() {
++        return (name == null || name.isEmpty()) && (nodeId == null || nodeId.isEmpty());
++    }
++
++    @Override
++    public boolean isSelectTable() {
++        return isDisable;
++    }
++
++    @Override
++    public void setSelectTable(boolean disabled) {
++        this.isDisable = disabled;
++    }
++
++    @Override
++    public List<eQStatusMessage> validate() {
++        return null;
++    }
+ }
+diff --git a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/InputParameterItem.java b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/InputParameterItem.java
+index 1c672a6..d462fc0 100644
+--- a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/InputParameterItem.java
++++ b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/bean/InputParameterItem.java
+@@ -9,16 +9,36 @@
+  */
+ package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
+ 
++import com.eqtechnologic.eqube.commonui.components.eQCVTBeans;
++import com.eqtechnologic.eqube.entitydiff.api.Entity;
++import com.eqtechnologic.eqube.entitydiff.api.annotations.ComparableEntity;
++import com.eqtechnologic.eqube.entitydiff.api.annotations.EntityAttribute;
++import com.eqtechnologic.eqube.mi.component.annotations.ComponentData;
++import com.eqtechnologic.eqube.mi.componentservices.exprbuilder.constants.ExpressionBuilderConstants;
++import com.eqtechnologic.eqube.mi.util.eQStatusMessage;
++
++import java.util.List;
++
+ /**
+  * Bean to hold Input Parameter item details aligned with OpcUaArgumentInfo
+  *
+  * @author Lovish
+  */
+-public class InputParameterItem {
++@ComparableEntity(name = "WriteToOPCUAInputParameter")
++public class InputParameterItem implements eQCVTBeans, Entity {
+ 
++    private boolean isDisable;
++
++    @EntityAttribute(index = 0, attrName = "Parameter Name", partOfKey = true, displayName = true)
+     private String name;
++
+     private String dataType;
++
++    @EntityAttribute(index = 1, attrName = "Data Type")
+     private String dataTypeName;
++
++    @EntityAttribute(index = 2, attrName = "Value")
++    @ComponentData(componentName = ExpressionBuilderConstants.EXPRESSION_BUILDER_SERVICE, mandatory = false)
+     private String value;
+ 
+     public String getName() {
+@@ -54,4 +74,24 @@ public class InputParameterItem {
+     public void setValue(String value) {
+         this.value = value;
+     }
++
++    @Override
++    public boolean isEmpty() {
++        return name == null || name.isEmpty();
++    }
++
++    @Override
++    public boolean isSelectTable() {
++        return isDisable;
++    }
++
++    @Override
++    public void setSelectTable(boolean disabled) {
++        this.isDisable = disabled;
++    }
++
++    @Override
++    public List<eQStatusMessage> validate() {
++        return null;
++    }
+ }
+diff --git a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/exception/WriteToOPCUAErrorCode.java b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/exception/WriteToOPCUAErrorCode.java
+new file mode 100644
+index 0000000..22445b5
+--- /dev/null
++++ b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/exception/WriteToOPCUAErrorCode.java
+@@ -0,0 +1,56 @@
++/**
++ * Copyright (c) eQ Technologic (India) Pvt. Ltd.
++ * All Rights Reserved.
++ * <p>
++ * This software is the confidential and proprietary information of eQTechnologic
++ * ("Confidential Information"). You shall not
++ * disclose such Confidential Information and shall use it only in
++ * accordance with the terms of the license agreement you entered into.
++ */
++package com.eqtechnologic.eqube.mi.activities.writetoopcua.exception;
++
++import com.eqtechnologic.eqube.code.GroupCode;
++import com.eqtechnologic.eqube.exception.ErrorCode;
++import com.eqtechnologic.eqube.mi.modulecodes.ModuleErrorCode;
++
++/**
++ * Error codes for Write To OPC UA activity
++ *
++ * @author Lovish
++ */
++public enum WriteToOPCUAErrorCode implements ErrorCode {
++
++    ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST(902001, "Error occurred while getting OPC UA transport list"),
++    ERROR_WHILE_TESTING_TRANSPORT(902002, "Error occurred while testing transport"),
++    ERROR_WHILE_VALIDATING_TRANSPORT(902003, "Error occurred while validating transport"),
++    ERROR_WHILE_VALIDATING_EXPRESSION(902004, "Error occurred while validating expression"),
++    ERROR_WHILE_FETCHING_TRANSPORT_DETAILS(902005, "Error occurred while getting transport details");
++
++    private final int errorCode;
++    private final String errorMessage;
++
++    WriteToOPCUAErrorCode(int i, String s) {
++        this.errorCode = i;
++        this.errorMessage = s;
++    }
++
++    @Override
++    public int getNumber() {
++        return this.errorCode;
++    }
++
++    @Override
++    public int getGroup() {
++        return GroupCode.MI.val();
++    }
++
++    @Override
++    public int getModule() {
++        return ModuleErrorCode.COMPONENT_SERVICE.value();
++    }
++
++    @Override
++    public String getMessage() {
++        return this.errorMessage;
++    }
++}
+diff --git a/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/exception/WriteToOPCUAExceptionType.java b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/exception/WriteToOPCUAExceptionType.java
+new file mode 100644
+index 0000000..e5eee3a
+--- /dev/null
++++ b/WriteToOPCUA-Common/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/exception/WriteToOPCUAExceptionType.java
+@@ -0,0 +1,27 @@
++/**
++ * Copyright (c) eQ Technologic (India) Pvt. Ltd.
++ * All Rights Reserved.
++ * <p>
++ * This software is the confidential and proprietary information of eQTechnologic
++ * ("Confidential Information"). You shall not
++ * disclose such Confidential Information and shall use it only in
++ * accordance with the terms of the license agreement you entered into.
++ */
++package com.eqtechnologic.eqube.mi.activities.writetoopcua.exception;
++
++import com.eqtechnologic.eqube.exception.ExceptionType;
++
++/**
++ * Exception types for Write To OPC UA activity
++ *
++ * @author Lovish
++ */
++public enum WriteToOPCUAExceptionType implements ExceptionType {
++
++    WRITE_TO_OPCUA_ACTIVITY_EXCEPTION;
++
++    @Override
++    public String getType() {
++        return name();
++    }
++}
+diff --git a/WriteToOPCUA-Designer/proguard.conf b/WriteToOPCUA-Designer/proguard.conf
+index 97add08..2fd8a23 100644
+--- a/WriteToOPCUA-Designer/proguard.conf
++++ b/WriteToOPCUA-Designer/proguard.conf
+@@ -1,7 +1,13 @@
+--keepclassmembers class * {
+-    @org.springframework.web.bind.annotation.RestController *;
+-    @org.springframework.web.bind.annotation.RequestMapping *;
+-    @org.springframework.web.bind.annotation.GetMapping *;
+-    @org.springframework.web.bind.annotation.PostMapping *;
++-dontnote
++-dontwarn
++-dontshrink
++-dontoptimize
++
++-keeppackagenames
++
++-keepattributes Signature,InnerClasses,SourceFile,LineNumberTable
++-keepnames class com.eqtechnologic.eqube.mi.activities.writetoopcua.*
++
++-keep class com.eqtechnologic.eqube.mi.activities.writetoopcua.**{
++	public *;
+ }
+--keep class com.eqtechnologic.eqube.mi.activities.writetoopcua.WriteToOPCUAComponentRestController { *; }
+diff --git a/WriteToOPCUA-Designer/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentRestController.java b/WriteToOPCUA-Designer/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentRestController.java
+index a4449ca..b814654 100644
+--- a/WriteToOPCUA-Designer/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentRestController.java
++++ b/WriteToOPCUA-Designer/src/main/java/com/eqtechnologic/eqube/mi/activities/writetoopcua/WriteToOPCUAComponentRestController.java
+@@ -10,8 +10,11 @@
+ package com.eqtechnologic.eqube.mi.activities.writetoopcua;
+ 
+ import com.eqtechnologic.eqube.exception.BusinessException;
++import com.eqtechnologic.eqube.logging.LogTemplate;
+ import com.eqtechnologic.eqube.logging.Logger;
+ import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
++import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAErrorCode;
++import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAExceptionType;
+ import com.eqtechnologic.eqube.mi.ui.MIOperation;
+ import com.eqtechnologic.eqube.soa.methodauthorization.annotations.Authorize;
+ import com.eqtechnologic.eqube.soa.methodauthorization.annotations.OperationNames;
+@@ -51,11 +54,10 @@ public class WriteToOPCUAComponentRestController {
+         try {
+             transportInfos = opcuaHelper.getWriteToOPCUAService().fetchOPCUATransportList();
+         } catch (BusinessException e) {
+-            LOGGER.error("Error while fetching OPC UA Transport list", e);
+-            throw e;
+-        } catch (Exception e) {
+-            LOGGER.error("Unexpected error while fetching OPC UA Transport list", e);
+-            throw new BusinessException("Error while fetching OPC UA Transport list", e);
++            LogTemplate lt = LogTemplate.of(WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST.getMessage());
++            LOGGER.error(lt, e);
++            throw new BusinessException(WriteToOPCUAExceptionType.WRITE_TO_OPCUA_ACTIVITY_EXCEPTION,
++                    WriteToOPCUAErrorCode.ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST, e.getMessage());
+         }
+         return transportInfos;
+     }
+@@ -63,12 +65,7 @@ public class WriteToOPCUAComponentRestController {
+     @GetMapping(value = "/testTransportById")
+     public boolean testTransportById(@RequestParam("transportId") Long transportId) {
+         checkMultipleOperations(operations);
+-        try {
+-            return opcuaHelper.testTransportById(transportId);
+-        } catch (Exception e) {
+-            LOGGER.error("Error testing transport ID: " + transportId, e);
+-            return false;
+-        }
++        return opcuaHelper.testTransportById(transportId);
+     }
+ 
+     @Authorize
+diff --git a/WriteToOPCUA-Designer/src/main/resources/ComparisonUIFormat.xml b/WriteToOPCUA-Designer/src/main/resources/ComparisonUIFormat.xml
+index cbfe319..47c33a1 100644
+--- a/WriteToOPCUA-Designer/src/main/resources/ComparisonUIFormat.xml
++++ b/WriteToOPCUA-Designer/src/main/resources/ComparisonUIFormat.xml
+@@ -1,9 +1,17 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <activity xmlns="http://www.w3.org/activitycomparison/activitycapabilitiescomparison">
+     <capability name="Configuration">
+-        <component name="i18n:writetoopcua.transport" id="transportName"/>
+-        <component name="i18n:writetoopcua.operation" id="operation"/>
+-        <component name="i18n:writetoopcua.executionMode" id="executionMode"/>
++        <component name="i18n:writetoopcua.TransportName" id="transportName"/>
++        <component name="i18n:writetoopcua.Operation" id="operation"/>
++        <component name="i18n:writetoopcua.ExecutionMode" id="executionMode"/>
++
++        <group name="i18n:writetoopcua.DataChangeWrite">
++            <component id="WriteToOPCUADataChangeWrite" addHeader="true"/>
++        </group>
++
++        <group name="i18n:writetoopcua.CallMethod">
++            <component id="WriteToOPCUACallMethod" addHeader="true"/>
++        </group>
+     </capability>
+     <capability name="Output">
+         <component name="i18n:writetoopcua.outputSuccessfulWriteItems" id="successfulWriteItems"/>
+diff --git a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/WriteToOPCUAComponent.js b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/WriteToOPCUAComponent.js
+index 83c5cf0..fe85570 100644
+--- a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/WriteToOPCUAComponent.js
++++ b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/WriteToOPCUAComponent.js
+@@ -131,29 +131,69 @@ define(function (require) {
+             var grid = this._getGridInstance();
+ 
+             if (grid && row.length) {
+-                grid.removeRow(row);
++                var dataItem = grid.dataItem ? grid.dataItem(row) : null;
++                if (dataItem && grid.dataSource) {
++                    grid.dataSource.remove(dataItem);
++                } else if (grid.removeRow) {
++                    grid.removeRow(row);
++                }
+             }
+         },
+ 
+         _onDeleteToolbarRow: function () {
+             var grid = this._getGridInstance();
+ 
+-            if (grid) {
+-                var selected = grid.select();
+-                if (selected?.length) {
+-                    var uniqueRows = [];
+-                    selected.each(function () {
+-                        var row = $(this).closest("tr");
+-                        if (row.length && uniqueRows.indexOf(row[0]) === -1) {
+-                            uniqueRows.push(row[0]);
+-                        }
++            if (!grid) {
++                return;
++            }
++
++            var selectedElements = grid.select ? grid.select() : [];
++            var checkedBoxes = grid.tbody ? grid.tbody.find("input:checked, .k-checkbox:checked") : [];
++            var uniqueRowElements = [];
++
++            if (selectedElements && selectedElements.length) {
++                selectedElements.each(function () {
++                    var row = $(this).closest("tr");
++                    if (row.length && uniqueRowElements.indexOf(row[0]) === -1) {
++                        uniqueRowElements.push(row[0]);
++                    }
++                });
++            }
++
++            if (checkedBoxes && checkedBoxes.length) {
++                checkedBoxes.each(function () {
++                    var row = $(this).closest("tr");
++                    if (row.length && uniqueRowElements.indexOf(row[0]) === -1) {
++                        uniqueRowElements.push(row[0]);
++                    }
++                });
++            }
++
++            if (uniqueRowElements.length) {
++                var dataItems = [];
++                $.each(uniqueRowElements, function (index, rowElem) {
++                    var item = grid.dataItem ? grid.dataItem(rowElem) : null;
++                    if (item && dataItems.indexOf(item) === -1) {
++                        dataItems.push(item);
++                    }
++                });
++
++                if (dataItems.length && grid.dataSource) {
++                    $.each(dataItems, function (index, item) {
++                        grid.dataSource.remove(item);
+                     });
+-                    $.each(uniqueRows, function (index, rowElem) {
++                } else {
++                    $.each(uniqueRowElements, function (index, rowElem) {
+                         grid.removeRow($(rowElem));
+                     });
+-                } else {
+-                    var lastRow = grid.tbody.find("tr:last");
+-                    if (lastRow.length) {
++                }
++            } else {
++                var lastRow = grid.tbody ? grid.tbody.find("tr:last") : [];
++                if (lastRow.length) {
++                    var lastItem = grid.dataItem ? grid.dataItem(lastRow) : null;
++                    if (lastItem && grid.dataSource) {
++                        grid.dataSource.remove(lastItem);
++                    } else if (grid.removeRow) {
+                         grid.removeRow(lastRow);
+                     }
+                 }
+diff --git a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/GridUtils.js b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/GridUtils.js
+index e6bc80d..17453ac 100644
+--- a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/GridUtils.js
++++ b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/GridUtils.js
+@@ -51,36 +51,17 @@ define(function (require) {
+             var ds = grid.widget.dataSource;
+             var searchFields = Array.isArray(fields) ? fields : [fields, "nodeId"];
+ 
+-            searchElement.off("keyup.gridSearch input.gridSearch").on("keyup.gridSearch input.gridSearch", function () {
+-                var val = $(this).val();
+-                if (!val || val.trim() === "") {
+-                    ds.filter([]);
+-                } else {
+-                    var query = val.trim();
+-                    var filterList = searchFields.map(function (f) {
+-                        return { field: f, operator: "contains", value: query };
+-                    });
+-                    ds.filter({
+-                        logic: "or",
+-                        filters: filterList
+-                    });
+-                }
+-            });
+-
+-            var searchBarFilters = searchFields.map(function (f) {
+-                return { field: f, operator: "contains" };
+-            });
+-
+             return uilayer.searchBar({
+                 elem: searchElement,
+                 uiStyle: "",
+-                dataSource: ds,
++                dataSource: [ds],
+                 filter: {
+-                    logic: "or",
+-                    filters: searchBarFilters
++                    field: searchFields,
++                    operator: "contains"
+                 },
+                 placeholder: nls.Search,
+-                filterAfter: 1
++                filterAfter: 0,
++                filterEvent: "keyup"
+             });
+         },
+ 
+diff --git a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/TransportManager.js b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/TransportManager.js
+index cc8d627..13afb4f 100644
+--- a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/TransportManager.js
++++ b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/TransportManager.js
+@@ -20,18 +20,30 @@ define(function (require) {
+             this.renderTransportDropdown(globalSelf);
+         },
+ 
++        navigateToCAC: function (response, hashPath) {
++            var navigationURL;
++            if (response && response.IS_DISTRIBUTED_DEPLOYMENT === "TRUE") {
++                navigationURL = response.URL + "/" + encodeURIComponent(response.ENVIRONMENT_ID) + "/EXECUTOR/" + encodeURIComponent(hashPath);
++            } else {
++                var appPath = window.location.pathname.split("/")[1] || "eQubeMI";
++                navigationURL = window.location.origin + "/" + appPath + "/AdminConsole#" + hashPath;
++            }
++            window.open(navigationURL, "_blank");
++        },
++
+         renderTransportButtons: function (globalSelf) {
++            var self = this;
++
+             if (!globalSelf.refreshButton) {
+                 globalSelf.refreshButton = uilayer.button({
+                     elem: globalSelf.$(".transports-refresh-button"),
+                     uiStyle: "tertiary",
+                     click: function () {
+                         if (globalSelf.transportDropdown) {
+-                            globalSelf.transportDropdown.destroy();
+-                            globalSelf.transportDropdown = null;
+-                            globalSelf.$(".transport-selector-dropdown").empty();
++                            globalSelf.transportDropdown.dataSource.read();
++                        } else {
++                            self.renderTransportDropdown(globalSelf);
+                         }
+-                        TransportManager.renderTransportDropdown(globalSelf);
+                     }
+                 });
+             }
+@@ -41,10 +53,13 @@ define(function (require) {
+                     elem: globalSelf.$(".transports-create-button"),
+                     uiStyle: "tertiary",
+                     click: function () {
+-                        window.open(
+-                            Constants.CREATE_TRANSPORT_URL,
+-                            "_blank"
+-                        );
++                        var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
++                        promise.done(function (response) {
++                            self.navigateToCAC(response, "transports/create");
++                        });
++                        promise.fail(function () {
++                            self.navigateToCAC(null, "transports/create");
++                        });
+                     }
+                 });
+             }
+@@ -54,19 +69,21 @@ define(function (require) {
+                     elem: globalSelf.$(".transports-open-button"),
+                     uiStyle: "tertiary",
+                     click: function () {
+-                        if (!globalSelf.transportDropdown?.dataItem()) {
+-                            return;
++                        var selectedTransportId = null;
++                        if (globalSelf.transportDropdown && globalSelf.transportDropdown.dataItem()) {
++                            var item = globalSelf.transportDropdown.dataItem();
++                            selectedTransportId = item.toJSON ? item.toJSON().transportId : item.transportId;
+                         }
+ 
+-                        var item = globalSelf.transportDropdown.dataItem();
+-                        var transportId = item.toJSON ? item.toJSON().transportId : item.transportId;
++                        var hashPath = selectedTransportId ? ("transports/edit/" + selectedTransportId) : "transports";
+ 
+-                        if (transportId) {
+-                            window.open(
+-                                Constants.EDIT_TRANSPORT_URL + transportId,
+-                                "_blank"
+-                            );
+-                        }
++                        var promise = AjaxUtility.cachedAjaxRequest("GET", "services/application-navigation-url/cac", null, "json", null, true);
++                        promise.done(function (response) {
++                            self.navigateToCAC(response, hashPath);
++                        });
++                        promise.fail(function () {
++                            self.navigateToCAC(null, hashPath);
++                        });
+                     }
+                 });
+             }
+diff --git a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/constants.js b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/constants.js
+index 2a74426..b6bfe0b 100644
+--- a/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/constants.js
++++ b/WriteToOPCUA-Designer/src/main/resources/UI/WriteToOPCUA/js/constants.js
+@@ -13,8 +13,9 @@ define(function () {
+         PARALLEL: "Parallel",
+         SEQUENTIAL: "Sequential",
+ 
+-        CREATE_TRANSPORT_URL: "/ADMINCONSOLE?servicePath=transports/create",
+-        EDIT_TRANSPORT_URL: "/ADMINCONSOLE?servicePath=transports/edit/"
++        TRANSPORTS_URL: "/AdminConsole#transports",
++        CREATE_TRANSPORT_URL: "/AdminConsole#transports/create",
++        EDIT_TRANSPORT_URL: "/AdminConsole#transports/edit/"
+     };
+ 
+     return Object.freeze(CONSTANTS);
+diff --git a/WriteToOPCUA-Runtime/proguard.conf b/WriteToOPCUA-Runtime/proguard.conf
+index 023d9f2..01f52ac 100644
+--- a/WriteToOPCUA-Runtime/proguard.conf
++++ b/WriteToOPCUA-Runtime/proguard.conf
+@@ -1,7 +1,13 @@
+--keepclassmembers class * {
+-    public <init>();
+-    public <fields>;
+-    public <methods>;
++-dontnote
++-dontwarn
++-dontshrink
++-dontoptimize
++
++-keeppackagenames
++
++-keepattributes Signature,InnerClasses,SourceFile,LineNumberTable
++-keepnames class com.eqtechnologic.eqube.mi.activities.writetoopcua.*
++
++-keep class com.eqtechnologic.eqube.mi.activities.writetoopcua.*{
++	public *;
+ }
+--keep class com.eqtechnologic.eqube.mi.activities.writetoopcua.eQWriteToOPCUAExecutor { *; }
+--keep class com.eqtechnologic.eqube.mi.activities.writetoopcua.eQWriteToOPCUAErrorCodes { *; }

@@ -9,7 +9,7 @@ define(function (require) {
 
     var ExpressionBuilderManager = {
 
-        getTemplate: function (field, globalSelf) {
+        getTemplate: function (field) {
             return function (dataItem) {
                 var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
                 var value = "";
