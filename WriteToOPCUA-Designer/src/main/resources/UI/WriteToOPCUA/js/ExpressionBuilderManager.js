@@ -1,73 +1,49 @@
 /**
  * Created by Lovish.
+ * Delegates to CVTComponent methods (mixed-in on globalSelf in WriteToOPCUAComponent.onInitialize)
+ * for correct edit-icon rendering and EB back/close behavior — same pattern as AddTab.js.
  */
 define(function (require) {
     "use strict";
 
-    var ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility"),
-        ExpressionBuilderLauncherTypes = require("Widgets/Designer/ExpressionBuilder/ExpressionBuilder").ExpressionBuilderLauncherTypes;
+    var ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility");
 
     var ExpressionBuilderManager = {
 
+        /**
+         * Returns the column template function.
+         * Delegates to globalSelf.getExpressionBuilderTemplate (CVTComponent method)
+         * which renders the cell with the correct edit icon and handles hover/visibility.
+         */
         getTemplate: function (field, globalSelf) {
-            return function (dataItem) {
-                var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
-                var value = "";
-                if (typeof rawVal === "string") {
-                    value = rawVal;
-                } else if (rawVal && typeof rawVal === "object") {
-                    value = rawVal.value || rawVal.expression || "";
-                }
-                var isEmpty = !value;
-                return "<div class='writetoopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
-                    "<span class='writetoopcua-editable-cell-value' title='" + value + "'>" +
-                    value +
-                    "</span>" +
-                    "<span class='eQ-icon eQ-fonts-expression eq-cursor-pointer writetoopcua-editable-cell-icon'></span>" +
-                    "</div>";
-            };
+            // CVTComponent.prototype.getExpressionBuilderTemplate is bound onto globalSelf in onInitialize
+            return globalSelf.getExpressionBuilderTemplate(field);
         },
 
+        /**
+         * Returns the column editor function.
+         * Delegates to globalSelf.getExpressionBuilderEditor (CVTComponent method)
+         * which handles: EB open, back/close (restores cell view), changeHandler.
+         */
         getEditor: function (field, globalSelf) {
-            return function (container, options) {
-                var editor = $('<div class="expression-editor" data-bind="value:' + field + '"></div>');
-                editor.appendTo(container);
-
-                var configData = {
-                    processModel: globalSelf.processModel,
-                    activityID: globalSelf.activityId,
+            // CVTComponent.prototype.getExpressionBuilderEditor is bound onto globalSelf in onInitialize
+            return globalSelf.getExpressionBuilderEditor({
+                configData: {
                     tabName: "CONFIGURATION"
-                };
-
-                var value = "";
-                var rawVal = options.model.get ? options.model.get(field) : options.model[field];
-                if (rawVal) {
-                    if (typeof rawVal === "string") {
-                        value = rawVal;
-                    } else if (typeof rawVal === "object") {
-                        value = rawVal.value || rawVal.expression || "";
-                    }
+                },
+                field: field,
+                changeHandler: function (expressionBuilder) {
+                    // no-op: CVTComponent changeHandler updates the model internally
                 }
+            });
+        },
 
-                var expressionBuilder;
-
-                var changeHandler = function () {
-                    var expression = ExpressionBuilderUtility.getExpression(expressionBuilder);
-                    if (expression !== undefined && expression !== null) {
-                        options.model.set(field, expression);
-                    }
-                };
-
-                expressionBuilder = ExpressionBuilderUtility.render(
-                    editor,
-                    ExpressionBuilderLauncherTypes.PROCESS_CONTEXT,
-                    configData,
-                    value,
-                    changeHandler
-                );
-
-                container.data("expressionBuilder", expressionBuilder);
-            };
+        /**
+         * Extracts the plain string expression from an EB object or string value.
+         */
+        getExpression: function (value, globalSelf) {
+            if (!value) return "";
+            return ExpressionBuilderUtility.getExpression(value) || "";
         },
 
         destroy: function (expressionBuilder) {
