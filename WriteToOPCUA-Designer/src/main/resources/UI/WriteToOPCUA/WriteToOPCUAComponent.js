@@ -258,12 +258,10 @@ define(function (require) {
         },
 
         getData: function () {
-            this.model.setKey(
-                "operation",
-                this.$(".data-change-write-radio").is(":checked")
-                    ? Constants.DATA_CHANGE_WRITE
-                    : Constants.CALL_METHOD
-            );
+            var isDataChangeWrite = this.$(".data-change-write-radio").is(":checked");
+            var operation = isDataChangeWrite ? Constants.DATA_CHANGE_WRITE : Constants.CALL_METHOD;
+
+            this.model.setKey("operation", operation);
 
             this.model.setKey(
                 "executionMode",
@@ -272,28 +270,34 @@ define(function (require) {
                     : Constants.SEQUENTIAL
             );
 
-            if (this.dataChangeWriteGrid?.widget?.dataSource) {
-                var dcData = this.dataChangeWriteGrid.widget.dataSource.data().toJSON();
-                _.each(dcData, function (item) {
-                    if (item?.newValue && typeof item.newValue === "object") {
-                        item.newValue = ExpressionBuilderUtility.getExpression(item.newValue);
-                    }
-                });
+            if (isDataChangeWrite) {
+                var dcData = [];
+                if (this.dataChangeWriteGrid?.widget?.dataSource) {
+                    dcData = this.dataChangeWriteGrid.widget.dataSource.data().toJSON();
+                    _.each(dcData, function (item) {
+                        if (item?.newValue && typeof item.newValue === "object") {
+                            item.newValue = ExpressionBuilderUtility.getExpression(item.newValue);
+                        }
+                    });
+                }
                 this.model.setKey("dataChangeWrite", dcData);
-            }
-
-            if (this.callMethodGrid?.widget?.dataSource) {
-                var cmData = this.callMethodGrid.widget.dataSource.data().toJSON();
-                _.each(cmData, function (item) {
-                    if (item?.inputParameters?.length) {
-                        _.each(item.inputParameters, function (param) {
-                            if (param?.value && typeof param.value === "object") {
-                                param.value = ExpressionBuilderUtility.getExpression(param.value);
-                            }
-                        });
-                    }
-                });
+                this.model.setKey("callMethod", []);
+            } else {
+                var cmData = [];
+                if (this.callMethodGrid?.widget?.dataSource) {
+                    cmData = this.callMethodGrid.widget.dataSource.data().toJSON();
+                    _.each(cmData, function (item) {
+                        if (item?.inputParameters?.length) {
+                            _.each(item.inputParameters, function (param) {
+                                if (param?.value && typeof param.value === "object") {
+                                    param.value = ExpressionBuilderUtility.getExpression(param.value);
+                                }
+                            });
+                        }
+                    });
+                }
                 this.model.setKey("callMethod", cmData);
+                this.model.setKey("dataChangeWrite", []);
             }
 
             return this.model.toJSON();
