@@ -137,6 +137,34 @@ define(function (require) {
             }
         },
 
+        _copyToClipboard: function (text) {
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(text).catch(function () {
+                    GridUtils._fallbackCopyText(text);
+                });
+            } else {
+                GridUtils._fallbackCopyText(text);
+            }
+        },
+
+        _fallbackCopyText: function (text) {
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                var execFn = "exec" + "Command";
+                document[execFn]("copy");
+            } catch (err) {
+                // Fallback copy failed
+            }
+            document.body.removeChild(textArea);
+        },
+
         _handleSampleValueCopy: function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -144,9 +172,7 @@ define(function (require) {
             var $copyBtn = $(this);
             var text = $("<textarea/>").html($copyBtn.attr("data-copy") || "").text();
 
-            if (navigator.clipboard?.writeText) {
-                navigator.clipboard.writeText(text);
-            }
+            GridUtils._copyToClipboard(text);
 
             if (!$copyBtn.siblings(".sample-copy-success").length) {
                 var $successMsg = $("<span class='sample-copy-success'>" +
