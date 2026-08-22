@@ -146,12 +146,6 @@ define(function (require) {
 
             if (navigator.clipboard?.writeText) {
                 navigator.clipboard.writeText(text);
-            } else {
-                var $temp = $("<textarea style='position:absolute; left:-9999px; top:-9999px;'>");
-                $("body").append($temp);
-                $temp.val(text).select();
-                document.execCommand("copy");
-                $temp.remove();
             }
 
             if (!$copyBtn.siblings(".sample-copy-success").length) {

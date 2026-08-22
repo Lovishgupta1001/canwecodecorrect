@@ -39,7 +39,7 @@ define(function (require) {
                     elem: globalSelf.$(".transports-refresh-button"),
                     uiStyle: "tertiary",
                     click: function () {
-                        if (globalSelf.transportDropdown) {
+                        if (globalSelf.transportDropdown?.dataSource) {
                             globalSelf.transportDropdown.dataSource.read();
                         } else {
                             self.renderTransportDropdown(globalSelf);
@@ -70,8 +70,8 @@ define(function (require) {
                     uiStyle: "tertiary",
                     click: function () {
                         var selectedTransportId = null;
-                        if (globalSelf.transportDropdown && globalSelf.transportDropdown.dataItem()) {
-                            var item = globalSelf.transportDropdown.dataItem();
+                        var item = globalSelf.transportDropdown?.dataItem?.();
+                        if (item) {
                             selectedTransportId = item.toJSON ? item.toJSON().transportId : item.transportId;
                         }
 
@@ -129,13 +129,13 @@ define(function (require) {
 
                                 var transport = item.toJSON ? item.toJSON() : item;
                                 globalSelf.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
-                                    if (opt && !opt.name && opt.dataChangeName) {
+                                    if (!opt?.name && opt?.dataChangeName) {
                                         opt.name = opt.dataChangeName;
                                     }
                                     return opt;
                                 });
                                 globalSelf.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
-                                    if (opt && !opt.name && opt.methodName) {
+                                    if (!opt?.name && opt?.methodName) {
                                         opt.name = opt.methodName;
                                     }
                                     return opt;
@@ -183,13 +183,13 @@ define(function (require) {
                     );
 
                     globalSelf.dataChangeOptions = (transport.dataChangeOptions || transport.dataChangeWriteOptions || []).map(function (opt) {
-                        if (opt && !opt.name && opt.dataChangeName) {
+                        if (!opt?.name && opt?.dataChangeName) {
                             opt.name = opt.dataChangeName;
                         }
                         return opt;
                     });
                     globalSelf.callMethodOptions = (transport.callMethodOptions || []).map(function (opt) {
-                        if (opt && !opt.name && opt.methodName) {
+                        if (!opt?.name && opt?.methodName) {
                             opt.name = opt.methodName;
                         }
                         return opt;
