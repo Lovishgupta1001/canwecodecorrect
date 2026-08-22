@@ -1,6 +1,6 @@
 /**
- * Created by Lovish.
- */
+* Created by Lovish.
+*/
 define(function (require) {
     "use strict";
 

@@ -1,6 +1,6 @@
 /**
- * Created by Lovish.
- */
+* Created by Lovish.
+*/
 define(function (require) {
     "use strict";
 
@@ -126,6 +126,28 @@ define(function (require) {
             return null;
         },
 
+        getSelectedRows: function () {
+            var grid = this._getGridInstance();
+            if (!grid) {
+                return $();
+            }
+
+            var selected = grid.select ? grid.select() : $();
+            if (selected && selected.length) {
+                return selected;
+            }
+
+            var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
+            if (tbody && tbody.length) {
+                var checked = tbody.find("input:checked, .k-checkbox:checked");
+                if (checked.length) {
+                    return checked.closest("tr");
+                }
+            }
+
+            return $();
+        },
+
         _onDeleteGridRow: function (event) {
             var row = $(event.currentTarget).closest("tr");
             var grid = this._getGridInstance();
@@ -147,31 +169,27 @@ define(function (require) {
                 return;
             }
 
-            var selectedElements = grid.select ? grid.select() : [];
-            var checkedBoxes = grid.tbody ? grid.tbody.find("input:checked, .k-checkbox:checked") : [];
-            var uniqueRowElements = [];
+            var selectedRows = this.getSelectedRows();
+            var rowsToBeDeleted = [];
 
-            if (selectedElements && selectedElements.length) {
-                selectedElements.each(function () {
-                    var row = $(this).closest("tr");
-                    if (row.length && uniqueRowElements.indexOf(row[0]) === -1) {
-                        uniqueRowElements.push(row[0]);
+            if (selectedRows && selectedRows.length) {
+                selectedRows.each(function () {
+                    var tr = $(this).closest("tr");
+                    if (tr.length && rowsToBeDeleted.indexOf(tr[0]) === -1) {
+                        rowsToBeDeleted.push(tr[0]);
                     }
                 });
+            } else {
+                var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
+                var lastRow = tbody ? tbody.find("tr:last") : [];
+                if (lastRow && lastRow.length) {
+                    rowsToBeDeleted.push(lastRow[0]);
+                }
             }
 
-            if (checkedBoxes && checkedBoxes.length) {
-                checkedBoxes.each(function () {
-                    var row = $(this).closest("tr");
-                    if (row.length && uniqueRowElements.indexOf(row[0]) === -1) {
-                        uniqueRowElements.push(row[0]);
-                    }
-                });
-            }
-
-            if (uniqueRowElements.length) {
+            if (rowsToBeDeleted.length) {
                 var dataItems = [];
-                $.each(uniqueRowElements, function (index, rowElem) {
+                $.each(rowsToBeDeleted, function (index, rowElem) {
                     var item = grid.dataItem ? grid.dataItem(rowElem) : null;
                     if (item && dataItems.indexOf(item) === -1) {
                         dataItems.push(item);
@@ -183,19 +201,11 @@ define(function (require) {
                         grid.dataSource.remove(item);
                     });
                 } else {
-                    $.each(uniqueRowElements, function (index, rowElem) {
-                        grid.removeRow($(rowElem));
+                    $.each(rowsToBeDeleted, function (index, rowElem) {
+                        if (grid.removeRow) {
+                            grid.removeRow($(rowElem));
+                        }
                     });
-                }
-            } else {
-                var lastRow = grid.tbody ? grid.tbody.find("tr:last") : [];
-                if (lastRow.length) {
-                    var lastItem = grid.dataItem ? grid.dataItem(lastRow) : null;
-                    if (lastItem && grid.dataSource) {
-                        grid.dataSource.remove(lastItem);
-                    } else if (grid.removeRow) {
-                        grid.removeRow(lastRow);
-                    }
                 }
             }
         },
@@ -258,7 +268,6 @@ define(function (require) {
         },
 
         getData: function () {
-            var globalSelf = this;
             this.model.setKey(
                 "operation",
                 this.$(".data-change-write-radio").is(":checked")
@@ -349,159 +358,220 @@ define(function (require) {
         },
 
         highlightErrors: function (errorObjectList) {
-            var globalSelf = this;
-
             if (!errorObjectList?.length) {
                 return;
             }
 
-            var currentActId = globalSelf.activityId || "";
-            var currentActName = globalSelf.model?.getKey
-                ? (globalSelf.model.getKey("activityName") || globalSelf.model.getKey("name") || "")
+            errorObjectList.forEach(function (errorObject) {
+                this._processErrorObject(errorObject);
+            }, this);
+        },
+
+        _processErrorObject: function (errorObject) {
+            if (!errorObject) {
+                return;
+            }
+
+            var path = errorObject.path || errorObject.resource || "";
+            if (!path) {
+                return;
+            }
+
+            path = this._resolveErrorPath(errorObject, path);
+            if (path === null) {
+                return;
+            }
+
+            if (path.indexOf("transportName") !== -1) {
+                this._highlightTransportError(errorObject);
+                return;
+            }
+
+            if (path.indexOf("dataChangeWrite") !== -1) {
+                this._highlightDataChangeWriteError(errorObject, path);
+                return;
+            }
+
+            if (path.indexOf("callMethod") !== -1) {
+                this._highlightCallMethodError(errorObject, path);
+            }
+        },
+
+        _resolveErrorPath: function (errorObject, path) {
+            var pathParts = path.split("/");
+            if (pathParts.length <= 1) {
+                return path;
+            }
+
+            var actPrefix = pathParts[0];
+
+            if (actPrefix === "dataChangeWrite") {
+                this._highlightDataChangeWriteGridCell(pathParts, errorObject);
+            }
+
+            if (actPrefix === "WriteToOPCUA") {
+                return pathParts.slice(1).join("/");
+            }
+
+            if (this._isPrefixForOtherActivity(actPrefix)) {
+                return null;
+            }
+
+            return path;
+        },
+
+        _isPrefixForOtherActivity: function (actPrefix) {
+            var currentActId = this.activityId || "";
+            var currentActName = this.model?.getKey
+                ? (this.model.getKey("activityName") || this.model.getKey("name") || "")
                 : "";
 
-            errorObjectList.forEach(function (errorObject) {
-                if (!errorObject) {
-                    return;
+            return !!(currentActId && actPrefix !== currentActId && currentActName && actPrefix !== currentActName);
+        },
+
+        _highlightDataChangeWriteGridCell: function (pathParts, errorObject) {
+            var column = pathParts[2];
+            var row = pathParts[1];
+            var columnArr = this.dataChangeWriteGrid.widget.$el.find("." + column);
+            var ele = $(columnArr[row - 1]);
+
+            if (!ele.length) {
+                return;
+            }
+
+            ele.get(0).scrollIntoView();
+            ele.addErrorHighlightClass("components-error-red-highlight");
+            this.showErrorTooltip(errorObject, ele);
+        },
+
+        _highlightTransportError: function (errorObject) {
+            var element = this.$el.find("#transport-selector-dropdown");
+            if (!element.length) {
+                element = this.$el.find(".transport-selector-dropdown");
+            }
+            if (!element.length) {
+                return;
+            }
+
+            this.focusErrorComponent(element);
+
+            var dropdownWrapper = element.closest(".k-widget");
+            var target = dropdownWrapper.length ? dropdownWrapper : element;
+            target.addErrorHighlightClass("components-error-red-highlight");
+            this.showErrorTooltip(errorObject, target);
+        },
+
+        _highlightDataChangeWriteError: function (errorObject, path) {
+            this._ensureDataChangeWriteGridVisible();
+
+            var rowInfo = this._extractGridRowInfo(path, "dataChangeWrite");
+            if (!rowInfo) {
+                this._highlightGridContainer(".cvt-grid-div-data-change-write", errorObject);
+                return;
+            }
+
+            if (!this.dataChangeWriteGrid?.widget) {
+                return;
+            }
+
+            var result = this._getGridRowAndCellByField(
+                this.dataChangeWriteGrid.widget,
+                rowInfo.rowIndex,
+                rowInfo.fieldName
+            );
+
+            if (result?.cell) {
+                result.cell.addErrorHighlightClass("components-error-red-highlight");
+                this.showErrorTooltip(errorObject, result.cell);
+            }
+        },
+
+        _ensureDataChangeWriteGridVisible: function () {
+            if (!this.$(".data-change-write-radio").is(":checked")) {
+                this.$(".data-change-write-radio").prop("checked", true);
+                this._updateOperationUI();
+            } else if (!this.dataChangeWriteGrid) {
+                DataChangeGridManager.renderDataChangeWriteComponent(this);
+            }
+        },
+
+        _highlightCallMethodError: function (errorObject, path) {
+            this._ensureCallMethodGridVisible();
+
+            var rowInfo = this._extractGridRowInfo(path, "callMethod");
+            if (!rowInfo) {
+                this._highlightGridContainer(".cvt-grid-div-call-method", errorObject);
+                return;
+            }
+
+            var gridWidget = this.callMethodGrid?.widget;
+            if (!gridWidget) {
+                return;
+            }
+
+            if (rowInfo.fieldName === "inputParameters") {
+                this._highlightCallMethodInputParameters(gridWidget, rowInfo.rowIndex, errorObject);
+                return;
+            }
+
+            var result = this._getGridRowAndCellByField(gridWidget, rowInfo.rowIndex, rowInfo.fieldName);
+            if (result?.cell) {
+                result.cell.addErrorHighlightClass("components-error-red-highlight");
+                this.showErrorTooltip(errorObject, result.cell);
+            }
+        },
+
+        _ensureCallMethodGridVisible: function () {
+            if (!this.$(".call-method-radio").is(":checked")) {
+                this.$(".call-method-radio").prop("checked", true);
+                this._updateOperationUI();
+            } else if (!this.callMethodGrid) {
+                CallMethodGridManager.renderCallMethodComponent(this);
+            }
+        },
+
+        _highlightCallMethodInputParameters: function (gridWidget, rowIndex, errorObject) {
+            var result = this._getGridRowAndCellByField(gridWidget, rowIndex, "inputParameters");
+            if (!result?.row) {
+                return;
+            }
+
+            var dataItem = gridWidget.dataItem(result.row);
+            if (!dataItem) {
+                return;
+            }
+
+            result.cell.addErrorHighlightClass("components-error-red-highlight");
+            this.showErrorTooltip(errorObject, result.cell);
+        },
+
+        _extractGridRowInfo: function (path, sectionKey) {
+            var parts = path.split("/");
+            var rowPartIndex = -1;
+
+            for (var i = 0; i < parts.length; i++) {
+                if (parts[i] === sectionKey) {
+                    rowPartIndex = i + 1;
+                    break;
                 }
+            }
 
-                var path = errorObject.path || errorObject.resource || "";
-                if (!path) {
-                    return;
-                }
+            if (rowPartIndex === -1 || rowPartIndex >= parts.length || isNaN(parseInt(parts[rowPartIndex], 10))) {
+                return null;
+            }
 
-                var pathParts = path.split("/");
-                if (pathParts.length > 1) {
-                    var actPrefix = pathParts[0];
-                    if (actPrefix === "WriteToOPCUA") {
-                        path = pathParts.slice(1).join("/");
-                    } else if (currentActId && actPrefix !== currentActId && currentActName && actPrefix !== currentActName) {
-                        return;
-                    }
-                }
+            return {
+                rowIndex: parseInt(parts[rowPartIndex], 10) - 1,
+                fieldName: parts[rowPartIndex + 1] || "name"
+            };
+        },
 
-                // 1. Transport Dropdown Validation Error
-                if (path.indexOf("transportName") !== -1) {
-                    var element = globalSelf.$el.find("#transport-selector-dropdown");
-                    if (!element.length) {
-                        element = globalSelf.$el.find(".transport-selector-dropdown");
-                    }
-
-                    if (element.length) {
-                        globalSelf.focusErrorComponent(element);
-
-                        var dropdownWrapper = element.closest(".k-widget");
-                        var target = dropdownWrapper.length ? dropdownWrapper : element;
-                        target.addErrorHighlightClass("components-error-red-highlight");
-
-                        globalSelf.showErrorTooltip(errorObject, target);
-                    }
-                    return;
-                }
-
-                // 2. Data Change Write Grid Validation Errors
-                if (path.indexOf("dataChangeWrite") !== -1) {
-                    if (!globalSelf.$(".data-change-write-radio").is(":checked")) {
-                        globalSelf.$(".data-change-write-radio").prop("checked", true);
-                        globalSelf._updateOperationUI();
-                    } else if (!globalSelf.dataChangeWriteGrid) {
-                        DataChangeGridManager.renderDataChangeWriteComponent(globalSelf);
-                    }
-
-                    var dcParts = path.split("/");
-                    var dcRowPartIndex = -1;
-
-                    for (var i = 0; i < dcParts.length; i++) {
-                        if (dcParts[i] === "dataChangeWrite") {
-                            dcRowPartIndex = i + 1;
-                            break;
-                        }
-                    }
-
-                    if (dcRowPartIndex === -1 || dcRowPartIndex >= dcParts.length || isNaN(parseInt(dcParts[dcRowPartIndex], 10))) {
-                        var gridElem = globalSelf.$el.find(".cvt-grid-div-data-change-write");
-                        if (gridElem.length) {
-                            gridElem.addErrorHighlightClass("components-error-red-highlight");
-                            globalSelf.showErrorTooltip(errorObject, gridElem);
-                        }
-                        return;
-                    }
-
-                    var dcRowIndex = parseInt(dcParts[dcRowPartIndex], 10) - 1;
-                    var dcFieldName = dcParts[dcRowPartIndex + 1] || "name";
-
-                    if (globalSelf.dataChangeWriteGrid?.widget) {
-                        var dcResult = globalSelf._getGridRowAndCellByField(
-                            globalSelf.dataChangeWriteGrid.widget,
-                            dcRowIndex,
-                            dcFieldName
-                        );
-                        if (dcResult?.cell) {
-                            dcResult.cell.addErrorHighlightClass("components-error-red-highlight");
-                            globalSelf.showErrorTooltip(errorObject, dcResult.cell);
-                        }
-                    }
-                    return;
-                }
-
-                // 3. Method Call Grid Validation Errors
-                if (path.indexOf("callMethod") !== -1) {
-                    if (!globalSelf.$(".call-method-radio").is(":checked")) {
-                        globalSelf.$(".call-method-radio").prop("checked", true);
-                        globalSelf._updateOperationUI();
-                    } else if (!globalSelf.callMethodGrid) {
-                        CallMethodGridManager.renderCallMethodComponent(globalSelf);
-                    }
-
-                    var cmParts = path.split("/");
-                    var cmRowPartIndex = -1;
-
-                    for (var j = 0; j < cmParts.length; j++) {
-                        if (cmParts[j] === "callMethod") {
-                            cmRowPartIndex = j + 1;
-                            break;
-                        }
-                    }
-
-                    if (cmRowPartIndex === -1 || cmRowPartIndex >= cmParts.length || isNaN(parseInt(cmParts[cmRowPartIndex], 10))) {
-                        var cmGridElem = globalSelf.$el.find(".cvt-grid-div-call-method");
-                        if (cmGridElem.length) {
-                            cmGridElem.addErrorHighlightClass("components-error-red-highlight");
-                            globalSelf.showErrorTooltip(errorObject, cmGridElem);
-                        }
-                        return;
-                    }
-
-                    var cmRowIndex = parseInt(cmParts[cmRowPartIndex], 10) - 1;
-                    var cmFieldName = cmParts[cmRowPartIndex + 1] || "name";
-
-                    if (globalSelf.callMethodGrid?.widget) {
-                        var cmGridWidget = globalSelf.callMethodGrid.widget;
-
-                        if (cmFieldName === "inputParameters") {
-                            var cmParamResult = globalSelf._getGridRowAndCellByField(cmGridWidget, cmRowIndex, "inputParameters");
-
-                            if (cmParamResult?.row) {
-                                var cmDataItem = cmGridWidget.dataItem(cmParamResult.row);
-                                if (cmDataItem) {
-                                    cmParamResult.cell.addErrorHighlightClass("components-error-red-highlight");
-                                    globalSelf.showErrorTooltip(errorObject, cmParamResult.cell);
-                                }
-                            }
-                        } else {
-                            var cmResult = globalSelf._getGridRowAndCellByField(
-                                cmGridWidget,
-                                cmRowIndex,
-                                cmFieldName
-                            );
-                            if (cmResult?.cell) {
-                                cmResult.cell.addErrorHighlightClass("components-error-red-highlight");
-                                globalSelf.showErrorTooltip(errorObject, cmResult.cell);
-                            }
-                        }
-                    }
-                }
-            });
+        _highlightGridContainer: function (selector, errorObject) {
+            var gridElem = this.$el.find(selector);
+            if (gridElem.length) {
+                gridElem.addErrorHighlightClass("components-error-red-highlight");
+                this.showErrorTooltip(errorObject, gridElem);
+            }
         },
 
         getErrorMessage: function () {

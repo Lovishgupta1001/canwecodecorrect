@@ -1,6 +1,6 @@
 /**
- * Created by Lovish.
- */
+* Created by Lovish.
+*/
 define(function (require) {
     "use strict";
 
@@ -44,16 +44,12 @@ define(function (require) {
         renderGridSearchBar: function (searchClass, grid, fields, globalSelf, nls) {
             var searchElement = globalSelf.$("." + searchClass);
 
-            if (!searchElement.length || !grid) {
+            if (!searchElement.length || !grid?.widget?.dataSource) {
                 return null;
             }
 
-            var ds = grid.widget ? grid.widget.dataSource : (grid.dataSource || null);
-            if (!ds) {
-                return null;
-            }
-
-            var searchFields = Array.isArray(fields) ? fields : (fields ? [fields, "nodeId"] : ["name", "nodeId"]);
+            var ds = grid.widget.dataSource;
+            var searchFields = Array.isArray(fields) ? fields : [fields, "nodeId"];
 
             return uilayer.searchBar({
                 elem: searchElement,
