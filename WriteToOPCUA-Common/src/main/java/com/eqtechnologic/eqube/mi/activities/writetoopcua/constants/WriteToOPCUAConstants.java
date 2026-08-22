@@ -25,4 +25,15 @@ public final class WriteToOPCUAConstants {
     public static final String OPERATION = "operation";
     public static final String EXECUTION_MODE = "executionMode";
     public static final String OPCUA_TYPE = "OPCUA";
+
+    // Validation Error Keys
+    public static final String ERR_SEL_TRANSPORT = "writetoopcua.selTransport";
+    public static final String ERR_EMPTY_DATA_CHANGE_WRITE = "writetoopcua.emptyDataChangeWrite";
+    public static final String ERR_EMPTY_CALL_METHOD = "writetoopcua.emptyCallMethod";
+    public static final String ERR_EMPTY_DATA_CHANGE_NAME = "writetoopcua.emptyDataChangeName";
+    public static final String ERR_EMPTY_NEW_VALUE = "writetoopcua.emptyNewValue";
+    public static final String ERR_EMPTY_METHOD_NAME = "writetoopcua.emptyMethodName";
+    public static final String ERR_EMPTY_PARAMETER_VALUE = "writetoopcua.emptyParameterValue";
+    public static final String ERR_TRANSPORT_NOT_FOUND = "writetoopcua.transportNotFound";
+    public static final String ERR_TRANSPORT_FRAMEWORK_ERROR = "writetoopcua.transportFrameworkError_transport";
 }

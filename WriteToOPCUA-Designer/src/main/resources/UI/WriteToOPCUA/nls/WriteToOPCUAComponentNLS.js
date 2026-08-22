@@ -48,6 +48,8 @@ define({
         "writetoopcua.emptyNewValue": "Please specify a New Value.",
         "writetoopcua.emptyMethodName": "Please select a Method Name.",
         "writetoopcua.emptyParameterValue": "Please specify a Parameter Value.",
+        "writetoopcua.transportNotFound": "Transport not found.",
+        "writetoopcua.transportFrameworkError_transport": "Error occurred while validating transport.",
         "TransportTestFailed": "Server is currently unavailable and as a result, value hints cannot be provided.",
         "NodeDetails": "Node Details",
         "NodeName": "Node Name",
