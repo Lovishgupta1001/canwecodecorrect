@@ -178,6 +178,12 @@ define(function (require) {
                     grid.removeRow?.($(elem));
                 });
             }
+
+            if (this.$(".data-change-write-radio").is(":checked")) {
+                DataChangeGridManager.refreshDropdownOptions(this);
+            } else {
+                CallMethodGridManager.refreshDropdownOptions(this);
+            }
         },
 
         _onDeleteGridRow: function (event) {

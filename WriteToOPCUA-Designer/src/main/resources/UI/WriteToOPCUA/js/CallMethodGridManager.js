@@ -209,13 +209,18 @@ define([
                     e.stopPropagation();
                 });
 
-                var existingDropdown = element.data("uilayerDropDownList");
+                var initialVal = dataItem.get ? dataItem.get("name") : dataItem.name;
+                var availableOptions = manager._getAvailableOptions(globalSelf, initialVal);
 
+                var existingDropdown = element.data("uilayerDropDownList");
                 if (existingDropdown) {
                     if (existingDropdown.setDataSource) {
                         existingDropdown.setDataSource(new uilayer.data.DataSource({
-                            data: globalSelf.callMethodOptions || []
+                            data: availableOptions
                         }));
+                    }
+                    if (typeof existingDropdown.value === "function") {
+                        existingDropdown.value(initialVal || "");
                     }
                     return;
                 }
@@ -229,7 +234,7 @@ define([
                 var dropdown = uilayer.dropDownList({
                     elem: element,
                     dataSource: new uilayer.data.DataSource({
-                        data: globalSelf.callMethodOptions || []
+                        data: availableOptions
                     }),
                     dataTextField: "name",
                     dataValueField: "name",
@@ -270,15 +275,64 @@ define([
                         }
 
                         GridUtils.initializeGridHelpTooltips(row);
+
+                        manager.refreshDropdownOptions(globalSelf);
                     }
                 });
 
-                var initialVal = dataItem.get ? dataItem.get("name") : dataItem.name;
-
-                if (dropdown?.value) {
+                if (typeof dropdown?.value === "function") {
                     dropdown.value(initialVal || "");
-                } else if (dropdown?.widget?.value) {
+                } else if (typeof dropdown?.widget?.value === "function") {
                     dropdown.widget.value(initialVal || "");
+                }
+            });
+        },
+
+        _getAvailableOptions: function (globalSelf, currentSelectedName) {
+            var grid = globalSelf.callMethodGrid?.widget;
+            var selectedNames = new Set();
+
+            if (grid?.dataSource) {
+                var data = grid.dataSource.data();
+                for (var i = 0; i < data.length; i++) {
+                    var item = data[i];
+                    var name = item ? (item.get ? item.get("name") : item.name) : "";
+                    if (name && name !== currentSelectedName) {
+                        selectedNames.add(name);
+                    }
+                }
+            }
+
+            return (globalSelf.callMethodOptions || []).filter(function (opt) {
+                var optName = opt?.name || opt?.methodName || "";
+                return optName === currentSelectedName || !selectedNames.has(optName);
+            });
+        },
+
+        refreshDropdownOptions: function (globalSelf) {
+            var manager = this;
+            var grid = globalSelf.callMethodGrid?.widget;
+            if (!grid) {
+                return;
+            }
+
+            globalSelf.$(".method-name-dropdown").each(function () {
+                var element = $(this);
+                var row = element.closest("tr");
+                var dataItem = grid.dataItem(row);
+                var currentVal = dataItem ? (dataItem.get ? dataItem.get("name") : dataItem.name) : "";
+                var available = manager._getAvailableOptions(globalSelf, currentVal);
+
+                var dropdown = element.data("uilayerDropDownList") || element.data("kendoDropDownList");
+                if (dropdown) {
+                    if (dropdown.setDataSource) {
+                        dropdown.setDataSource(new uilayer.data.DataSource({
+                            data: available
+                        }));
+                    }
+                    if (typeof dropdown.value === "function") {
+                        dropdown.value(currentVal || "");
+                    }
                 }
             });
         },

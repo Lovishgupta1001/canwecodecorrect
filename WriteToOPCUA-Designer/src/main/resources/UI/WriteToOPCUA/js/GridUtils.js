@@ -222,7 +222,7 @@ define(function (require) {
             };
         },
 
-        formatSampleValue: function (rawSampleValue) {
+        formatSampleValue: function (rawSampleValue, pretty) {
             if (rawSampleValue === null || rawSampleValue === undefined || rawSampleValue === "") {
                 return "";
             }
@@ -233,7 +233,9 @@ define(function (require) {
                 return String(valueToFormat);
             }
 
-            return JSON.stringify(valueToFormat, null, 2);
+            return pretty !== false
+                ? JSON.stringify(valueToFormat, null, 2)
+                : JSON.stringify(valueToFormat);
         },
 
         _extractSampleValue: function (value) {
@@ -293,9 +295,10 @@ define(function (require) {
                 };
 
                 var rawSampleValue = getVal("sampleValue");
-                var sampleValue = GridUtils.formatSampleValue(rawSampleValue);
+                var sampleValuePretty = GridUtils.formatSampleValue(rawSampleValue, true);
+                var sampleValueCompact = GridUtils.formatSampleValue(rawSampleValue, false);
                 var rawHelpText = getVal("sampleValueHelpText") || getVal("sampleValueDetails");
-                var contentText = rawHelpText ? String(rawHelpText) : sampleValue;
+                var contentText = rawHelpText ? String(rawHelpText) : sampleValuePretty;
                 var sampleValueHelpText =
                     "<div class='ul-body-m-b sample-value-tooltip-header'>" +
                     "<span>" + _.escape(nls.SampleValue) + "</span>" +
@@ -307,12 +310,12 @@ define(function (require) {
                     _.escape(contentText) +
                     "</pre>";
                 var selVal = getVal("name");
-                var hasSelection = !!(selVal || sampleValue || rawSampleValue);
+                var hasSelection = !!(selVal || sampleValueCompact || rawSampleValue);
 
                 return "<div class='writetoopcua-info-cell'>" +
-                    "<span class='writetoopcua-info-cell-value sample-value-text' " +
-                    "title='" + _.escape(sampleValue) + "'>" +
-                    _.escape(sampleValue) +
+                    "<span class='writetoopcua-info-cell-value' " +
+                    "title='" + _.escape(sampleValueCompact) + "'>" +
+                    _.escape(sampleValueCompact) +
                     "</span>" +
                     (hasSelection
                         ? "<div class='grid-help-container writetoopcua-info-icon'>" +
