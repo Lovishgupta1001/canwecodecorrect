@@ -171,6 +171,7 @@ define([
         },
 
         _initializeDataChangeDropdowns: function (globalSelf) {
+            var manager = this;
             GridUtils.initializeGridHelpTooltips(globalSelf.$el);
             globalSelf.$(".data-change-name-dropdown").each(function () {
                 var element = $(this);
