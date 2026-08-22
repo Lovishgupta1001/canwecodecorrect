@@ -10,6 +10,25 @@
         border-radius: 4px;
         overflow: hidden;
 
+        table,
+        .k-grid-header table,
+        .k-grid-content table {
+            table-layout: fixed !important;
+            width: 100% !important;
+        }
+
+        th,
+        td {
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            box-sizing: border-box;
+        }
+
+        td {
+            max-width: 0;
+        }
+
         .k-grid-toolbar {
             display: flex;
             align-items: center;
@@ -81,8 +100,10 @@
     display: flex;
     align-items: center;
     width: 100%;
+    max-width: 100%;
     min-width: 0;
     gap: 0.5rem;
+    box-sizing: border-box;
 
     .writetoopcua-editable-cell-value {
         min-height: 1.25rem;
@@ -98,11 +119,13 @@
 .writetoopcua-editable-cell-value,
 .writetoopcua-info-cell-value,
 .input-parameter-value {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-width: 0;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: block;
 }
 
 .writetoopcua-editable-cell-icon,
