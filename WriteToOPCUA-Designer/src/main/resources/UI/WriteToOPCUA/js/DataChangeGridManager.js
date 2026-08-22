@@ -238,13 +238,24 @@ define([
                         dataItem["nodeId"]      = selectedData.nodeId || "";
                         dataItem["sampleValue"] = GridUtils.formatSampleValue(selectedData.sampleValue);
 
+                        var currentNewValue = dataItem.get ? dataItem.get("newValue") : dataItem["newValue"];
+                        if (!currentNewValue && selectedData.sampleValue) {
+                            var defaultExpr = GridUtils.getDefaultExpression(selectedData.sampleValue);
+                            dataItem["newValue"] = defaultExpr;
+                        }
+
                         var nodeIdCell = row.find("td:eq(2)");
                         var sampleValueCell = row.find("td:eq(3)");
+                        var newValueCell = row.find("td:eq(4)");
+
                         if (nodeIdCell.length && grid.columns[2].template) {
                             nodeIdCell.html(grid.columns[2].template(dataItem));
                         }
                         if (sampleValueCell.length && grid.columns[3].template) {
                             sampleValueCell.html(grid.columns[3].template(dataItem));
+                        }
+                        if (newValueCell.length && grid.columns[4].template) {
+                            newValueCell.html(grid.columns[4].template(dataItem));
                         }
                         GridUtils.initializeGridHelpTooltips(row);
                     }

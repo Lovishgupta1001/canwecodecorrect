@@ -264,6 +264,28 @@ define(function (require) {
                 : parsed;
         },
 
+        getDefaultExpression: function (rawSampleValue) {
+            if (rawSampleValue === null || rawSampleValue === undefined || rawSampleValue === "") {
+                return "";
+            }
+
+            var value = this._extractSampleValue(rawSampleValue);
+
+            if (value === null || value === undefined || value === "") {
+                return "";
+            }
+
+            if (typeof value !== "object") {
+                var strVal = String(value).trim();
+                if ((strVal.startsWith('"') && strVal.endsWith('"')) || (strVal.startsWith("'") && strVal.endsWith("'"))) {
+                    return strVal;
+                }
+                return '"' + strVal.replace(/"/g, '\\"') + '"';
+            }
+
+            return 'createJSONObject("' + JSON.stringify(value).replace(/"/g, '\\"') + '")';
+        },
+
         getSampleValueTemplate: function () {
             return function (dataItem) {
                 var getVal = function (key) {
