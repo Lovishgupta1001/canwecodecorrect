@@ -53,7 +53,14 @@ define(function (require) {
                 return null;
             }
 
-            var searchFields = Array.isArray(fields) ? fields : (fields ? [fields, "nodeId"] : ["name", "nodeId"]);
+            var searchFields;
+            if(Array.isArray(fields)){
+                searchFields = fields;
+            } else if (fields){
+                searchFields = [fields, "nodeId"];
+            } else {
+                searchFields = ["name", "nodeId"];
+            }
 
             return uilayer.searchBar({
                 elem: searchElement,
@@ -156,12 +163,8 @@ define(function (require) {
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
-            try {
-                var execFn = "exec" + "Command";
-                document[execFn]("copy");
-            } catch (err) {
-                // Fallback copy failed
-            }
+            var execFn = "exec" + "Command";
+            document[execFn]("copy");
             document.body.removeChild(textArea);
         },
 

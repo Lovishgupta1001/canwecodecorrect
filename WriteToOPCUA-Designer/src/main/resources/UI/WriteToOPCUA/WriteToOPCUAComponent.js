@@ -133,12 +133,12 @@ define(function (require) {
             }
 
             var selected = grid.select ? grid.select() : $();
-            if (selected && selected.length) {
+            if (selected?.length) {
                 return selected;
             }
 
             var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
-            if (tbody && tbody.length) {
+            if (tbody?.length) {
                 var checked = tbody.find("input:checked, .k-checkbox:checked");
                 if (checked.length) {
                     return checked.closest("tr");
@@ -172,7 +172,7 @@ define(function (require) {
             var selectedRows = this.getSelectedRows();
             var rowsToBeDeleted = [];
 
-            if (selectedRows && selectedRows.length) {
+            if (selectedRows?.length) {
                 selectedRows.each(function () {
                     var tr = $(this).closest("tr");
                     if (tr.length && rowsToBeDeleted.indexOf(tr[0]) === -1) {
@@ -182,7 +182,7 @@ define(function (require) {
             } else {
                 var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
                 var lastRow = tbody ? tbody.find("tr:last") : [];
-                if (lastRow && lastRow.length) {
+                if (lastRow?.length) {
                     rowsToBeDeleted.push(lastRow[0]);
                 }
             }

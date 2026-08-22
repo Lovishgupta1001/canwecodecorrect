@@ -5,7 +5,6 @@ define(function (require) {
     "use strict";
 
     var uilayer = require("uilayer"),
-        Constants = require("./constants"),
         AjaxUtility = require("Widgets/common/utilities/utilities").AjaxUtility,
         DataChangeGridManager = require("./DataChangeGridManager"),
         CallMethodGridManager = require("./CallMethodGridManager");
@@ -22,7 +21,7 @@ define(function (require) {
 
         navigateToCAC: function (response, hashPath) {
             var navigationURL;
-            if (response && response.IS_DISTRIBUTED_DEPLOYMENT === "TRUE") {
+            if (response?.IS_DISTRIBUTED_DEPLOYMENT === "TRUE") {
                 navigationURL = response.URL + "/" + encodeURIComponent(response.ENVIRONMENT_ID) + "/EXECUTOR/" + encodeURIComponent(hashPath);
             } else {
                 var appPath = window.location.pathname.split("/")[1] || "eQubeMI";
