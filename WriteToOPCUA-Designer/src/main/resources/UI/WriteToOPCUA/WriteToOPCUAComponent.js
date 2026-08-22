@@ -148,65 +148,55 @@ define(function (require) {
             return $();
         },
 
+        _collectRowsToDelete: function (grid) {
+            var selectedRows = this.getSelectedRows();
+            if (selectedRows?.length) {
+                var uniqueRows = [];
+                selectedRows.each(function () {
+                    var tr = $(this).closest("tr");
+                    if (tr.length && uniqueRows.indexOf(tr[0]) === -1) {
+                        uniqueRows.push(tr[0]);
+                    }
+                });
+                return uniqueRows;
+            }
+            var lastRow = (grid.tbody || grid.element?.find("tbody"))?.find("tr:last");
+            return lastRow?.length ? [lastRow[0]] : [];
+        },
+
+        _deleteGridRows: function (grid, rowElements) {
+            var dataItems = _.compact(_.uniq(rowElements.map(function (elem) {
+                return grid.dataItem ? grid.dataItem(elem) : null;
+            })));
+
+            if (dataItems.length && grid.dataSource) {
+                dataItems.forEach(function (item) {
+                    grid.dataSource.remove(item);
+                });
+            } else {
+                rowElements.forEach(function (elem) {
+                    grid.removeRow?.($(elem));
+                });
+            }
+        },
+
         _onDeleteGridRow: function (event) {
             var row = $(event.currentTarget).closest("tr");
             var grid = this._getGridInstance();
-
             if (grid && row.length) {
-                var dataItem = grid.dataItem ? grid.dataItem(row) : null;
-                if (dataItem && grid.dataSource) {
-                    grid.dataSource.remove(dataItem);
-                } else if (grid.removeRow) {
-                    grid.removeRow(row);
-                }
+                this._deleteGridRows(grid, [row[0]]);
             }
         },
 
         _onDeleteToolbarRow: function () {
             var grid = this._getGridInstance();
-
             if (!grid) {
                 return;
             }
 
-            var selectedRows = this.getSelectedRows();
-            var rowsToBeDeleted = [];
-
-            if (selectedRows?.length) {
-                selectedRows.each(function () {
-                    var tr = $(this).closest("tr");
-                    if (tr.length && rowsToBeDeleted.indexOf(tr[0]) === -1) {
-                        rowsToBeDeleted.push(tr[0]);
-                    }
-                });
-            } else {
-                var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
-                var lastRow = tbody ? tbody.find("tr:last") : [];
-                if (lastRow?.length) {
-                    rowsToBeDeleted.push(lastRow[0]);
-                }
-            }
-
+            var rowsToBeDeleted = this._collectRowsToDelete(grid);
             if (rowsToBeDeleted.length) {
-                var dataItems = [];
-                $.each(rowsToBeDeleted, function (index, rowElem) {
-                    var item = grid.dataItem ? grid.dataItem(rowElem) : null;
-                    if (item && dataItems.indexOf(item) === -1) {
-                        dataItems.push(item);
-                    }
-                });
-
-                if (dataItems.length && grid.dataSource) {
-                    $.each(dataItems, function (index, item) {
-                        grid.dataSource.remove(item);
-                    });
-                } else {
-                    $.each(rowsToBeDeleted, function (index, rowElem) {
-                        if (grid.removeRow) {
-                            grid.removeRow($(rowElem));
-                        }
-                    });
-                }
+                this._deleteGridRows(grid, rowsToBeDeleted);
             }
         },
 
