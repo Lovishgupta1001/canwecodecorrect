@@ -126,27 +126,86 @@ define(function (require) {
             return null;
         },
 
+        getSelectedRows: function () {
+            var grid = this._getGridInstance();
+            if (!grid) {
+                return $();
+            }
+
+            var selected = grid.select ? grid.select() : $();
+            if (selected && selected.length) {
+                return selected;
+            }
+
+            var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
+            if (tbody && tbody.length) {
+                var checked = tbody.find("input:checked, .k-checkbox:checked");
+                if (checked.length) {
+                    return checked.closest("tr");
+                }
+            }
+
+            return $();
+        },
+
         _onDeleteGridRow: function (event) {
             var row = $(event.currentTarget).closest("tr");
             var grid = this._getGridInstance();
 
             if (grid && row.length) {
-                grid.removeRow(row);
+                var dataItem = grid.dataItem ? grid.dataItem(row) : null;
+                if (dataItem && grid.dataSource) {
+                    grid.dataSource.remove(dataItem);
+                } else if (grid.removeRow) {
+                    grid.removeRow(row);
+                }
             }
         },
 
         _onDeleteToolbarRow: function () {
             var grid = this._getGridInstance();
 
-            if (grid) {
-                var selectedRow = grid.select();
-                if (selectedRow?.length) {
-                    grid.removeRow(selectedRow);
-                } else {
-                    var lastRow = grid.tbody.find("tr:last");
-                    if (lastRow.length) {
-                        grid.removeRow(lastRow);
+            if (!grid) {
+                return;
+            }
+
+            var selectedRows = this.getSelectedRows();
+            var rowsToBeDeleted = [];
+
+            if (selectedRows && selectedRows.length) {
+                selectedRows.each(function () {
+                    var tr = $(this).closest("tr");
+                    if (tr.length && rowsToBeDeleted.indexOf(tr[0]) === -1) {
+                        rowsToBeDeleted.push(tr[0]);
                     }
+                });
+            } else {
+                var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
+                var lastRow = tbody ? tbody.find("tr:last") : [];
+                if (lastRow && lastRow.length) {
+                    rowsToBeDeleted.push(lastRow[0]);
+                }
+            }
+
+            if (rowsToBeDeleted.length) {
+                var dataItems = [];
+                $.each(rowsToBeDeleted, function (index, rowElem) {
+                    var item = grid.dataItem ? grid.dataItem(rowElem) : null;
+                    if (item && dataItems.indexOf(item) === -1) {
+                        dataItems.push(item);
+                    }
+                });
+
+                if (dataItems.length && grid.dataSource) {
+                    $.each(dataItems, function (index, item) {
+                        grid.dataSource.remove(item);
+                    });
+                } else {
+                    $.each(rowsToBeDeleted, function (index, rowElem) {
+                        if (grid.removeRow) {
+                            grid.removeRow($(rowElem));
+                        }
+                    });
                 }
             }
         },
