@@ -164,7 +164,7 @@ define([
             globalSelf.dataChangeWriteSearchBar = GridUtils.renderGridSearchBar(
                 "data-change-write-search",
                 globalSelf.dataChangeWriteGrid,
-                "name",
+                ["name", "nodeId", "sampleValue", "newValue"],
                 globalSelf,
                 globalSelf.nls
             );

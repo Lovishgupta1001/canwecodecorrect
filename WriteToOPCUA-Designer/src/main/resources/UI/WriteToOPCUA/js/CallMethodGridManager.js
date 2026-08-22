@@ -173,7 +173,7 @@ define([
             globalSelf.callMethodSearchBar = GridUtils.renderGridSearchBar(
                 "call-method-search",
                 globalSelf.callMethodGrid,
-                "name",
+                ["name", "nodeId", "objectNodeId", "outputValue"],
                 globalSelf,
                 globalSelf.nls
             );
