@@ -492,6 +492,11 @@ define(function (require) {
         _highlightCallMethodError: function (errorObject, path) {
             this._ensureCallMethodGridVisible();
 
+            if (path.indexOf("inputParameters") !== -1) {
+                this._highlightGridContainer(".cvt-grid-div-call-method", errorObject);
+                return;
+            }
+
             var rowInfo = this._extractGridRowInfo(path, "callMethod");
             if (!rowInfo) {
                 this._highlightGridContainer(".cvt-grid-div-call-method", errorObject);
@@ -500,11 +505,6 @@ define(function (require) {
 
             var gridWidget = this.callMethodGrid?.widget;
             if (!gridWidget) {
-                return;
-            }
-
-            if (rowInfo.fieldName === "inputParameters") {
-                this._highlightCallMethodInputParameters(gridWidget, rowInfo.rowIndex, errorObject);
                 return;
             }
 
@@ -522,21 +522,6 @@ define(function (require) {
             } else if (!this.callMethodGrid) {
                 CallMethodGridManager.renderCallMethodComponent(this);
             }
-        },
-
-        _highlightCallMethodInputParameters: function (gridWidget, rowIndex, errorObject) {
-            var result = this._getGridRowAndCellByField(gridWidget, rowIndex, "inputParameters");
-            if (!result?.row) {
-                return;
-            }
-
-            var dataItem = gridWidget.dataItem(result.row);
-            if (!dataItem) {
-                return;
-            }
-
-            result.cell.addErrorHighlightClass("components-error-red-highlight");
-            this.showErrorTooltip(errorObject, result.cell);
         },
 
         _extractGridRowInfo: function (path, sectionKey) {
