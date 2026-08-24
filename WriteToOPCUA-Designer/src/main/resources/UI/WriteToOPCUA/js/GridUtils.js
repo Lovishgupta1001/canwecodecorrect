@@ -76,7 +76,7 @@ define(function (require) {
             });
         },
 
-        _formatNodeDetailsHelpText: function (dataItem, rawHelpText, nodeId) {
+        _formatNodeDetailsHelpText: function (dataItem, rawHelpText, nodeId, isMethod) {
             if (rawHelpText) {
                 if (typeof rawHelpText === "object") {
                     return "<div class='ul-body-m-b'>" + nls.NodeDetails + "</div>" +
@@ -93,7 +93,9 @@ define(function (require) {
             };
 
             var html = "<div class='ul-header-xxxs-b ul-pad-1x'>" + nls.NodeDetails + "</div>";
-            var isMethod = !!(getVal("name") || getVal("objectNodeId"));
+            var isMethodRow = isMethod !== undefined
+                ? !!isMethod
+                : (!!getVal("objectNodeId") || (getVal("inputParameters") !== undefined && getVal("sampleValue") === undefined));
             var name = getVal("name") || "";
 
             var addRow = function (label, value) {
@@ -107,12 +109,12 @@ define(function (require) {
                 }
             };
 
-            if (isMethod) {
+            if (isMethodRow) {
                 addRow(nls.MethodName, name);
                 addRow(nls.NodeId, nodeId || getVal("nodeId"));
                 addRow(nls.ObjectNodeId, getVal("objectNodeId"));
             } else {
-                addRow(nls.NodeName, name);
+                addRow(nls.DataChangeName, name);
                 addRow(nls.NodeId, nodeId || getVal("nodeId"));
                 addRow(nls.DataTypeName, getVal("dataTypeName"));
                 addRow(nls.DataTypeNodeId, getVal("dataTypeNodeId"));
@@ -196,7 +198,8 @@ define(function (require) {
             });
         },
 
-        getNodeIdTemplate: function (selectionField) {
+        getNodeIdTemplate: function (isMethodOrField) {
+            var isMethod = isMethodOrField === true || isMethodOrField === "method" || isMethodOrField === "methodName";
             return function (dataItem) {
                 var getVal = function (key) {
                     return dataItem.get ? dataItem.get(key) : dataItem[key];
@@ -204,8 +207,8 @@ define(function (require) {
 
                 var nodeId = getVal("nodeId") || "";
                 var rawHelpText = getVal("nodeIdHelpText") || getVal("nodeIdDetails") || getVal("nodeDetails");
-                var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId);
-                var selVal = getVal("name") || getVal(selectionField);
+                var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId, isMethod);
+                var selVal = getVal("name");
                 var hasSelection = !!(selVal || nodeId);
 
                 return "<div class='writetoopcua-info-cell'>" +

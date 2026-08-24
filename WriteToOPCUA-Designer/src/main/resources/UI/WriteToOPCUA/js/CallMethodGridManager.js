@@ -56,7 +56,7 @@ define([
                     editable: function () {
                         return false;
                     },
-                    template: GridUtils.getNodeIdTemplate("name"),
+                    template: GridUtils.getNodeIdTemplate(true),
                     filterable: true
                 },
                 {

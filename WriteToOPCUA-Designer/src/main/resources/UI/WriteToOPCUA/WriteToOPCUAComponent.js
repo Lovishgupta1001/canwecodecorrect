@@ -160,8 +160,7 @@ define(function (require) {
                 });
                 return uniqueRows;
             }
-            var lastRow = (grid.tbody || grid.element?.find("tbody"))?.find("tr:last");
-            return lastRow?.length ? [lastRow[0]] : [];
+            return [];
         },
 
         _deleteGridRows: function (grid, rowElements) {
