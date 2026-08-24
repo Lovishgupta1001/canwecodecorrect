@@ -9,7 +9,7 @@ define([
     var CallMethodGridManager = {
 
         _outputValueEditor: function (container, options) {
-            var input = $("<input type='text' class='ul-textbox' name='" + options.field + "'/>");
+            var input = $("<input type='text' class='ul-textbox' name='" + options.field + "' data-bind='value:" + options.field + "'/>");
             input.val(options.model.get ? options.model.get(options.field) : options.model[options.field]);
             container.append(input);
         },
@@ -162,11 +162,23 @@ define([
                 dataSource: this._getCallMethodDataSource(data)
             });
 
+            var syncModel = function () {
+                if (globalSelf.callMethodGrid?.widget?.dataSource) {
+                    var gridData = globalSelf.callMethodGrid.widget.dataSource.data().toJSON();
+                    globalSelf.model.setKey("callMethod", gridData);
+                }
+            };
+
             if (globalSelf.callMethodGrid?.widget) {
                 globalSelf.callMethodGrid.widget.bind(
                     "dataBound",
                     this._initializeMethodDropdowns.bind(this, globalSelf)
                 );
+                globalSelf.callMethodGrid.widget.bind("cellClose", syncModel);
+                globalSelf.callMethodGrid.widget.bind("save", syncModel);
+                if (globalSelf.callMethodGrid.widget.dataSource) {
+                    globalSelf.callMethodGrid.widget.dataSource.bind("change", syncModel);
+                }
             }
 
             this._initializeMethodDropdowns(globalSelf);

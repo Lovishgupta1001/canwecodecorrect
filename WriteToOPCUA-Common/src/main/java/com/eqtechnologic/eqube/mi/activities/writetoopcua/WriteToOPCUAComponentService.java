@@ -203,12 +203,47 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
      */
     @Override
     public Map<String, Object> getDetailsOfKeysAddedOnConfig(Map<String, Object> configData, Map<String, Object> prevKeyDetails) {
-        Map<String, Object> outputHintMap = new HashMap<>();
-        List<String> keys = getKeysAddedOnConfig(configData);
-        for (String key : keys) {
-            outputHintMap.put(key, new HashMap<String, Object>());
+        HashMap<String, Object> returnCollectionMap = new HashMap<>();
+        if (configData == null) {
+            return returnCollectionMap;
         }
-        return outputHintMap;
+
+        List<?> callMethodList = extractCallMethodList(configData);
+        for (Object item : callMethodList) {
+            String outputValue = extractOutputValue(item);
+            if (outputValue != null && !outputValue.isEmpty()) {
+                Object methodDetail = getMethodOutputDetail(item);
+                returnCollectionMap.put(outputValue, methodDetail);
+            }
+        }
+        return returnCollectionMap;
+    }
+
+    private Object getMethodOutputDetail(Object item) {
+        HashMap<String, Object> outputArgMap = new HashMap<>();
+        if (item instanceof CallMethodItem callMethodItem) {
+            List<InputParameterItem> outputArgs = callMethodItem.getOutputArguments();
+            if (outputArgs != null && !outputArgs.isEmpty()) {
+                for (InputParameterItem arg : outputArgs) {
+                    if (arg != null && arg.getName() != null && !arg.getName().isEmpty()) {
+                        outputArgMap.put(arg.getName(), arg.getDataTypeName() != null ? arg.getDataTypeName() : "Object");
+                    }
+                }
+            }
+        } else if (item instanceof Map<?, ?> map) {
+            Object outArgs = map.get("outputArguments");
+            if (outArgs instanceof List<?> list) {
+                for (Object argObj : list) {
+                    if (argObj instanceof Map<?, ?> argMap) {
+                        String name = (String) argMap.get("name");
+                        if (name != null && !name.isEmpty()) {
+                            outputArgMap.put(name, argMap.get("dataTypeName") != null ? argMap.get("dataTypeName") : "Object");
+                        }
+                    }
+                }
+            }
+        }
+        return outputArgMap;
     }
 
     private List<?> extractCallMethodList(Map<String, Object> configData) {
