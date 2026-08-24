@@ -172,6 +172,15 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
                 || "skippedWriteItems".equalsIgnoreCase(id)) {
             return new ArrayList<>();
         }
+        if (configMap != null && id != null) {
+            List<?> callMethodList = extractCallMethodList(configMap);
+            for (Object item : callMethodList) {
+                String outputValue = extractOutputValue(item);
+                if (outputValue != null && outputValue.equalsIgnoreCase(id)) {
+                    return getMethodOutputDetail(item);
+                }
+            }
+        }
         return null;
     }
 
@@ -246,22 +255,27 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
         return outputArgMap;
     }
 
-    private List<?> extractCallMethodList(Map<String, Object> configData) {
+    private List<?> extractCallMethodList(Object configData) {
         if (configData == null) {
             return Collections.emptyList();
         }
-        Object obj = configData.get("callMethod");
-        if (obj == null) {
-            obj = configData.get("CallMethod");
+        if (configData instanceof WriteToOPCUAConfigBean configBean) {
+            return configBean.getCallMethod() != null ? configBean.getCallMethod() : Collections.emptyList();
         }
-        if (obj == null && configData.get(WriteToOPCUAConstants.WRITE_TO_OPCUA) instanceof Map<?, ?> inner) {
-            obj = inner.get("callMethod");
+        if (configData instanceof Map<?, ?> map) {
+            Object obj = map.get("callMethod");
             if (obj == null) {
-                obj = inner.get("CallMethod");
+                obj = map.get("CallMethod");
             }
-        }
-        if (obj instanceof List<?> list) {
-            return list;
+            if (obj == null && map.get(WriteToOPCUAConstants.WRITE_TO_OPCUA) instanceof Map<?, ?> inner) {
+                obj = inner.get("callMethod");
+                if (obj == null) {
+                    obj = inner.get("CallMethod");
+                }
+            }
+            if (obj instanceof List<?> list) {
+                return list;
+            }
         }
         return Collections.emptyList();
     }
