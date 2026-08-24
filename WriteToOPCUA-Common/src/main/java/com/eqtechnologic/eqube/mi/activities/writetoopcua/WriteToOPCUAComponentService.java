@@ -12,6 +12,7 @@ package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 import com.eqtechnologic.eqube.exception.BusinessException;
 import com.eqtechnologic.eqube.logging.LogTemplate;
 import com.eqtechnologic.eqube.logging.Logger;
+import com.eqtechnologic.eqube.logging.transaction.annotation.LogModuleName;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.CallMethodItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.WriteToOPCUAConfigBean;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,7 @@ import java.util.Map;
 @SuppressWarnings({"java:S6830", "rawtypes"})
 @Exported
 @Service(WriteToOPCUAConstants.WRITE_TO_OPCUA)
+@LogModuleName(moduleName = "Activity")
 @AutoService(ActivityService.class)
 public class WriteToOPCUAComponentService implements ActivityService<Object, Map, WriteToOPCUAConfigBean>,
         ConfigVariableHandler<Map<String, Object>>,
@@ -164,65 +167,96 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
 
     @Override
     public Object getOutputHints(Map configMap, String id, Map mapDetail) {
+        if ("successfulWriteItems".equalsIgnoreCase(id)
+                || "failedWriteItems".equalsIgnoreCase(id)
+                || "skippedWriteItems".equalsIgnoreCase(id)) {
+            return new ArrayList<>();
+        }
         return null;
     }
 
+    /**
+     * Returns list of variable names created on configuration (e.g. outputValue in CallMethod)
+     *
+     * @param configData configuration of activity
+     * @return List of variable names added on config
+     */
     @Override
     public List<String> getKeysAddedOnConfig(Map<String, Object> configData) {
         List<String> keyConfigData = new ArrayList<>();
-        if (configData == null) {
-            return keyConfigData;
-        }
-
-        Object callMethodObj = configData.get("callMethod");
-        if (callMethodObj instanceof List<?> callMethodList) {
-            for (Object item : callMethodList) {
-                String outputValue = extractOutputValue(item);
-                if (outputValue != null && !outputValue.trim().isEmpty()) {
-                    keyConfigData.add(outputValue.trim());
-                }
+        List<?> callMethodList = extractCallMethodList(configData);
+        for (Object item : callMethodList) {
+            String outputValue = extractOutputValue(item);
+            if (outputValue != null && !outputValue.isEmpty() && !keyConfigData.contains(outputValue)) {
+                keyConfigData.add(outputValue);
             }
         }
         return keyConfigData;
     }
 
+    /**
+     * Returns details map for each variable added on configuration
+     *
+     * @param configData configuration of activity
+     * @param prevKeyDetails previous key details in pipeline
+     * @return Map of variable name to its details object
+     */
     @Override
     public Map<String, Object> getDetailsOfKeysAddedOnConfig(Map<String, Object> configData, Map<String, Object> prevKeyDetails) {
         Map<String, Object> outputHintMap = new HashMap<>();
-        if (configData == null) {
-            return outputHintMap;
-        }
-
-        Object callMethodObj = configData.get("callMethod");
-        if (callMethodObj instanceof List<?> callMethodList) {
-            for (Object item : callMethodList) {
-                String outputValue = extractOutputValue(item);
-                if (outputValue != null && !outputValue.trim().isEmpty()) {
-                    Map<String, Object> hintDetails = new HashMap<>();
-                    hintDetails.put("dataType", "Object");
-                    hintDetails.put("description", "Output of OPC UA Method: " + extractMethodName(item));
-                    outputHintMap.put(outputValue.trim(), hintDetails);
-                }
-            }
+        List<String> keys = getKeysAddedOnConfig(configData);
+        for (String key : keys) {
+            outputHintMap.put(key, new HashMap<String, Object>());
         }
         return outputHintMap;
     }
 
+    private List<?> extractCallMethodList(Map<String, Object> configData) {
+        if (configData == null) {
+            return Collections.emptyList();
+        }
+        Object obj = configData.get("callMethod");
+        if (obj == null) {
+            obj = configData.get("CallMethod");
+        }
+        if (obj == null && configData.get(WriteToOPCUAConstants.WRITE_TO_OPCUA) instanceof Map<?, ?> inner) {
+            obj = inner.get("callMethod");
+            if (obj == null) {
+                obj = inner.get("CallMethod");
+            }
+        }
+        if (obj instanceof List<?> list) {
+            return list;
+        }
+        return Collections.emptyList();
+    }
+
     private String extractOutputValue(Object item) {
         if (item instanceof CallMethodItem callMethodItem) {
-            return callMethodItem.getOutputValue();
+            return cleanVariableName(callMethodItem.getOutputValue());
         } else if (item instanceof Map<?, ?> map) {
-            return (String) map.get("outputValue");
+            Object val = map.get("outputValue");
+            if (val == null) {
+                val = map.get("output_value");
+            }
+            if (val == null) {
+                val = map.get("OutputValue");
+            }
+            return cleanVariableName(val != null ? val.toString() : null);
         }
         return null;
     }
 
-    private String extractMethodName(Object item) {
-        if (item instanceof CallMethodItem callMethodItem) {
-            return callMethodItem.getName();
-        } else if (item instanceof Map<?, ?> map) {
-            return (String) map.get("name");
+    private String cleanVariableName(String rawVar) {
+        if (rawVar == null) {
+            return null;
         }
-        return "";
+        String var = rawVar.trim();
+        if ((var.startsWith("\"") && var.endsWith("\"")) || (var.startsWith("'") && var.endsWith("'"))) {
+            if (var.length() >= 2) {
+                var = var.substring(1, var.length() - 1).trim();
+            }
+        }
+        return var.isEmpty() ? null : var;
     }
 }
