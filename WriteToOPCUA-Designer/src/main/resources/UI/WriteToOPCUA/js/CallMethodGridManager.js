@@ -7,6 +7,7 @@ define([
     "use strict";
 
     var CallMethodGridManager = {
+
         _outputValueEditor: function (container, options) {
             var input = $("<input type='text' class='ul-textbox' name='" + options.field + "'/>");
             input.val(options.model.get ? options.model.get(options.field) : options.model[options.field]);
@@ -194,17 +195,14 @@ define([
                 }
 
                 var dataItem = grid.dataItem(row);
-
                 if (!dataItem) {
                     return;
                 }
 
                 var cell = element.closest("td");
-
                 cell.off("click.prevent-incell-edit").on("click.prevent-incell-edit", function (e) {
                     e.stopPropagation();
                 });
-
                 element.off("click.prevent-incell-edit").on("click.prevent-incell-edit", function (e) {
                     e.stopPropagation();
                 });
@@ -228,7 +226,6 @@ define([
                 if (element.data("method-dropdown-initialized")) {
                     return;
                 }
-
                 element.data("method-dropdown-initialized", true);
 
                 var dropdown = uilayer.dropDownList({
@@ -243,13 +240,11 @@ define([
                     },
                     change: function () {
                         var selectedValue = this.value();
-
                         if (!selectedValue) {
                             return;
                         }
 
                         var selectedItem = this.dataItem();
-
                         if (!selectedItem) {
                             return;
                         }
@@ -269,7 +264,6 @@ define([
                         if (nodeIdCell.length && grid.columns[2].template) {
                             nodeIdCell.html(grid.columns[2].template(dataItem));
                         }
-
                         if (inputParamsCell.length && grid.columns[3].template) {
                             inputParamsCell.html(grid.columns[3].template(dataItem));
                         }
@@ -363,7 +357,6 @@ define([
             }
 
             var dataItem = grid.dataItem(row);
-
             if (!dataItem) {
                 return;
             }

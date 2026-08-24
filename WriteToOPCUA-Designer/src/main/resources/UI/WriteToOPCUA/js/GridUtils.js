@@ -277,15 +277,15 @@ define(function (require) {
                 return "";
             }
 
-            if (typeof value !== "object") {
-                var strVal = String(value).trim();
-                if ((strVal.startsWith('"') && strVal.endsWith('"')) || (strVal.startsWith("'") && strVal.endsWith("'"))) {
-                    return strVal;
-                }
-                return '"' + strVal.replace(/"/g, '\\"') + '"';
+            var strVal = typeof value === "object"
+                ? JSON.stringify(value)
+                : String(value).trim();
+
+            if ((strVal.startsWith('"') && strVal.endsWith('"')) || (strVal.startsWith("'") && strVal.endsWith("'"))) {
+                return strVal;
             }
 
-            return 'createJSONObject("' + JSON.stringify(value).replace(/"/g, '\\"') + '")';
+            return '"' + strVal.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
         },
 
         getSampleValueTemplate: function () {
