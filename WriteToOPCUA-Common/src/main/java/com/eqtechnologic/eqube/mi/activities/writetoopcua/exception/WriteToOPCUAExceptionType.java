@@ -16,6 +16,8 @@ import com.eqtechnologic.eqube.exception.ExceptionType;
  *
  * @author Lovish
  */
+@SuppressWarnings("java:S6548")
+// Enum used to represent a fixed, well-defined set of exception types rather than as a Singleton pattern; not subject to Singleton misuse concerns.
 public enum WriteToOPCUAExceptionType implements ExceptionType {
 
     WRITE_TO_OPCUA_ACTIVITY_EXCEPTION;

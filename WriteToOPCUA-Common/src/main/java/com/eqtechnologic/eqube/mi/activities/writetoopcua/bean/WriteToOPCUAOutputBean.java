@@ -11,6 +11,7 @@ package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Output bean for Write To OPC UA Activity
@@ -22,6 +23,13 @@ public class WriteToOPCUAOutputBean {
     private List<Object> successfulWriteItems = new ArrayList<>();
     private List<Object> failedWriteItems = new ArrayList<>();
     private List<Object> skippedWriteItems = new ArrayList<>();
+
+    public WriteToOPCUAOutputBean(Object response) {
+        Map<String, List<String>> result = (Map<String, List<String>>) response;
+        this.successfulWriteItems = new ArrayList<>(result.get("successfulWriteItems"));
+        this.failedWriteItems = new ArrayList<>(result.get("failedWriteItems"));
+        this.skippedWriteItems = new ArrayList<>(result.get("skippedWriteItems"));
+    }
 
     public List<Object> getSuccessfulWriteItems() {
         return successfulWriteItems;

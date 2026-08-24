@@ -1,6 +1,6 @@
 /**
- * Created by Lovish.
- */
+* Created by Lovish.
+*/
 define({
     "root": {
         "writetoopcua.displayName": "Write To OPC UA",
@@ -42,15 +42,15 @@ define({
         "writetoopcua.outputFailedWriteItems": "Failed Write items",
         "writetoopcua.outputSkippedWriteItems": "Skipped Write items",
         "writetoopcua.selTransport": "Please select a Transport Name.",
-        "writetoopcua.emptyDataChangeWrite": "At least one Data Change Write item must be configured.",
-        "writetoopcua.emptyCallMethod": "At least one Method Call item must be configured.",
+        "writetoopcua.emptyDataChangeWrite": "At least one Data Change Write configuration is required.",
+        "writetoopcua.emptyCallMethod": "At least one Method Call configuration is required.",
         "writetoopcua.emptyDataChangeName": "Please select a Data Change Name.",
-        "writetoopcua.emptyNewValue": "Please specify a New Value.",
+        "writetoopcua.emptyNewValue": "Please specify New Value.",
         "writetoopcua.emptyMethodName": "Please select a Method Name.",
-        "writetoopcua.emptyParameterValue": "Please specify a Parameter Value.",
-        "writetoopcua.transportNotFound": "Transport not found.",
-        "writetoopcua.transportFrameworkError_transport": "Error occurred while validating transport.",
-        "TransportTestFailed": "Server is currently unavailable and as a result, value hints cannot be provided.",
+        "writetoopcua.emptyParameterValue": "Please specify value(s) in Input Parameters.",
+        "writetoopcua.transportNotFound": "Unable to fetch Transport because of an error.",
+        "writetoopcua.transportFrameworkError_transport": "Unable to validate Transport because of an error.",
+        "TransportTestFailed": "Server is unavailable. Value suggestions cannot be provided.",
         "NodeDetails": "Node Details",
         "NodeName": "Node Name",
         "ObjectNodeId": "Object Node ID",

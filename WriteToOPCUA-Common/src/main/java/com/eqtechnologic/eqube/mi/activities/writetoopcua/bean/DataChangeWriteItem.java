@@ -17,6 +17,7 @@ import com.eqtechnologic.eqube.mi.component.annotations.ComponentData;
 import com.eqtechnologic.eqube.mi.componentservices.exprbuilder.constants.ExpressionBuilderConstants;
 import com.eqtechnologic.eqube.mi.util.eQStatusMessage;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -129,6 +130,6 @@ public class DataChangeWriteItem implements eQCVTBeans, Entity {
 
     @Override
     public List<eQStatusMessage> validate() {
-        return null;
+        return Collections.emptyList();
     }
 }

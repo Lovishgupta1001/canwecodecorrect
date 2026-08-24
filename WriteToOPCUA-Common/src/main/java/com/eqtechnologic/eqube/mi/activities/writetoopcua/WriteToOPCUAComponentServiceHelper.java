@@ -9,18 +9,23 @@
  */
 package com.eqtechnologic.eqube.mi.activities.writetoopcua;
 
+import com.eqtechnologic.eqube.commoncomponents.enums.eQResourceType;
+import com.eqtechnologic.eqube.deploymanagement.beans.DeployRemapBean;
 import com.eqtechnologic.eqube.exception.BusinessException;
-import com.eqtechnologic.eqube.logging.LogTemplate;
 import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.CallMethodItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.DataChangeWriteItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.InputParameterItem;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.bean.TransportInfo;
 import com.eqtechnologic.eqube.mi.activities.writetoopcua.constants.WriteToOPCUAConstants;
-import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAErrorCode;
-import com.eqtechnologic.eqube.mi.activities.writetoopcua.exception.WriteToOPCUAExceptionType;
+import com.eqtechnologic.eqube.mi.component.service.RemapInfo;
+import com.eqtechnologic.eqube.mi.mdtransfer.beans.ProcessRemapInfos;
+import com.eqtechnologic.eqube.mi.mdtransfer.beans.eQExportEntity;
+import com.eqtechnologic.eqube.mi.util.AdminConsoleConstants;
 import com.eqtechnologic.eqube.platform.transport.client.beans.OpcUaTransportClientInfoBean;
 import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
+import com.eqtechnologic.eqube.platform.transport.client.constants.TransportClientConstants;
+import com.eqtechnologic.eqube.platform.transport.client.service.TransportClientService;
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaArgumentInfo;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaDataChangeWriteItem;
@@ -30,7 +35,9 @@ import com.eqtechnologic.eqube.transport.uiservice.TransportRESTServiceHelper;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Helper methods required for Write To OPC UA Component
@@ -129,4 +136,53 @@ public class WriteToOPCUAComponentServiceHelper {
         TransportRESTServiceHelper.testTransportByID(transportId);
         return true;
     }
+
+    private TransportClientService getTransportClientService(){
+        return ServiceRegistry.getInstance().getService(TransportClientConstants.SERVICE_NAME);
+    }
+
+    List<eQExportEntity> getConfigLinkedResources(Map<String, Object> configData) {
+        List<eQExportEntity> exportEntities = new ArrayList<>();
+        if (configData != null) {
+            String strTransportName = (String) configData.get(WriteToOPCUAConstants.TRANSPORT_NAME);
+            if (strTransportName != null && !strTransportName.isEmpty()) {
+                try {
+                    TransportClientBean transportClientBean = getTransportClientService().getTransportDetail(strTransportName);
+                    if (transportClientBean != null) {
+                        exportEntities.add(new eQExportEntity(AdminConsoleConstants.TransferElement.TRANSPORT, transportClientBean.getTransportId().toString()));
+                    }
+                }catch(BusinessException e){
+                    LOGGER.error("Error while fetching Transport");
+                }
+            }
+        }
+
+        return exportEntities;
+    }
+
+    void calculateConfigRemapInfo(RemapInfo completeRemapInfo, Map<String, Object> configData) {
+
+        ProcessRemapInfos processRemapInfos = (ProcessRemapInfos) completeRemapInfo;
+        String strTransportName = (String) configData.get(WriteToOPCUAConstants.TRANSPORT_NAME);
+        if (strTransportName != null && !strTransportName.trim().isEmpty()) {
+            DeployRemapBean deployRemapBean = new DeployRemapBean(eQResourceType.TRANSPORT, (String) configData.get(WriteToOPCUAConstants.TRANSPORT_NAME),
+                    (String) configData.get(WriteToOPCUAConstants.TRANSPORT_NAME), null);
+            Map<String, Object> otherDetails = new HashMap<>();
+            otherDetails.put("transportType", WriteToOPCUAConstants.OPCUA_TYPE);
+            deployRemapBean.setOtherDetails(otherDetails);
+            processRemapInfos.addDeployRemapInfo(eQResourceType.TRANSPORT.name(),deployRemapBean );
+        }
+    }
+
+    void setConfigRemapInfo(RemapInfo completeRemapInfo, Map<String, Object> configData) {
+        ProcessRemapInfos completeRemapInfos = ((ProcessRemapInfos) completeRemapInfo);
+        String strTransportName = (String) configData.get(WriteToOPCUAConstants.TRANSPORT_NAME);
+        for (DeployRemapBean remapInfo : completeRemapInfos.getDeployRemapInfo(eQResourceType.TRANSPORT.name())) {
+            if (remapInfo.getOldValue().equals(strTransportName) && remapInfo.getOtherDetails() != null){
+                configData.put(WriteToOPCUAConstants.TRANSPORT_NAME, remapInfo.getNewValue());
+            }
+        }
+    }
+
+
 }

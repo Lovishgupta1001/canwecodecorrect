@@ -1,12 +1,12 @@
 /**
- * Copyright (c) eQ Technologic (India) Pvt. Ltd.
- * All Rights Reserved.
- * <p>
- * This software is the confidential and proprietary information of eQTechnologic
- * ("Confidential Information"). You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into.
- */
+* Copyright (c) eQ Technologic (India) Pvt. Ltd.
+* All Rights Reserved.
+* <p>
+* This software is the confidential and proprietary information of eQTechnologic
+* ("Confidential Information"). You shall not
+* disclose such Confidential Information and shall use it only in
+* accordance with the terms of the license agreement you entered into.
+*/
 package com.eqtechnologic.eqube.mi.activities.writetoopcua.bean;
 
 import com.eqtechnologic.eqube.commonui.components.eQCVTBeans;
@@ -16,13 +16,14 @@ import com.eqtechnologic.eqube.entitydiff.api.annotations.EntityAttribute;
 import com.eqtechnologic.eqube.mi.util.eQStatusMessage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Bean to hold Call Method grid item details aligned with OpcUaMethodWriteItem
- *
- * @author Lovish
- */
+* Bean to hold Call Method grid item details aligned with OpcUaMethodWriteItem
+*
+* @author Lovish
+*/
 @ComparableEntity(name = "WriteToOPCUACallMethod")
 public class CallMethodItem implements eQCVTBeans, Entity {
 
@@ -37,7 +38,7 @@ public class CallMethodItem implements eQCVTBeans, Entity {
     @EntityAttribute(index = 2, attrName = "Object Node ID")
     private String objectNodeId;
 
-    private Object inputParameters;
+    private List<InputParameterItem> inputParameters = new ArrayList<>();
     private List<InputParameterItem> inputArguments = new ArrayList<>();
     private List<InputParameterItem> outputArguments = new ArrayList<>();
 
@@ -70,11 +71,11 @@ public class CallMethodItem implements eQCVTBeans, Entity {
         this.objectNodeId = objectNodeId;
     }
 
-    public Object getInputParameters() {
+    public List<InputParameterItem> getInputParameters() {
         return inputParameters != null ? inputParameters : inputArguments;
     }
 
-    public void setInputParameters(Object inputParameters) {
+    public void setInputParameters(List<InputParameterItem> inputParameters) {
         this.inputParameters = inputParameters;
     }
 
@@ -127,6 +128,6 @@ public class CallMethodItem implements eQCVTBeans, Entity {
 
     @Override
     public List<eQStatusMessage> validate() {
-        return null;
+        return Collections.emptyList();
     }
 }

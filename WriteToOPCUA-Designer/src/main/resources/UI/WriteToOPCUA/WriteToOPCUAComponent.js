@@ -405,8 +405,11 @@ define(function (require) {
 
             var actPrefix = pathParts[0];
 
-            if (actPrefix === "dataChangeWrite") {
+            if (actPrefix === "dataChangeWrite" ) {
                 this._highlightDataChangeWriteGridCell(pathParts, errorObject);
+            }
+            if (actPrefix === "callMethod" ) {
+                this._highlightCallMethodGridCell(pathParts, errorObject);
             }
 
             if (actPrefix === "WriteToOPCUA") {
@@ -433,6 +436,21 @@ define(function (require) {
             var column = pathParts[2];
             var row = pathParts[1];
             var columnArr = this.dataChangeWriteGrid.widget.$el.find("." + column);
+            var ele = $(columnArr[row - 1]);
+
+            if (!ele.length) {
+                return;
+            }
+
+            ele.get(0).scrollIntoView();
+            ele.addErrorHighlightClass("components-error-red-highlight");
+            this.showErrorTooltip(errorObject, ele);
+        },
+
+        _highlightCallMethodGridCell: function (pathParts, errorObject) {
+            var column = pathParts[2];
+            var row = pathParts[1];
+            var columnArr = this.callMethodGrid.widget.$el.find("." + column);
             var ele = $(columnArr[row - 1]);
 
             if (!ele.length) {

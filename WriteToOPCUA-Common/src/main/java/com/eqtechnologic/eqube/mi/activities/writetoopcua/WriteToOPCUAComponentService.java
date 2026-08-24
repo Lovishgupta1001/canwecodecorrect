@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -116,7 +115,7 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
 
     @Override
     public void calculateConfigRemapInfo(Map configData, RemapInfo remapInfo) {
-        // No implementation
+        opcuaHelper.calculateConfigRemapInfo(remapInfo, configData);
     }
 
     @Override
@@ -136,7 +135,7 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
 
     @Override
     public List<ComponentExportEntity> getLinkedResource(Map configData) {
-        return Collections.emptyList();
+        return opcuaHelper.getConfigLinkedResources(configData);
     }
 
     @Override
@@ -146,7 +145,7 @@ public class WriteToOPCUAComponentService implements ActivityService<Object, Map
 
     @Override
     public void setConfigRemapInfo(Map configData, RemapInfo remapInfo) {
-        // No implementation
+        opcuaHelper.setConfigRemapInfo(remapInfo, configData);
     }
 
     @Override

@@ -247,8 +247,7 @@ define([
 
                         var currentNewValue = dataItem.get ? dataItem.get("newValue") : dataItem["newValue"];
                         if (!currentNewValue && selectedData.sampleValue) {
-                            var defaultExpr = GridUtils.getDefaultExpression(selectedData.sampleValue);
-                            dataItem["newValue"] = defaultExpr;
+                            dataItem["newValue"] = GridUtils.getDefaultExpression(selectedData.sampleValue);
                         }
 
                         var nodeIdCell = row.find("td:eq(2)");

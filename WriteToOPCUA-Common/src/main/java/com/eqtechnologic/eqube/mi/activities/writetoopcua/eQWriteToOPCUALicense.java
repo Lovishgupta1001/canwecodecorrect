@@ -19,6 +19,6 @@ public class eQWriteToOPCUALicense implements eQActivityLicense {
 
     @Override
     public String getFeatureKey() {
-        return "ri86dOt9r6uOFz3K+y9bnu4S26w=";
+        return "V7PCDVXQ9Dpl2PZRiZaDkzzO6SE=";
     }
 }

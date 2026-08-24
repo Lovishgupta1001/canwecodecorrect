@@ -43,6 +43,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
     public static final String COMPONENT_ERR = "ComponentErr";
     private static final String EXPRESSION_BUILDER_SERVICE = "expressionBuilderService";
     private static final String CALL_METHOD_PREFIX = "callMethod/";
+    private static final String DATA_CHNAGE_WRITE_PREFIX = "dataChangeWrite/";
 
     @Override
     public List<eQError> validate(Map configMap, Map additionalInfo) {
@@ -87,7 +88,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 String name = getName(item);
                 if (name == null || name.trim().isEmpty() || "Select Data Change".equalsIgnoreCase(name.trim())) {
                     eQError error = new eQError(WriteToOPCUAConstants.ERR_EMPTY_DATA_CHANGE_NAME, COMPONENT_ERR,
-                            ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "dataChangeWrite/" + row + "/name"),
+                            ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, DATA_CHNAGE_WRITE_PREFIX + row + "/name"),
                             false);
                     errorList.add(error);
                 }
@@ -95,11 +96,11 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 String newValue = getNewValue(item);
                 if (newValue == null || newValue.trim().isEmpty()) {
                     eQError error = new eQError(WriteToOPCUAConstants.ERR_EMPTY_NEW_VALUE, COMPONENT_ERR,
-                            ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "dataChangeWrite/" + row + "/newValue"),
+                            ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, DATA_CHNAGE_WRITE_PREFIX + row + "/newValue"),
                             false);
                     errorList.add(error);
                 } else {
-                    validateExpression(newValue, additionalInfo, errorList, "dataChangeWrite/" + row + "/newValue");
+                    validateExpression(newValue, additionalInfo, errorList, DATA_CHNAGE_WRITE_PREFIX + row + "/newValue");
                 }
             }
             row++;
@@ -121,7 +122,7 @@ public class WriteToOPCUAValidator implements ComponentValidator<Map, Map> {
                 String name = getName(item);
                 if (name == null || name.trim().isEmpty() || "Select Method".equalsIgnoreCase(name.trim())) {
                     eQError error = new eQError(WriteToOPCUAConstants.ERR_EMPTY_METHOD_NAME, COMPONENT_ERR,
-                            ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, "callMethod/" + row + "/name"),
+                            ComponentUtility.getInstance().createPath(WriteToOPCUAConstants.WRITE_TO_OPCUA, CALL_METHOD_PREFIX + row + "/name"),
                             false);
                     errorList.add(error);
                 }
