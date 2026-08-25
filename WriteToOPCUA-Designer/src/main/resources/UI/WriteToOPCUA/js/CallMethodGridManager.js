@@ -33,7 +33,7 @@ define([
             return [
                 {
                     selectable: true,
-                    width: "45px"
+                    width: "55px"
                 },
                 {
                     field: "name",
