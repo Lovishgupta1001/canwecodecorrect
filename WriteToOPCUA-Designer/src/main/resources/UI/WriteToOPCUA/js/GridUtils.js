@@ -280,15 +280,24 @@ define(function (require) {
                 return "";
             }
 
-            var strVal = typeof value === "object"
-                ? JSON.stringify(value)
-                : String(value).trim();
+            if (typeof value !== "object") {
+                var strVal = String(value).trim();
 
-            if ((strVal.startsWith('"') && strVal.endsWith('"')) || (strVal.startsWith("'") && strVal.endsWith("'"))) {
-                return strVal;
+                if ((strVal.startsWith('"') && strVal.endsWith('"')) ||
+                    (strVal.startsWith("'") && strVal.endsWith("'"))) {
+                    return strVal;
+                }
+
+                return '"' + strVal.replace(/"/g, '\\"') + '"';
             }
 
-            return '"' + strVal.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+            var jsonString = JSON.stringify(value).replace(/"/g, '\\"');
+
+            if (Array.isArray(value)) {
+                return 'createJSONArray("' + jsonString + '")';
+            }
+
+            return 'createJSONObject("' + jsonString + '")';
         },
 
         getSampleValueTemplate: function () {

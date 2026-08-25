@@ -148,7 +148,7 @@ define(function (require) {
             return $();
         },
 
-        _collectRowsToDelete: function (grid) {
+        _collectRowsToDelete: function () {
             var selectedRows = this.getSelectedRows();
             if (selectedRows?.length) {
                 var uniqueRows = [];
