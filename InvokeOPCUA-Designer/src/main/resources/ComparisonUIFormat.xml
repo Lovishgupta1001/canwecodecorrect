@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<activity xmlns="http://www.w3.org/activitycomparison/activitycapabilitiescomparison">
+    <capability name="Configuration">
+        <component name="i18n:invokeopcua.TransportName" id="transportName"/>
+        <component name="i18n:invokeopcua.Operation" id="operation"/>
+        <component name="i18n:invokeopcua.ExecutionMode" id="executionMode"/>
+
+        <group name="i18n:invokeopcua.DataChangeWrite">
+            <component id="InvokeOPCUADataChangeWrite" addHeader="true"/>
+        </group>
+
+        <group name="i18n:invokeopcua.CallMethod">
+            <component id="InvokeOPCUACallMethod" addHeader="true"/>
+        </group>
+    </capability>
+    <capability name="Output">
+        <component name="i18n:invokeopcua.outputSuccessfulWriteItems" id="successfulWriteItems"/>
+        <component name="i18n:invokeopcua.outputFailedWriteItems" id="failedWriteItems"/>
+        <component name="i18n:invokeopcua.outputSkippedWriteItems" id="skippedWriteItems"/>
+    </capability>
+</activity>

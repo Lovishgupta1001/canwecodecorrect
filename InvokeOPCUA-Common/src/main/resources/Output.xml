@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OUTPUTS>
+    <OUTPUT>
+        <ID>successfulWriteItems</ID>
+        <LABEL>invokeopcua.outputSuccessfulWriteItems</LABEL>
+        <DATATYPE>List</DATATYPE>
+        <DESCRIPTION>Successful Write items</DESCRIPTION>
+    </OUTPUT>
+    <OUTPUT>
+        <ID>failedWriteItems</ID>
+        <LABEL>invokeopcua.outputFailedWriteItems</LABEL>
+        <DATATYPE>List</DATATYPE>
+        <DESCRIPTION>Failed Write items</DESCRIPTION>
+    </OUTPUT>
+    <OUTPUT>
+        <ID>skippedWriteItems</ID>
+        <LABEL>invokeopcua.outputSkippedWriteItems</LABEL>
+        <DATATYPE>List</DATATYPE>
+        <DESCRIPTION>Skipped Write items</DESCRIPTION>
+    </OUTPUT>
+</OUTPUTS>

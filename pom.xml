@@ -5,18 +5,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.eqtechnologic.eqube.mi.activities</groupId>
-    <artifactId>WriteToOPCUA-Parent</artifactId>
+    <artifactId>InvokeOPCUA-Parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>WriteToOPCUA-Parent</name>
-    <description>Parent POM for Write To OPC UA Activity</description>
+    <name>InvokeOPCUA-Parent</name>
+    <description>Parent POM for Invoke OPC UA Activity</description>
 
     <modules>
-        <module>WriteToOPCUA-Common</module>
-        <module>WriteToOPCUA-Designer</module>
-        <module>WriteToOPCUA-Runtime</module>
-        <module>WriteToOPCUA-Bundle</module>
+        <module>InvokeOPCUA-Common</module>
+        <module>InvokeOPCUA-Designer</module>
+        <module>InvokeOPCUA-Runtime</module>
+        <module>InvokeOPCUA-Bundle</module>
     </modules>
 
     <properties>
