@@ -168,6 +168,10 @@ define(function (require) {
                 return grid.dataItem ? grid.dataItem(elem) : null;
             })));
 
+            if (this.$(".call-method-radio").is(":checked")) {
+                CallMethodGridManager.onDeleteCallMethodRows(this, dataItems);
+            }
+
             if (dataItems.length && grid.dataSource) {
                 dataItems.forEach(function (item) {
                     grid.dataSource.remove(item);
@@ -218,12 +222,14 @@ define(function (require) {
 
         _onAddCallMethodRow: function () {
             if (this.callMethodGrid?.widget?.dataSource) {
+                var count = this.callMethodGrid.widget.dataSource.data().length;
                 this.callMethodGrid.widget.dataSource.add({
                     name: "",
                     nodeId: "",
                     objectNodeId: "",
                     inputParameters: [],
-                    outputValue: ""
+                    outputValue: "",
+                    fieldId: "CM_" + Date.now() + "_" + count
                 });
             }
         },

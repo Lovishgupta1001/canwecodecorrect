@@ -9,8 +9,11 @@ define([
     var CallMethodGridManager = {
 
         _outputValueEditor: function (container, options) {
+            var currentVal = options.model.get ? options.model.get(options.field) : options.model[options.field];
+            options.model._oldOutputValue = currentVal || "";
+
             var input = $("<input type='text' class='ul-textbox' name='" + options.field + "' data-bind='value:" + options.field + "'/>");
-            input.val(options.model.get ? options.model.get(options.field) : options.model[options.field]);
+            input.val(currentVal || "");
             container.append(input);
         },
 
@@ -99,6 +102,10 @@ define([
                                 editable: false,
                                 nullable: true
                             },
+                            fieldId: {
+                                type: "string",
+                                defaultValue: ""
+                            },
                             name: {
                                 type: "string"
                             },
@@ -127,7 +134,94 @@ define([
             return false;
         },
 
+        onOutputValueChange: function (globalSelf, model) {
+            if (!globalSelf?.processModel || !model) {
+                return;
+            }
+
+            var newVal = (model.get ? model.get("outputValue") : model.outputValue) || "";
+            newVal = typeof newVal === "string" ? newVal.trim() : "";
+            var oldVal = ((model._oldOutputValue !== undefined ? model._oldOutputValue : "") || "").trim();
+
+            if (newVal === oldVal) {
+                return;
+            }
+
+            var fieldId = model.get ? model.get("fieldId") : model.fieldId;
+            if (!fieldId) {
+                fieldId = "CM_" + (model.uid || Math.random().toString(36).substr(2, 9));
+                if (model.set) {
+                    model.set("fieldId", fieldId);
+                } else {
+                    model.fieldId = fieldId;
+                }
+            }
+
+            var gridData = this._getOutputVariablesGridData(globalSelf);
+
+            if (oldVal && oldVal !== newVal) {
+                this._addOldVariableName(gridData, oldVal, fieldId);
+            }
+
+            if (newVal) {
+                globalSelf.processModel.addVariable(gridData, fieldId, globalSelf.activityId, "CONFIGURATION");
+            } else if (oldVal) {
+                globalSelf.processModel.removeVariable(oldVal, "", globalSelf.activityId, "CONFIGURATION", fieldId, 0);
+            }
+
+            model._oldOutputValue = newVal;
+        },
+
+        _getOutputVariablesGridData: function (globalSelf) {
+            var gridData = [];
+            if (globalSelf.callMethodGrid?.widget?.dataSource) {
+                var data = globalSelf.callMethodGrid.widget.dataSource.data().toJSON();
+                _.each(data, function (item, index) {
+                    var val = (item.outputValue || "").trim();
+                    if (val) {
+                        gridData.push({
+                            variableName: val,
+                            expression: "",
+                            fieldId: item.fieldId || ("CM_" + (item.uid || index))
+                        });
+                    }
+                });
+            }
+            return gridData;
+        },
+
+        _addOldVariableName: function (gridData, oldName, fieldId) {
+            _.each(gridData, function (variable) {
+                if (variable.fieldId === fieldId && variable.variableName !== oldName) {
+                    variable.oldName = oldName;
+                }
+            });
+        },
+
+        onDeleteCallMethodRows: function (globalSelf, deletedDataItems) {
+            if (!globalSelf?.processModel || !deletedDataItems?.length) {
+                return;
+            }
+
+            deletedDataItems.forEach(function (item, idx) {
+                var outputVal = item.get ? item.get("outputValue") : item.outputValue;
+                var fieldId = item.get ? item.get("fieldId") : item.fieldId;
+                if (outputVal && typeof outputVal === "string" && outputVal.trim()) {
+                    globalSelf.processModel.removeVariable(
+                        outputVal.trim(),
+                        "",
+                        globalSelf.activityId,
+                        "CONFIGURATION",
+                        fieldId || ("CM_" + idx),
+                        idx
+                    );
+                }
+            });
+        },
+
         renderCallMethodComponent: function (globalSelf) {
+            var manager = this;
+
             if (this._resizeGridIfExists(globalSelf.callMethodGrid)) {
                 return;
             }
@@ -139,9 +233,16 @@ define([
                     nodeId: "",
                     objectNodeId: "",
                     inputParameters: [],
-                    outputValue: ""
+                    outputValue: "",
+                    fieldId: "CM_" + Date.now() + "_0"
                 }];
                 globalSelf.model.setKey("callMethod", data);
+            } else if (data.length) {
+                _.each(data, function (item, idx) {
+                    if (!item.fieldId) {
+                        item.fieldId = "CM_" + (item.nodeId || idx) + "_" + idx;
+                    }
+                });
             }
 
             globalSelf.callMethodGrid = uilayer.grid({
@@ -162,10 +263,13 @@ define([
                 dataSource: this._getCallMethodDataSource(data)
             });
 
-            var syncModel = function () {
+            var syncModel = function (e) {
                 if (globalSelf.callMethodGrid?.widget?.dataSource) {
                     var gridData = globalSelf.callMethodGrid.widget.dataSource.data().toJSON();
                     globalSelf.model.setKey("callMethod", gridData);
+                }
+                if (e?.model) {
+                    manager.onOutputValueChange(globalSelf, e.model);
                 }
             };
 
