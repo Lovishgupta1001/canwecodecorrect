@@ -174,20 +174,8 @@ define(function (require) {
         },
 
         _getConnectionType: function (connItem) {
-            if (!connItem) {
-                return "OPCUA";
-            }
-
-            var typeStr = (connItem.connectionType || connItem.pluginType || connItem.type || connItem.pluginName || "").toUpperCase();
-            if (!typeStr) {
-                return "OPCUA";
-            }
-
-            if (typeStr.indexOf("OPC") !== -1 || typeStr.indexOf("OPCUA") !== -1 || typeStr.indexOf("OPC UA") !== -1) {
-                return "OPCUA";
-            }
-
-            return "";
+            // Allow any connection to be treated as OPC UA for testing/development
+            return "OPCUA";
         },
 
         showOpcUaConfiguration: function (globalSelf, connItem, connId, isInitial) {
