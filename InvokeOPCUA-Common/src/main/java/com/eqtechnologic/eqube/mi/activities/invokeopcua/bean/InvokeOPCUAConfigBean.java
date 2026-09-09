@@ -22,9 +22,11 @@ import java.util.List;
  */
 public class InvokeOPCUAConfigBean extends ActivityConfigBean {
 
-    private Boolean dynamicTransport = Boolean.FALSE;
-
-    private String transportName;
+    private String connectionComboBox;
+    private String connectionName;
+    private String connectionId;
+    private String connectionType;
+    private String selectConnection;
 
     private String operation = InvokeOPCUAConstants.DATA_CHANGE_WRITE;
     private String executionMode = InvokeOPCUAConstants.PARALLEL;
@@ -38,20 +40,44 @@ public class InvokeOPCUAConfigBean extends ActivityConfigBean {
         return InvokeOPCUAConstants.INVOKE_OPCUA;
     }
 
-    public Boolean getDynamicTransport() {
-        return dynamicTransport;
+    public String getConnectionComboBox() {
+        return connectionComboBox;
     }
 
-    public void setDynamicTransport(Boolean dynamicTransport) {
-        this.dynamicTransport = dynamicTransport;
+    public void setConnectionComboBox(String connectionComboBox) {
+        this.connectionComboBox = connectionComboBox;
     }
 
-    public String getTransportName() {
-        return transportName;
+    public String getConnectionName() {
+        return connectionName;
     }
 
-    public void setTransportName(String transportName) {
-        this.transportName = transportName;
+    public void setConnectionName(String connectionName) {
+        this.connectionName = connectionName;
+    }
+
+    public String getConnectionId() {
+        return connectionId;
+    }
+
+    public void setConnectionId(String connectionId) {
+        this.connectionId = connectionId;
+    }
+
+    public String getConnectionType() {
+        return connectionType;
+    }
+
+    public void setConnectionType(String connectionType) {
+        this.connectionType = connectionType;
+    }
+
+    public String getSelectConnection() {
+        return selectConnection;
+    }
+
+    public void setSelectConnection(String selectConnection) {
+        this.selectConnection = selectConnection;
     }
 
     public String getOperation() {

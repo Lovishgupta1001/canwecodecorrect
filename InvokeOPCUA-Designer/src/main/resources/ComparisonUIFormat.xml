@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <activity xmlns="http://www.w3.org/activitycomparison/activitycapabilitiescomparison">
     <capability name="Configuration">
-        <component name="i18n:invokeopcua.TransportName" id="transportName"/>
+        <component name="i18n:invokeopcua.Connection" id="connectionComboBox"/>
         <component name="i18n:invokeopcua.Operation" id="operation"/>
         <component name="i18n:invokeopcua.ExecutionMode" id="executionMode"/>
 

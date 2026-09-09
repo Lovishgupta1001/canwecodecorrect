@@ -20,11 +20,11 @@ import com.eqtechnologic.eqube.mi.modulecodes.ModuleErrorCode;
  */
 public enum InvokeOPCUAErrorCode implements ErrorCode {
 
-    ERROR_WHILE_FETCHING_OPCUA_TRANSPORT_LIST(902001, "Error occurred while getting OPC UA transport list"),
-    ERROR_WHILE_TESTING_TRANSPORT(902002, "Error occurred while testing transport"),
-    ERROR_WHILE_VALIDATING_TRANSPORT(902003, "Error occurred while validating transport"),
+    ERROR_WHILE_FETCHING_CONNECTION_LIST(902001, "Error occurred while getting connection list"),
+    ERROR_WHILE_TESTING_CONNECTION(902002, "Error occurred while testing connection"),
+    ERROR_WHILE_VALIDATING_CONNECTION(902003, "Error occurred while validating connection"),
     ERROR_WHILE_VALIDATING_EXPRESSION(902004, "Error occurred while validating expression"),
-    ERROR_WHILE_FETCHING_TRANSPORT_DETAILS(902005, "Error occurred while getting transport details");
+    ERROR_WHILE_FETCHING_CONNECTION_DETAILS(902005, "Error occurred while getting connection details");
 
     private final int errorCode;
     private final String errorMessage;

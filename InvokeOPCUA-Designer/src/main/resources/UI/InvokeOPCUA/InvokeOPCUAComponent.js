@@ -11,9 +11,10 @@ define(function (require) {
         nls = require("i18n!./nls/InvokeOPCUAComponentNLS"),
         Constants = require("./js/constants"),
         ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility"),
-        TransportManager = require("./js/TransportManager"),
+        ConnectionManager = require("./js/ConnectionManager"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
-        CallMethodGridManager = require("./js/CallMethodGridManager");
+        CallMethodGridManager = require("./js/CallMethodGridManager"),
+        AddressSpaceBrowser = require("./js/AddressSpaceBrowser");
 
     var InvokeOPCUAUIComponent = MIUIComponentI.extend({
 
@@ -22,6 +23,7 @@ define(function (require) {
         nls: nls,
 
         events: {
+            "click #refresh-connection-button": "_onRefreshConnection",
             "click .invokeopcua-delete-row": "_onDeleteGridRow",
             "click .invokeopcua-grid-delete-btn": "_onDeleteToolbarRow",
             "click .input-parameter-badge": "_onInputParameterBadgeClick",
@@ -35,9 +37,6 @@ define(function (require) {
             this.activityId = options.activityId;
             this.designerReqres = options.reqres;
             this.processModel = this.designerReqres.request("getCurrentActiveEntityModelFromDataStore");
-
-            this.dataChangeOptions = [];
-            this.callMethodOptions = [];
 
             if (!this.model.getKey("dataChangeWrite")) {
                 this.model.setKey("dataChangeWrite", []);
@@ -72,7 +71,9 @@ define(function (require) {
             this.$(".parallel-mode-radio").prop("checked", executionMode === Constants.PARALLEL);
             this.$(".sequential-mode-radio").prop("checked", executionMode === Constants.SEQUENTIAL);
 
-            this._initTransportUI();
+            this._renderDrawer();
+            this._initAddressSpaceBrowser();
+            this._initConnectionUI();
             this._updateOperationUI();
             this._renderHelp();
 
@@ -83,11 +84,46 @@ define(function (require) {
                 if (globalSelf.callMethodGrid?.widget) {
                     globalSelf.callMethodGrid.widget.resize();
                 }
+                globalSelf.addressSpaceDrawer?.resizeDrawer("invokeopcua-address-space-drawer-section", "50%");
             });
 
             deferred.resolve();
 
             return deferred.promise();
+        },
+
+        _renderDrawer: function () {
+            this.addressSpaceDrawer = uilayer.drawer({
+                elem: this.$el.find("#invokeopcua-main-container"),
+                section: {
+                    "invokeopcua-address-space-drawer-section": {
+                        position: "right",
+                        toggleHandle: true,
+                        resizable: true,
+                        dimensionValue: "50%",
+                        min: "30%",
+                        max: "70%"
+                    }
+                }
+            });
+        },
+
+        _initAddressSpaceBrowser: function () {
+            AddressSpaceBrowser.init(this, this.$el.find("#invokeopcua-address-space-component"));
+            this.addressSpaceBrowser = AddressSpaceBrowser;
+        },
+
+        getConnectionPayload: function () {
+            var connId = this.connectionComboBox ? this.connectionComboBox.value() : this.model.getKey("connectionId");
+            var connText = this.connectionComboBox ? this.connectionComboBox.text() : this.model.getKey("connectionName");
+            var connType = this.model.getKey("connectionType") || "OPCUA";
+            return {
+                connectionId: connId,
+                connectionName: connText,
+                name: connText,
+                type: connType,
+                connectionType: connType
+            };
         },
 
         _renderHelp: function () {
@@ -113,7 +149,8 @@ define(function (require) {
         _initializeControls: function () {
             this.$(".data-change-write-container").hide();
             this.$(".call-method-container").hide();
-            this.$("#transport-name-expression-region").hide();
+            this.$(".invokeopcua-config-controls").hide();
+            this.$(".invokeopcua-grids-section").hide();
         },
 
         _getGridInstance: function () {
@@ -164,12 +201,13 @@ define(function (require) {
         },
 
         _deleteGridRows: function (grid, rowElements) {
+            var globalSelf = this;
             var dataItems = _.compact(_.uniq(rowElements.map(function (elem) {
                 return grid.dataItem ? grid.dataItem(elem) : null;
             })));
 
-            if (this.$(".call-method-radio").is(":checked")) {
-                CallMethodGridManager.onDeleteCallMethodRows(this, dataItems);
+            if (this.$(".call-method-radio").is(":checked") && dataItems.length) {
+                CallMethodGridManager.removeOutputVariablesFromProcessModel(dataItems, globalSelf);
             }
 
             if (dataItems.length && grid.dataSource) {
@@ -180,12 +218,6 @@ define(function (require) {
                 rowElements.forEach(function (elem) {
                     grid.removeRow?.($(elem));
                 });
-            }
-
-            if (this.$(".data-change-write-radio").is(":checked")) {
-                DataChangeGridManager.refreshDropdownOptions(this);
-            } else {
-                CallMethodGridManager.refreshDropdownOptions(this);
             }
         },
 
@@ -234,14 +266,12 @@ define(function (require) {
             }
         },
 
-        _initTransportUI: function () {
-            TransportManager.updateTransportUI(this);
+        _initConnectionUI: function () {
+            ConnectionManager.renderConnectionDropdown(this);
         },
 
-        _updateTransportUI: function () {
-            TransportManager.updateTransportUI(this);
-            DataChangeGridManager.refreshGridMode(this);
-            CallMethodGridManager.refreshGridMode(this);
+        _onRefreshConnection: function () {
+            ConnectionManager.refreshConnection(this);
         },
 
         _updateOperationUI: function () {
@@ -311,6 +341,21 @@ define(function (require) {
                 this.model.setKey("dataChangeWrite", []);
             }
 
+            var connText = "";
+            if (this.connectionComboBox) {
+                var rawText = this.connectionComboBox.text();
+                if (rawText && rawText !== this.nls.SelectConnection) {
+                    connText = rawText;
+                }
+            }
+
+            var connId = this.connectionComboBox ? this.connectionComboBox.value() : "";
+
+            this.model.setKey("connectionComboBox", connText);
+            this.model.setKey("connectionName", connText);
+            this.model.setKey("connectionId", connId);
+            this.model.setKey("selectConnection", connText || connId);
+
             return this.model.toJSON();
         },
 
@@ -318,6 +363,16 @@ define(function (require) {
             for (var key in obj) {
                 if (Object.prototype.hasOwnProperty.call(obj, key)) {
                     this.model.setKey(key, obj[key]);
+                }
+            }
+            this.initialData = obj;
+
+            var connVal = obj?.connectionComboBox || obj?.selectConnection || obj?.connectionName;
+            if (connVal && this.connectionComboBox) {
+                this.connectionComboBox.text(connVal);
+                var currentVal = this.connectionComboBox.value();
+                if (currentVal) {
+                    ConnectionManager._validateAndHandleConnection(currentVal, this, true);
                 }
             }
         },
@@ -387,8 +442,8 @@ define(function (require) {
                 return;
             }
 
-            if (path.indexOf("transportName") !== -1) {
-                this._highlightTransportError(errorObject);
+            if (path.indexOf("connectionComboBox") !== -1 || path.indexOf("selectConnection") !== -1 || path.indexOf("connection") !== -1) {
+                this._highlightConnectionError(errorObject);
                 return;
             }
 
@@ -410,10 +465,10 @@ define(function (require) {
 
             var actPrefix = pathParts[0];
 
-            if (actPrefix === "dataChangeWrite" ) {
+            if (actPrefix === "dataChangeWrite") {
                 this._highlightDataChangeWriteGridCell(pathParts, errorObject);
             }
-            if (actPrefix === "callMethod" ) {
+            if (actPrefix === "callMethod") {
                 this._highlightCallMethodGridCell(pathParts, errorObject);
             }
 
@@ -467,18 +522,15 @@ define(function (require) {
             this.showErrorTooltip(errorObject, ele);
         },
 
-        _highlightTransportError: function (errorObject) {
-            var element = this.$el.find("#transport-selector-dropdown");
-            if (!element.length) {
-                element = this.$el.find(".transport-selector-dropdown");
-            }
+        _highlightConnectionError: function (errorObject) {
+            var element = this.$el.find("#connectionComboBox");
             if (!element.length) {
                 return;
             }
 
             this.focusErrorComponent(element);
 
-            var dropdownWrapper = element.closest(".k-widget");
+            var dropdownWrapper = element.parent().find(".k-input, .k-dropdown-wrap, .k-widget");
             var target = dropdownWrapper.length ? dropdownWrapper : element;
             target.addErrorHighlightClass("components-error-red-highlight");
             this.showErrorTooltip(errorObject, target);
@@ -624,17 +676,15 @@ define(function (require) {
             this._destroyComponent(this.callMethodGrid);
             this.callMethodGrid = null;
 
-            this._destroyComponent(this.transportDropdown);
-            this.transportDropdown = null;
+            if (this.addressSpaceBrowser) {
+                this.addressSpaceBrowser.onDestroy();
+                this.addressSpaceBrowser = null;
+            }
 
-            this._destroyComponent(this.refreshButton);
-            this.refreshButton = null;
+            this.addressSpaceDrawer?.destroy();
+            this.addressSpaceDrawer = null;
 
-            this._destroyComponent(this.createButton);
-            this.createButton = null;
-
-            this._destroyComponent(this.openButton);
-            this.openButton = null;
+            ConnectionManager.onDestroy(this);
 
             this.selectedCallMethodRow = null;
         }

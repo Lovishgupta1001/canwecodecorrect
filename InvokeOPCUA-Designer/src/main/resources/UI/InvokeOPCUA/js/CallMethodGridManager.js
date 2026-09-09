@@ -44,7 +44,9 @@ define([
                     width: "25%",
                     attributes: { "class": "name" },
                     template: function (dataItem) {
-                        return "<div class='method-name-dropdown' data-row-uid='" + dataItem.uid + "'></div>";
+                        var name = dataItem.get ? dataItem.get("name") : dataItem.name;
+                        name = name || "";
+                        return "<span class='method-name-cell eq-common-ellipsis' title='" + _.escape(name) + "'>" + _.escape(name) + "</span>";
                     },
                     editable: function () {
                         return false;
@@ -65,7 +67,7 @@ define([
                 {
                     field: "inputParameters",
                     title: globalSelf.nls.InputParameters,
-                    width: "25%",
+                    width: "20%",
                     attributes: { "class": "inputParameters" },
                     editable: function () {
                         return false;
@@ -85,6 +87,21 @@ define([
                         return true;
                     },
                     filterable: false
+                },
+                {
+                    field: "browseAction",
+                    title: globalSelf.nls.Action || "Action",
+                    width: "90px",
+                    attributes: { "class": "browse-action-cell" },
+                    template: function (dataItem) {
+                        return "<button type='button' class='k-button ul-tertiary-button browse-call-method-btn' data-row-uid='" +
+                            dataItem.uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>";
+                    },
+                    editable: function () {
+                        return false;
+                    },
+                    filterable: false,
+                    sortable: false
                 }
             ];
         },
@@ -110,6 +127,10 @@ define([
                                 type: "string"
                             },
                             nodeId: {
+                                type: "string",
+                                editable: false
+                            },
+                            objectNodeId: {
                                 type: "string",
                                 editable: false
                             },
@@ -158,76 +179,101 @@ define([
             }
 
             var gridData = this._getOutputVariablesGridData(globalSelf);
+            var isDuplicate = gridData.some(function (item) {
+                var itemFieldId = item.fieldId || item.id || "";
+                var itemVal = (item.outputValue || item.outputVariable || "").trim();
+                return itemFieldId !== fieldId && itemVal === newVal && newVal !== "";
+            });
 
-            if (oldVal && oldVal !== newVal) {
-                this._addOldVariableName(gridData, oldVal, fieldId);
+            if (isDuplicate) {
+                uilayer.notifier("warning", "Variable '" + newVal + "' is already defined in another method call.");
+                if (model.set) {
+                    model.set("outputValue", oldVal);
+                } else {
+                    model.outputValue = oldVal;
+                }
+                return;
             }
 
-            if (newVal) {
-                globalSelf.processModel.addVariable(gridData, fieldId, globalSelf.activityId, "CONFIGURATION");
-            } else if (oldVal) {
-                globalSelf.processModel.removeVariable(oldVal, "", globalSelf.activityId, "CONFIGURATION", fieldId, 0);
-            }
-
+            this.syncOutputVariablesWithProcessModel(globalSelf, gridData);
             model._oldOutputValue = newVal;
         },
 
         _getOutputVariablesGridData: function (globalSelf) {
-            var gridData = [];
-            if (globalSelf.callMethodGrid?.widget?.dataSource) {
-                var data = globalSelf.callMethodGrid.widget.dataSource.data().toJSON();
-                _.each(data, function (item, index) {
-                    var val = (item.outputValue || "").trim();
-                    if (val) {
-                        gridData.push({
-                            variableName: val,
-                            expression: "",
-                            fieldId: item.fieldId || ("CM_" + (item.uid || index))
-                        });
-                    }
-                });
+            var grid = globalSelf.callMethodGrid?.widget;
+            if (!grid?.dataSource) {
+                return [];
             }
-            return gridData;
-        },
-
-        _addOldVariableName: function (gridData, oldName, fieldId) {
-            _.each(gridData, function (variable) {
-                if (variable.fieldId === fieldId && variable.variableName !== oldName) {
-                    variable.oldName = oldName;
-                }
+            return grid.dataSource.data().map(function (item) {
+                return {
+                    id: item.fieldId || item.uid,
+                    fieldId: item.fieldId || item.uid,
+                    name: item.name || "",
+                    outputValue: (item.outputValue || "").trim(),
+                    outputVariable: (item.outputValue || "").trim()
+                };
             });
         },
 
-        onDeleteCallMethodRows: function (globalSelf, deletedDataItems) {
-            if (!globalSelf?.processModel || !deletedDataItems?.length) {
+        syncOutputVariablesWithProcessModel: function (globalSelf, gridData) {
+            if (!globalSelf?.processModel) {
                 return;
             }
 
-            deletedDataItems.forEach(function (item, idx) {
-                var outputVal = item.get ? item.get("outputValue") : item.outputValue;
-                var fieldId = item.get ? item.get("fieldId") : item.fieldId;
-                if (outputVal && typeof outputVal === "string" && outputVal.trim()) {
-                    globalSelf.processModel.removeVariable(
-                        outputVal.trim(),
-                        "",
-                        globalSelf.activityId,
-                        "CONFIGURATION",
-                        fieldId || ("CM_" + idx),
-                        idx
-                    );
+            var activeEntity = globalSelf.processModel.getBPMEntityById(globalSelf.activityId);
+            if (!activeEntity) {
+                return;
+            }
+
+            var existingVariables = activeEntity.getOutputVariables() || [];
+            var newVariables = [];
+
+            (gridData || []).forEach(function (item) {
+                var varName = (item.outputValue || item.outputVariable || "").trim();
+                if (varName) {
+                    newVariables.push({
+                        id: item.fieldId || item.id,
+                        name: varName,
+                        type: "String",
+                        description: "Output of method " + (item.name || "")
+                    });
                 }
             });
+
+            activeEntity.setOutputVariables(newVariables);
+            globalSelf.processModel.trigger("change:outputVariables", activeEntity);
+        },
+
+        removeOutputVariablesFromProcessModel: function (deletedItems, globalSelf) {
+            if (!globalSelf?.processModel || !deletedItems?.length) {
+                return;
+            }
+
+            var activeEntity = globalSelf.processModel.getBPMEntityById(globalSelf.activityId);
+            if (!activeEntity) {
+                return;
+            }
+
+            var deletedFieldIds = deletedItems.map(function (item) {
+                return item.fieldId || item.uid;
+            });
+
+            var existing = activeEntity.getOutputVariables() || [];
+            var remaining = existing.filter(function (v) {
+                return deletedFieldIds.indexOf(v.id) === -1;
+            });
+
+            activeEntity.setOutputVariables(remaining);
+            globalSelf.processModel.trigger("change:outputVariables", activeEntity);
         },
 
         renderCallMethodComponent: function (globalSelf) {
-            var manager = this;
-
             if (this._resizeGridIfExists(globalSelf.callMethodGrid)) {
                 return;
             }
 
             var data = globalSelf.model.getKey("callMethod") || [];
-            if (!data.length && globalSelf.transportDropdown?.value()) {
+            if (!data.length) {
                 data = [{
                     name: "",
                     nodeId: "",
@@ -237,12 +283,6 @@ define([
                     fieldId: "CM_" + Date.now() + "_0"
                 }];
                 globalSelf.model.setKey("callMethod", data);
-            } else if (data.length) {
-                _.each(data, function (item, idx) {
-                    if (!item.fieldId) {
-                        item.fieldId = "CM_" + (item.nodeId || idx) + "_" + idx;
-                    }
-                });
             }
 
             globalSelf.callMethodGrid = uilayer.grid({
@@ -263,49 +303,37 @@ define([
                 dataSource: this._getCallMethodDataSource(data)
             });
 
-            var syncModel = function (e) {
-                if (globalSelf.callMethodGrid?.widget?.dataSource) {
-                    var gridData = globalSelf.callMethodGrid.widget.dataSource.data().toJSON();
-                    globalSelf.model.setKey("callMethod", gridData);
-                }
-                if (e?.model) {
-                    manager.onOutputValueChange(globalSelf, e.model);
-                }
-            };
-
             if (globalSelf.callMethodGrid?.widget) {
-                globalSelf.callMethodGrid.widget.bind(
-                    "dataBound",
-                    this._initializeMethodDropdowns.bind(this, globalSelf)
-                );
-                globalSelf.callMethodGrid.widget.bind("cellClose", syncModel);
-                globalSelf.callMethodGrid.widget.bind("save", syncModel);
-                if (globalSelf.callMethodGrid.widget.dataSource) {
-                    globalSelf.callMethodGrid.widget.dataSource.bind("change", syncModel);
-                }
+                var manager = this;
+                globalSelf.callMethodGrid.widget.bind("save", function (e) {
+                    if (e.values && e.values.outputValue !== undefined) {
+                        setTimeout(function () {
+                            manager.onOutputValueChange(globalSelf, e.model);
+                        }, 50);
+                    }
+                });
             }
 
-            this._initializeMethodDropdowns(globalSelf);
+            this._bindGridEvents(globalSelf);
 
             globalSelf.callMethodSearchBar = GridUtils.renderGridSearchBar(
                 "call-method-search",
                 globalSelf.callMethodGrid,
-                ["name", "nodeId", "objectNodeId", "outputValue"],
+                ["name", "nodeId", "outputValue"],
                 globalSelf,
                 globalSelf.nls
             );
         },
 
-        _initializeMethodDropdowns: function (globalSelf) {
-            var manager = this;
+        _bindGridEvents: function (globalSelf) {
+            GridUtils.initializeGridHelpTooltips(globalSelf.$(".cvt-grid-div-call-method"));
 
-            GridUtils.initializeGridHelpTooltips(globalSelf.$el);
+            globalSelf.$(".cvt-grid-div-call-method").off("click", ".browse-call-method-btn").on("click", ".browse-call-method-btn", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-            globalSelf.$(".method-name-dropdown").each(function () {
-                var element = $(this);
-                var row = element.closest("tr");
-                var grid = globalSelf.callMethodGrid ? globalSelf.callMethodGrid.widget : null;
-
+                var row = $(this).closest("tr");
+                var grid = globalSelf.callMethodGrid ? (globalSelf.callMethodGrid.widget || globalSelf.callMethodGrid) : null;
                 if (!grid) {
                     return;
                 }
@@ -315,159 +343,22 @@ define([
                     return;
                 }
 
-                var cell = element.closest("td");
-                cell.off("click.prevent-incell-edit").on("click.prevent-incell-edit", function (e) {
-                    e.stopPropagation();
-                });
-                element.off("click.prevent-incell-edit").on("click.prevent-incell-edit", function (e) {
-                    e.stopPropagation();
-                });
-
-                var initialVal = dataItem.get ? dataItem.get("name") : dataItem.name;
-                var availableOptions = manager._getAvailableOptions(globalSelf, initialVal);
-
-                var existingDropdown = element.data("uilayerDropDownList");
-                if (existingDropdown) {
-                    if (existingDropdown.setDataSource) {
-                        existingDropdown.setDataSource(new uilayer.data.DataSource({
-                            data: availableOptions
-                        }));
-                    }
-                    if (typeof existingDropdown.value === "function") {
-                        existingDropdown.value(initialVal || "");
-                    }
+                var connData = globalSelf.getConnectionPayload();
+                if (!connData || !connData.connectionId) {
+                    uilayer.notifier("warning", globalSelf.nls.SelectConnection || "Please select a connection.");
                     return;
                 }
 
-                if (element.data("method-dropdown-initialized")) {
-                    return;
+                if (globalSelf.addressSpaceBrowser) {
+                    globalSelf.addressSpaceBrowser.openForBrowse(dataItem, "CALL_METHOD", connData);
                 }
-                element.data("method-dropdown-initialized", true);
-
-                var dropdown = uilayer.dropDownList({
-                    elem: element,
-                    dataSource: new uilayer.data.DataSource({
-                        data: availableOptions
-                    }),
-                    dataTextField: "name",
-                    dataValueField: "name",
-                    optionLabel: {
-                        name: globalSelf.nls.SelectMethod
-                    },
-                    change: function () {
-                        var selectedValue = this.value();
-                        if (!selectedValue) {
-                            return;
-                        }
-
-                        var selectedItem = this.dataItem();
-                        if (!selectedItem) {
-                            return;
-                        }
-
-                        var selectedData = selectedItem.toJSON
-                            ? selectedItem.toJSON()
-                            : selectedItem;
-
-                        dataItem["name"]            = selectedData.name || "";
-                        dataItem["nodeId"]          = selectedData.nodeId || "";
-                        dataItem["objectNodeId"]    = selectedData.objectNodeId || "";
-                        dataItem["inputParameters"] = manager._copyInputParameters(selectedData.inputParameters || selectedData.inputArguments);
-
-                        var nodeIdCell = row.find("td:eq(2)");
-                        var inputParamsCell = row.find("td:eq(3)");
-
-                        if (nodeIdCell.length && grid.columns[2].template) {
-                            nodeIdCell.html(grid.columns[2].template(dataItem));
-                        }
-                        if (inputParamsCell.length && grid.columns[3].template) {
-                            inputParamsCell.html(grid.columns[3].template(dataItem));
-                        }
-
-                        GridUtils.initializeGridHelpTooltips(row);
-
-                        manager.refreshDropdownOptions(globalSelf);
-                    }
-                });
-
-                if (typeof dropdown?.value === "function") {
-                    dropdown.value(initialVal || "");
-                } else if (typeof dropdown?.widget?.value === "function") {
-                    dropdown.widget.value(initialVal || "");
-                }
-            });
-        },
-
-        _getAvailableOptions: function (globalSelf, currentSelectedName) {
-            var grid = globalSelf.callMethodGrid?.widget;
-            var selectedNames = new Set();
-
-            if (grid?.dataSource) {
-                var data = grid.dataSource.data();
-                for (var i = 0; i < data.length; i++) {
-                    var item = data[i];
-                    var name = item ? (item.get ? item.get("name") : item.name) : "";
-                    if (name && name !== currentSelectedName) {
-                        selectedNames.add(name);
-                    }
-                }
-            }
-
-            return (globalSelf.callMethodOptions || []).filter(function (opt) {
-                var optName = opt?.name || opt?.methodName || "";
-                return optName === currentSelectedName || !selectedNames.has(optName);
-            });
-        },
-
-        refreshDropdownOptions: function (globalSelf) {
-            var manager = this;
-            var grid = globalSelf.callMethodGrid?.widget;
-            if (!grid) {
-                return;
-            }
-
-            globalSelf.$(".method-name-dropdown").each(function () {
-                var element = $(this);
-                var row = element.closest("tr");
-                var dataItem = grid.dataItem(row);
-                var currentVal = dataItem ? (dataItem.get ? dataItem.get("name") : dataItem.name) : "";
-                var available = manager._getAvailableOptions(globalSelf, currentVal);
-
-                var dropdown = element.data("uilayerDropDownList") || element.data("kendoDropDownList");
-                if (dropdown) {
-                    if (dropdown.setDataSource) {
-                        dropdown.setDataSource(new uilayer.data.DataSource({
-                            data: available
-                        }));
-                    }
-                    if (typeof dropdown.value === "function") {
-                        dropdown.value(currentVal || "");
-                    }
-                }
-            });
-        },
-
-        _copyInputParameters: function (inputParameters) {
-            return (inputParameters || []).map(function (parameter) {
-                return {
-                    name: parameter.name ||
-                        parameter.parameterName ||
-                        parameter.displayName ||
-                        "",
-                    dataType: parameter.dataType || "",
-                    value: parameter.value || ""
-                };
             });
         },
 
         onInputParameterBadgeClick: function (event, globalSelf) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            var badge = $(event.currentTarget);
-            var row = badge.closest("tr");
-            var grid = globalSelf.callMethodGrid ? globalSelf.callMethodGrid.widget : null;
-
+            var target = $(event.currentTarget);
+            var row = target.closest("tr");
+            var grid = globalSelf.callMethodGrid ? (globalSelf.callMethodGrid.widget || globalSelf.callMethodGrid) : null;
             if (!grid) {
                 return;
             }
@@ -478,62 +369,115 @@ define([
             }
 
             globalSelf.selectedCallMethodRow = dataItem;
-            this.openInputParametersModal(globalSelf, dataItem, badge);
+            this._openInputParametersModal(globalSelf, dataItem);
         },
 
-        _createInputParametersModalGrid: function (gridElement, inputParameters, globalSelf) {
-            return uilayer.grid({
-                elem: gridElement,
+        _openInputParametersModal: function (globalSelf, dataItem) {
+            var manager = this;
+            var params = (dataItem.get ? dataItem.get("inputParameters") : dataItem.inputParameters) || [];
+
+            if (this.inputParamsModal) {
+                this._destroyInputParametersModal(globalSelf);
+            }
+
+            var modalContainer = $("<div id='input-parameters-modal-window'></div>");
+            $("body").append(modalContainer);
+
+            var contentHtml = "<div class='input-parameters-modal-wrapper ul-pad-2x'>" +
+                "<div class='input-parameters-modal-grid cvt-grid-div'></div>" +
+                "<div class='ul-pad-2x-t ul-flex-container ul-space-between'>" +
+                "<button type='button' class='k-button ul-primary-button input-params-save-btn'>" + globalSelf.nls.Save + "</button>" +
+                "<button type='button' class='k-button ul-secondary-button input-params-cancel-btn'>" + globalSelf.nls.Cancel + "</button>" +
+                "</div>" +
+                "</div>";
+
+            this.inputParamsModal = uilayer.modal({
+                elem: modalContainer,
+                actions: ["Close"],
+                draggable: true,
+                modal: true,
+                width: "600px",
+                title: globalSelf.nls.InputParameters + ": " + (dataItem.name || dataItem.nodeId || ""),
+                visible: false,
+                content: contentHtml
+            });
+
+            var clonedParams = JSON.parse(JSON.stringify(params));
+            this._renderInputParamsGrid(modalContainer.find(".input-parameters-modal-grid"), clonedParams, globalSelf);
+
+            modalContainer.find(".input-params-save-btn").on("click", function () {
+                var grid = manager.inputParamsGrid ? (manager.inputParamsGrid.widget || manager.inputParamsGrid) : null;
+                var updated = grid ? grid.dataSource.data().toJSON() : clonedParams;
+
+                updated.forEach(function (param) {
+                    if (param.value && typeof param.value === "object") {
+                        param.value = ExpressionBuilderUtility.getExpression(param.value);
+                    }
+                });
+
+                if (dataItem.set) {
+                    dataItem.set("inputParameters", updated);
+                } else {
+                    dataItem.inputParameters = updated;
+                }
+
+                if (globalSelf.callMethodGrid?.widget) {
+                    globalSelf.callMethodGrid.widget.refresh();
+                }
+
+                manager._destroyInputParametersModal(globalSelf);
+            });
+
+            modalContainer.find(".input-params-cancel-btn").on("click", function () {
+                manager._destroyInputParametersModal(globalSelf);
+            });
+
+            this.inputParamsModal.open().center();
+        },
+
+        _renderInputParamsGrid: function (elem, paramsData, globalSelf) {
+            this.inputParamsGrid = uilayer.grid({
+                elem: elem,
                 editable: {
                     mode: "incell"
                 },
-                navigatable: true,
-                resizable: true,
-                sortable: false,
-                filterable: false,
                 scrollable: false,
                 columns: [
                     {
                         field: "name",
                         title: globalSelf.nls.ParameterName,
-                        editable: false,
-                        attributes: { "class": "name" },
-                        width: "30%"
+                        width: "30%",
+                        editable: function () {
+                            return false;
+                        }
                     },
                     {
-                        field: "dataType",
+                        field: "type",
                         title: globalSelf.nls.DataType,
-                        editable: false,
-                        attributes: { "class": "dataType" },
-                        width: "30%"
+                        width: "25%",
+                        editable: function () {
+                            return false;
+                        }
                     },
                     {
                         field: "value",
                         title: globalSelf.nls.Value,
-                        width: "40%",
+                        width: "45%",
                         customEditor: true,
-                        attributes: { "class": "value" },
                         template: ExpressionBuilderManager.getTemplate("value", globalSelf),
                         editor: ExpressionBuilderManager.getEditor("value", globalSelf)
                     }
                 ],
                 dataSource: {
-                    data: inputParameters,
+                    data: paramsData,
                     schema: {
                         model: {
+                            id: "name",
                             fields: {
-                                name: {
-                                    type: "string",
-                                    editable: false
-                                },
-                                dataType: {
-                                    type: "string",
-                                    editable: false
-                                },
-                                value: {
-                                    type: "string",
-                                    parse: GridUtils.parseStringField
-                                }
+                                name: { type: "string", editable: false },
+                                type: { type: "string", editable: false },
+                                value: { type: "string" },
+                                description: { type: "string", editable: false }
                             }
                         }
                     }
@@ -541,138 +485,16 @@ define([
             });
         },
 
-        openInputParametersModal: function (globalSelf, dataItem, anchorElem) {
-            var manager = this;
-
-            var methodName = dataItem.get ? dataItem.get("name") : dataItem.name;
-
-            var inputParameters = dataItem.get
-                ? dataItem.get("inputParameters")
-                : dataItem.inputParameters;
-
-            inputParameters = this._copyInputParameters(inputParameters || []);
-
-            this._destroyInputParametersModal(globalSelf);
-
-            var $popoverWrapper = $(
-                "<div class='input-parameters-modal-wrapper'>" +
-                "<div class='ul-pad-2x-b'>" +
-                "<div class='ul-body-m-b'>" + (globalSelf.nls.InputParameters) + "</div>" +
-                "</div>" +
-                "<div class='input-parameters-modal-grid'></div>" +
-                "</div>"
-            );
-
-            globalSelf.$el.append($popoverWrapper);
-            globalSelf._inputParametersModalWrapper = $popoverWrapper;
-
-            var gridElement = $popoverWrapper.find(".input-parameters-modal-grid");
-            globalSelf.inputParametersModalGrid = this._createInputParametersModalGrid(gridElement, inputParameters, globalSelf);
-
-            var $anchor = (anchorElem && $(anchorElem).length) ? $(anchorElem) : globalSelf.$el;
-
-            var saveHandler = function (e) {
-                var updatedParameters = [];
-
-                if (globalSelf.inputParametersModalGrid?.widget?.dataSource) {
-                    updatedParameters = globalSelf.inputParametersModalGrid
-                        .widget.dataSource.data().toJSON();
-                }
-
-                _.each(updatedParameters, function (param) {
-                    if (param?.value && typeof param.value === "object") {
-                        param.value = ExpressionBuilderUtility.getExpression(param.value);
-                    }
-                });
-
-                if (dataItem.set) {
-                    dataItem.set("inputParameters", updatedParameters);
-                } else {
-                    dataItem.inputParameters = updatedParameters;
-                }
-
-                if (globalSelf.callMethodGrid?.widget) {
-                    globalSelf.callMethodGrid.widget.refresh();
-                }
-
-                if (e?.sender?.close) {
-                    e.sender.close();
-                }
-
-                manager._destroyInputParametersModal(globalSelf, true);
-            };
-
-            var cancelHandler = function (e) {
-                if (e?.sender?.close) {
-                    e.sender.close();
-                }
-
-                manager._destroyInputParametersModal(globalSelf, true);
-            };
-
-            globalSelf.inputParametersModal = uilayer.popOver({
-                elem: $popoverWrapper,
-                anchor: $anchor,
-                pinPopover: true,
-                width: 580,
-                title: globalSelf.nls.AddMethodCall + " " + (methodName || ""),
-                popupPosition: "left",
-                actions: ['close'],
-                buttons: [
-                    {
-                        label: globalSelf.nls.Cancel,
-                        action: "cancel",
-                        uiStyle: "tertiary"
-                    },
-                    {
-                        label: globalSelf.nls.Save,
-                        action: "save",
-                        uiStyle: "primary"
-                    }
-                ],
-                cancel: cancelHandler,
-                save: saveHandler,
-                ok: saveHandler,
-                messages: {
-                    ok: globalSelf.nls.Save,
-                    cancel: globalSelf.nls.Cancel
-                },
-                close: function () {
-                    manager._destroyInputParametersModal(globalSelf, true);
-                }
-            });
-
-            if (globalSelf.inputParametersModal) {
-                if (typeof globalSelf.inputParametersModal.open === "function") {
-                    globalSelf.inputParametersModal.open($anchor);
-                } else if (globalSelf.inputParametersModal.widget && typeof globalSelf.inputParametersModal.widget.open === "function") {
-                    globalSelf.inputParametersModal.widget.open($anchor);
-                } else if (typeof globalSelf.inputParametersModal.show === "function") {
-                    globalSelf.inputParametersModal.show();
-                }
+        _destroyInputParametersModal: function () {
+            if (this.inputParamsGrid) {
+                this.inputParamsGrid.destroy();
+                this.inputParamsGrid = null;
             }
-        },
-
-        _destroyInputParametersModal: function (globalSelf, isFromCloseCallback) {
-            if (globalSelf.inputParametersModalGrid) {
-                globalSelf._destroyComponent(globalSelf.inputParametersModalGrid);
-                globalSelf.inputParametersModalGrid = null;
+            if (this.inputParamsModal) {
+                this.inputParamsModal.destroy();
+                this.inputParamsModal = null;
             }
-
-            if (globalSelf.inputParametersModal) {
-                var popover = globalSelf.inputParametersModal;
-                globalSelf.inputParametersModal = null;
-
-                if (!isFromCloseCallback && popover.close) {
-                    popover.close();
-                }
-            }
-
-            if (globalSelf._inputParametersModalWrapper) {
-                var $wrapper = globalSelf._inputParametersModalWrapper;
-                globalSelf._inputParametersModalWrapper = null;
-                $wrapper.remove();
-            }
+            $("#input-parameters-modal-window").remove();
         }
     };
 

@@ -9,15 +9,10 @@
  */
 package com.eqtechnologic.eqube.mi.activities.invokeopcua;
 
-import com.eqtechnologic.eqube.exception.BusinessException;
-import com.eqtechnologic.eqube.logging.LogTemplate;
 import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.logging.transaction.annotation.LogModuleName;
 import com.eqtechnologic.eqube.mi.activities.invokeopcua.bean.InvokeOPCUAConfigBean;
-import com.eqtechnologic.eqube.mi.activities.invokeopcua.bean.TransportInfo;
 import com.eqtechnologic.eqube.mi.activities.invokeopcua.constants.InvokeOPCUAConstants;
-import com.eqtechnologic.eqube.mi.activities.invokeopcua.exception.InvokeOPCUAErrorCode;
-import com.eqtechnologic.eqube.mi.activities.invokeopcua.exception.InvokeOPCUAExceptionType;
 import com.eqtechnologic.eqube.mi.activitymanagement.ActivityService;
 import com.eqtechnologic.eqube.mi.activitymanagement.handlers.OutputHintHandler;
 import com.eqtechnologic.eqube.mi.activitymanagement.handlers.PrePostStepConfigurationHandler;
@@ -25,16 +20,11 @@ import com.eqtechnologic.eqube.mi.component.handlers.EntityReferenceHandler;
 import com.eqtechnologic.eqube.mi.component.service.ComponentExportEntity;
 import com.eqtechnologic.eqube.mi.component.service.ComponentValidator;
 import com.eqtechnologic.eqube.mi.component.service.RemapInfo;
-import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
-import com.eqtechnologic.eqube.platform.transport.client.constants.TransportClientConstants;
-import com.eqtechnologic.eqube.platform.transport.client.service.TransportClientService;
 import com.eqtechnologic.eqube.soa.servicemanagement.annotations.Exported;
-import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
 import com.google.auto.service.AutoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -59,30 +49,6 @@ public class InvokeOPCUAComponentService implements ActivityService<Object, Map,
     @Autowired
     public InvokeOPCUAComponentService(InvokeOPCUAComponentServiceHelper opcuaHelper) {
         this.opcuaHelper = opcuaHelper;
-    }
-
-    private TransportClientService getTransportClientService() {
-        return ServiceRegistry.getInstance().getService(TransportClientConstants.SERVICE_NAME);
-    }
-
-    public List<TransportInfo> fetchTransportListByType(String transportType) throws BusinessException {
-        List<TransportClientBean> transportClientBeans = new ArrayList<>();
-        try {
-            TransportClientService service = getTransportClientService();
-            if (service != null && service.getTransportDetails() != null) {
-                transportClientBeans = new ArrayList<>(service.getTransportDetails().values());
-            }
-        } catch (BusinessException e) {
-            LogTemplate lt = LogTemplate.of(InvokeOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS.getMessage());
-            LOGGER.error(lt, e);
-            throw new BusinessException(InvokeOPCUAExceptionType.INVOKE_OPCUA_ACTIVITY_EXCEPTION,
-                    InvokeOPCUAErrorCode.ERROR_WHILE_FETCHING_TRANSPORT_DETAILS, e.getMessage());
-        }
-        return opcuaHelper.convertTransportClientToTransportInfoBeanList(transportType, transportClientBeans);
-    }
-
-    public List<TransportInfo> fetchOPCUATransportList() throws BusinessException {
-        return fetchTransportListByType(InvokeOPCUAConstants.OPCUA_TYPE);
     }
 
     @Override

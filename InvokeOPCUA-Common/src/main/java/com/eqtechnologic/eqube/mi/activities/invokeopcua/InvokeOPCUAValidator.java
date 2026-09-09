@@ -52,22 +52,31 @@ public class InvokeOPCUAValidator implements ComponentValidator<Map, Map> {
         }
 
         List<eQError> errorList = new ArrayList<>();
-        String transportName = (String) configMap.get(InvokeOPCUAConstants.TRANSPORT_NAME);
+        String connName = (String) configMap.get(InvokeOPCUAConstants.CONNECTION_COMBOBOX);
+        if (connName == null || connName.trim().isEmpty()) {
+            connName = (String) configMap.get(InvokeOPCUAConstants.SELECT_CONNECTION);
+        }
+        if (connName == null || connName.trim().isEmpty()) {
+            connName = (String) configMap.get(InvokeOPCUAConstants.CONNECTION_NAME);
+        }
 
-        if (transportName == null || transportName.trim().isEmpty()) {
-            eQError error = new eQError(InvokeOPCUAConstants.ERR_SEL_TRANSPORT, COMPONENT_ERR,
-                    ComponentUtility.getInstance().createPath(InvokeOPCUAConstants.INVOKE_OPCUA, InvokeOPCUAConstants.TRANSPORT_NAME),
+        if (connName == null || connName.trim().isEmpty()) {
+            eQError error = new eQError(InvokeOPCUAConstants.ERR_SEL_CONNECTION, COMPONENT_ERR,
+                    ComponentUtility.getInstance().createPath(InvokeOPCUAConstants.INVOKE_OPCUA, InvokeOPCUAConstants.CONNECTION_COMBOBOX),
                     false);
             errorList.add(error);
         } else {
-            validateTransport(transportName, errorList);
+            validateConnection(connName, errorList);
         }
 
-        String operation = (String) configMap.get(InvokeOPCUAConstants.OPERATION);
-        if (InvokeOPCUAConstants.DATA_CHANGE_WRITE.equals(operation)) {
-            validateDataChangeWrite((List<?>) configMap.get("dataChangeWrite"), additionalInfo, errorList);
-        } else if (InvokeOPCUAConstants.CALL_METHOD.equals(operation)) {
-            validateCallMethod((List<?>) configMap.get("callMethod"), additionalInfo, errorList);
+        String connType = (String) configMap.get(InvokeOPCUAConstants.CONNECTION_TYPE);
+        if (connType == null || !InvokeOPCUAConstants.MQTT_TYPE.equalsIgnoreCase(connType)) {
+            String operation = (String) configMap.get(InvokeOPCUAConstants.OPERATION);
+            if (InvokeOPCUAConstants.DATA_CHANGE_WRITE.equals(operation)) {
+                validateDataChangeWrite((List<?>) configMap.get("dataChangeWrite"), additionalInfo, errorList);
+            } else if (InvokeOPCUAConstants.CALL_METHOD.equals(operation)) {
+                validateCallMethod((List<?>) configMap.get("callMethod"), additionalInfo, errorList);
+            }
         }
 
         return errorList;
@@ -192,19 +201,19 @@ public class InvokeOPCUAValidator implements ComponentValidator<Map, Map> {
         return null;
     }
 
-    private void validateTransport(String transportName, List<eQError> errorList) {
+    private void validateConnection(String connName, List<eQError> errorList) {
         try {
-            TransportClientBean transportClientBean = getTransportClientService().getTransportDetail(transportName);
+            TransportClientBean transportClientBean = getTransportClientService().getTransportDetail(connName);
             if (transportClientBean == null) {
-                eQError error = new eQError(InvokeOPCUAConstants.ERR_TRANSPORT_NOT_FOUND, COMPONENT_ERR,
-                        ComponentUtility.getInstance().createPath(InvokeOPCUAConstants.INVOKE_OPCUA, InvokeOPCUAConstants.TRANSPORT_NAME),
+                eQError error = new eQError(InvokeOPCUAConstants.ERR_CONNECTION_NOT_FOUND, COMPONENT_ERR,
+                        ComponentUtility.getInstance().createPath(InvokeOPCUAConstants.INVOKE_OPCUA, InvokeOPCUAConstants.CONNECTION_COMBOBOX),
                         false);
                 errorList.add(error);
             }
         } catch (BusinessException e) {
             LogTemplate lt = LogTemplate.of(InvokeOPCUAErrorCode.ERROR_WHILE_VALIDATING_TRANSPORT.getMessage());
             LOGGER.error(lt, e);
-            eQError errorMsg = new eQError(InvokeOPCUAConstants.ERR_TRANSPORT_FRAMEWORK_ERROR, COMPONENT_ERR,
+            eQError errorMsg = new eQError(InvokeOPCUAConstants.ERR_CONNECTION_FRAMEWORK_ERROR, COMPONENT_ERR,
                     null, true);
             errorList.add(errorMsg);
         }

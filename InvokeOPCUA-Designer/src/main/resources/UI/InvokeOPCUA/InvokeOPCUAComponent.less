@@ -1,8 +1,29 @@
 .invokeopcua-div {
     overflow: auto;
+    height: 100%;
 
     .invokeopcua-div-height {
         height: 100%;
+    }
+
+    #invokeopcua-main-container {
+        display: flex;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    #invokeopcua-content-section {
+        flex: 1;
+        overflow-y: auto;
+        min-width: 0;
+    }
+
+    #invokeopcua-address-space-drawer-section {
+        height: 100%;
+        overflow-y: auto;
+        background: #fff;
+        border-left: 1px solid #d9d9d9;
     }
 
     .cvt-grid-div.k-grid {
@@ -80,11 +101,24 @@
             position: relative;
             z-index: 0;
         }
+
         td > .ul-textbox {
             width: 100%;
             box-sizing: border-box;
         }
     }
+}
+
+.browse-data-change-btn,
+.browse-call-method-btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.browse-action-cell {
+    text-align: center;
 }
 
 .parallel-mode-icon-region,
@@ -118,7 +152,9 @@
 
 .invokeopcua-editable-cell-value,
 .invokeopcua-info-cell-value,
-.input-parameter-value {
+.input-parameter-value,
+.data-change-name-cell,
+.method-name-cell {
     flex: 1 1 0;
     min-width: 0;
     max-width: 100%;
@@ -185,6 +221,7 @@
         }
     }
 }
+
 .parallel-mode-help-tooltip,
 .sequential-mode-help-tooltip,
 .node-id-help-tooltip,
@@ -208,4 +245,65 @@
     max-height: 15rem;
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+#refresh-connection-button {
+    cursor: pointer;
+    align-self: center;
+}
+
+#connectionComboBox_wrapper {
+    display: grid;
+    width: 100%;
+}
+
+/* Address Space Drawer Styles */
+.opcua-browse-address-space-div {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+
+    .address-space-header {
+        border-bottom: 1px solid #e0e0e0;
+        margin-bottom: 0.75rem;
+    }
+
+    .address-space-treelist-wrapper {
+        flex: 1;
+        min-height: 250px;
+        overflow: hidden;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+
+        .k-treelist {
+            height: 100%;
+            border: none;
+        }
+
+        .k-treelist-table {
+            table-layout: fixed !important;
+            width: 100% !important;
+        }
+    }
+
+    .address-space-nodeclass-badge {
+        padding: 0.15rem 0.5rem;
+        background: #f0f0f0;
+        border-radius: 3px;
+        font-size: 0.8rem;
+    }
+
+    .address-space-node-radio {
+        cursor: pointer;
+    }
+
+    .address-space-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .address-space-loading-container {
+        position: relative;
+    }
 }
