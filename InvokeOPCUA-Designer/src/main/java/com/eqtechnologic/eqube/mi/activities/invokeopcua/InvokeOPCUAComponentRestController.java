@@ -38,7 +38,7 @@ import java.util.List;
 public class InvokeOPCUAComponentRestController {
 
     private static final Logger LOGGER = Logger.getLogger(InvokeOPCUAComponentRestController.class.getName());
-    private List<String> operations = Arrays.asList(MIOperation.Process.LIST_PROCESS, MIOperation.Transaction.LIST_TRANSACTIONS);
+    private List<String> operations = Arrays.asList(MIOperation.Process.LIST_PROCESS, MIOperation.Transaction.LIST_TRANSACTIONS, MIOperation.Transport.VIEW_TRANSPORT);
 
     private final InvokeOPCUAComponentServiceHelper opcuaHelper;
 

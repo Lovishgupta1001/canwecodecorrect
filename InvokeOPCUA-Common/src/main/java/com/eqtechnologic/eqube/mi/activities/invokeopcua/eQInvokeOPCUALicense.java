@@ -19,6 +19,6 @@ public class eQInvokeOPCUALicense implements eQActivityLicense {
 
     @Override
     public String getFeatureKey() {
-        return "V7PCDVXQ9Dpl2PZRiZaDkzzO6SE=";
+        return "7ivFzdWa8tWoU9NGNMKFQILWNbk=";
     }
 }
