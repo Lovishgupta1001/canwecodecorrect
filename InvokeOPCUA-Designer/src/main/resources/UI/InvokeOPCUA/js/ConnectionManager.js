@@ -15,27 +15,23 @@ define(function (require) {
             var allConnections = [];
 
             // 1. Fetch Transport Connections (Device Connector, OPC UA, etc.)
-            try {
-                var transportPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleTransportConnections", null, "json", null, true);
+            var transportPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleTransportConnections", null, "json", null, true);
+            if (transportPromise && transportPromise.done) {
                 transportPromise.done(function (connectionsData) {
                     if (connectionsData && Array.isArray(connectionsData)) {
                         allConnections = allConnections.concat(connectionsData);
                     }
                 });
-            } catch (e) {
-                // Ignore if endpoint fails
             }
 
             // 2. Fetch Accessible General Connections
-            try {
-                var connPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
+            var connPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
+            if (connPromise && connPromise.done) {
                 connPromise.done(function (connectionsData) {
                     if (connectionsData && Array.isArray(connectionsData)) {
                         allConnections = allConnections.concat(connectionsData);
                     }
                 });
-            } catch (e) {
-                // Ignore if endpoint fails
             }
 
             return allConnections;
@@ -70,30 +66,27 @@ define(function (require) {
             });
 
             // 2. Also merge any upstream process model variable connections
-            if (globalSelf.processModel && ActivitiesUtility?.getConnectionAndRemainingVariableComponentDataSource) {
-                try {
-                    var varData = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId).data();
-                    _.each(varData, function (item) {
-                        if (!item) return;
-                        var id = item.connectionId !== undefined ? item.connectionId : item.id;
-                        var name = item.key || item.connectionName || item.name;
-                        var idStr = String(id !== undefined ? id : name);
-                        if (!seenIds[idStr]) {
-                            seenIds[idStr] = true;
-                            finalConnArr.push({
-                                key: name || idStr,
-                                connectionId: id !== undefined ? id : name,
-                                connectionName: name || idStr,
-                                connectionColor: item.connectionColor || "#0078d4",
-                                connectionType: item.connectionType || item.type || "",
-                                pluginType: item.pluginType || item.pluginDisplayName || item.pluginName || "",
-                                rawConnection: item
-                            });
-                        }
-                    });
-                } catch (e) {
-                    // Ignore
-                }
+            if (globalSelf.processModel && ActivitiesUtility && ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource) {
+                var ds = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId);
+                var varData = ds ? ds.data() : [];
+                _.each(varData, function (item) {
+                    if (!item) return;
+                    var id = item.connectionId !== undefined ? item.connectionId : item.id;
+                    var name = item.key || item.connectionName || item.name;
+                    var idStr = String(id !== undefined ? id : name);
+                    if (!seenIds[idStr]) {
+                        seenIds[idStr] = true;
+                        finalConnArr.push({
+                            key: name || idStr,
+                            connectionId: id !== undefined ? id : name,
+                            connectionName: name || idStr,
+                            connectionColor: item.connectionColor || "#0078d4",
+                            connectionType: item.connectionType || item.type || "",
+                            pluginType: item.pluginType || item.pluginDisplayName || item.pluginName || "",
+                            rawConnection: item
+                        });
+                    }
+                });
             }
 
             return finalConnArr;

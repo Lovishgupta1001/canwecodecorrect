@@ -65,9 +65,9 @@ define([
             }
 
             if (this.treeListWidget) {
-                try {
-                    this.treeListWidget.destroy?.();
-                } catch (e) {}
+                if (this.treeListWidget.destroy) {
+                    this.treeListWidget.destroy();
+                }
                 this.treeListWidget = null;
                 elem.empty();
             }
@@ -358,24 +358,11 @@ define([
                 var flatList = browser._processNodes(data, null);
 
                 var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
-                var updated = false;
                 if (tree && tree.dataSource && typeof tree.dataSource.data === "function") {
-                    try {
-                        tree.dataSource.data(flatList);
-                        updated = true;
-                    } catch (e) {
-                        updated = false;
-                    }
-                }
-
-                if (!updated) {
+                    tree.dataSource.data(flatList);
+                } else {
                     browser._initTreeList(flatList);
                     browser._bindTreeEvents();
-                }
-
-                var activeTree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
-                if (activeTree?.resize) {
-                    activeTree.resize();
                 }
 
                 // Automatically fetch children for root nodes so that top-level items are open and loaded
@@ -531,22 +518,18 @@ define([
             }
 
             if (typeof row.set === "function") {
-                try {
-                    row.set("name", name);
-                    row.set("nodeId", nodeId);
-                    row.set("sampleValue", sampleVal);
-                    if (rawNode.dataTypeName) {
-                        row.set("dataTypeName", rawNode.dataTypeName);
-                    }
-                    if (rawNode.dataTypeNodeId) {
-                        row.set("dataTypeNodeId", rawNode.dataTypeNodeId);
-                    }
-                    var curNewVal = row.get ? row.get("newValue") : row.newValue;
-                    if (!curNewVal && node.value !== undefined && node.value !== "") {
-                        row.set("newValue", GridUtils.getDefaultExpression(node.value));
-                    }
-                } catch (e) {
-                    // Ignore
+                row.set("name", name);
+                row.set("nodeId", nodeId);
+                row.set("sampleValue", sampleVal);
+                if (rawNode.dataTypeName) {
+                    row.set("dataTypeName", rawNode.dataTypeName);
+                }
+                if (rawNode.dataTypeNodeId) {
+                    row.set("dataTypeNodeId", rawNode.dataTypeNodeId);
+                }
+                var curNewVal = row.get ? row.get("newValue") : row.newValue;
+                if (!curNewVal && node.value !== undefined && node.value !== "") {
+                    row.set("newValue", GridUtils.getDefaultExpression(node.value));
                 }
             }
 
@@ -572,14 +555,10 @@ define([
             row.objectName = parentObjectName;
 
             if (typeof row.set === "function") {
-                try {
-                    row.set("name", name);
-                    row.set("nodeId", nodeId);
-                    row.set("objectNodeId", parentObjectNodeId);
-                    row.set("objectName", parentObjectName);
-                } catch (e) {
-                    // Ignore
-                }
+                row.set("name", name);
+                row.set("nodeId", nodeId);
+                row.set("objectNodeId", parentObjectNodeId);
+                row.set("objectName", parentObjectName);
             }
 
             var gridObj = browser.globalSelf.callMethodGrid;
@@ -610,11 +589,7 @@ define([
 
                 row.inputParameters = params;
                 if (typeof row.set === "function") {
-                    try {
-                        row.set("inputParameters", params);
-                    } catch (e) {
-                        // Ignore
-                    }
+                    row.set("inputParameters", params);
                 }
 
                 var gObj = browser.globalSelf.callMethodGrid;
@@ -647,12 +622,8 @@ define([
             row.objectNodeId = objectNodeId;
 
             if (typeof row.set === "function") {
-                try {
-                    row.set("objectName", objectName);
-                    row.set("objectNodeId", objectNodeId);
-                } catch (e) {
-                    // Ignore
-                }
+                row.set("objectName", objectName);
+                row.set("objectNodeId", objectNodeId);
             }
 
             var gridObj = this.globalSelf.callMethodGrid;
