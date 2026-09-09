@@ -9,6 +9,7 @@
  */
 package com.eqtechnologic.eqube.mi.activities.invokeopcua;
 
+import com.eqtechnologic.eqube.exception.BusinessException;
 import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.logging.transaction.annotation.LogModuleName;
 import com.eqtechnologic.eqube.mi.activities.invokeopcua.bean.InvokeOPCUAConfigBean;
@@ -21,6 +22,9 @@ import com.eqtechnologic.eqube.mi.component.service.ComponentExportEntity;
 import com.eqtechnologic.eqube.mi.component.service.ComponentValidator;
 import com.eqtechnologic.eqube.mi.component.service.RemapInfo;
 import com.eqtechnologic.eqube.soa.servicemanagement.annotations.Exported;
+import com.eqtechnologic.eqube.transport.opcuatransport.beans.AbstractNodeBean;
+import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
+import com.eqtechnologic.eqube.transport.uiservice.beans.opcua.OPCUATransportInfoBean;
 import com.google.auto.service.AutoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -129,5 +133,37 @@ public class InvokeOPCUAComponentService implements ActivityService<Object, Map,
     @Override
     public Object getOutputHints(Map configMap, String id, Map mapDetail) {
         return null;
+    }
+
+    public List<AbstractNodeBean> fetchAddressSpace(Object connectionDetails) throws BusinessException {
+        return opcuaHelper.fetchAddressSpace(connectionDetails);
+    }
+
+    public List<AbstractNodeBean> fetchChildrenByID(String nodeId, Object connectionDetails) throws BusinessException {
+        return opcuaHelper.fetchChildrenByID(nodeId, connectionDetails);
+    }
+
+    public OpcUaMethodWriteItem fetchMethodParamsByID(String nodeId, Object connectionDetails) throws BusinessException {
+        return opcuaHelper.fetchMethodParamsByID(nodeId, connectionDetails);
+    }
+
+    public Map<String, Object> fetchServerEventFieldsAndTypes(Object connectionDetails) throws BusinessException {
+        return opcuaHelper.fetchServerEventFieldsAndTypes(connectionDetails);
+    }
+
+    public String fetchEnrichedMessageByID(String nodeId, String parentNodeId, List<String> enrichmentPath, Object connectionDetails) throws BusinessException {
+        return opcuaHelper.fetchEnrichedMessageByID(nodeId, parentNodeId, enrichmentPath, connectionDetails);
+    }
+
+    public Boolean validateMethodWriteItem(String nodeId, String objectNodeId, Object connectionDetails) throws BusinessException {
+        return opcuaHelper.validateMethodWriteItem(nodeId, objectNodeId, connectionDetails);
+    }
+
+    public OPCUATransportInfoBean fetchOPCUATransportInfo() {
+        return opcuaHelper.fetchOPCUATransportInfo();
+    }
+
+    public List<String> fetchConfiguredKeystores() {
+        return opcuaHelper.fetchConfiguredKeystores();
     }
 }

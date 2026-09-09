@@ -49,7 +49,7 @@ define([
                 elem: this.containerElem.find("#address-space-search-textbox")
             });
 
-            this.containerElem.find("#address-space-search-textbox").on("keyup", function (e) {
+            this.containerElem.find("#address-space-search-textbox").on("keyup", function () {
                 browser._onSearch($(this).val());
             });
 
@@ -147,7 +147,7 @@ define([
                 });
             }
 
-            this.containerElem.off("click", ".address-space-node-radio").on("click", ".address-space-node-radio", function (e) {
+            this.containerElem.off("click", ".address-space-node-radio").on("click", ".address-space-node-radio", function () {
                 var nodeId = $(this).val();
                 var node = browser.allNodesMap[nodeId];
                 if (node) {
@@ -200,7 +200,6 @@ define([
         },
 
         openForBrowse: function (targetRow, targetMode, connectionData) {
-            var browser = this;
             this.targetRow = targetRow;
             this.targetMode = targetMode || "DATA_CHANGE_WRITE";
             this.connectionData = connectionData;
@@ -264,7 +263,7 @@ define([
 
             var promise = AjaxUtility.commonAjaxRequest(
                 "POST",
-                "transport/transportUIServices/fetchAddressSpace",
+                "activities/invokeopcua/fetchAddressSpace",
                 JSON.stringify(payload),
                 "json"
             );
@@ -358,7 +357,7 @@ define([
                 type: "OPCUA"
             };
 
-            var url = "transport/transportUIServices/fetchAddressSpaceChildrenByID?nodeId=" + encodeURIComponent(parentNode.nodeId);
+            var url = "activities/invokeopcua/fetchAddressSpaceChildrenByID?nodeId=" + encodeURIComponent(parentNode.nodeId);
             var promise = AjaxUtility.commonAjaxRequest("POST", url, JSON.stringify(payload), "json");
 
             promise.done(function (response) {
@@ -455,7 +454,7 @@ define([
                 type: "OPCUA"
             };
 
-            var url = "transport/transportUIServices/fetchMethodParamsByID?nodeId=" + encodeURIComponent(nodeId);
+            var url = "activities/invokeopcua/fetchMethodParamsByID?nodeId=" + encodeURIComponent(nodeId);
             var promise = AjaxUtility.commonAjaxRequest("POST", url, JSON.stringify(payload), "json");
 
             promise.done(function (response) {

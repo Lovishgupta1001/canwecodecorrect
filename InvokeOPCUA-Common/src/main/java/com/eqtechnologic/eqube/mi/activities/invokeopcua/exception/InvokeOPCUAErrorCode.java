@@ -24,7 +24,9 @@ public enum InvokeOPCUAErrorCode implements ErrorCode {
     ERROR_WHILE_TESTING_CONNECTION(902002, "Error occurred while testing connection"),
     ERROR_WHILE_VALIDATING_CONNECTION(902003, "Error occurred while validating connection"),
     ERROR_WHILE_VALIDATING_EXPRESSION(902004, "Error occurred while validating expression"),
-    ERROR_WHILE_FETCHING_CONNECTION_DETAILS(902005, "Error occurred while getting connection details");
+    ERROR_WHILE_FETCHING_CONNECTION_DETAILS(902005, "Error occurred while getting connection details"),
+    ERROR_WHILE_BROWSING_ADDRESS_SPACE(902006, "Error occurred while browsing OPC UA address space"),
+    ERROR_WHILE_FETCHING_METHOD_PARAMS(902007, "Error occurred while fetching method parameters");
 
     private final int errorCode;
     private final String errorMessage;

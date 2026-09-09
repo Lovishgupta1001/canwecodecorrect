@@ -99,7 +99,29 @@
         </dependency>
         <dependency>
             <groupId>com.eqtechnologic.eqube.platform.transport</groupId>
+            <artifactId>CommonComponents</artifactId>
+            <classifier>signed</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.eqtechnologic.eqube.platform.transport</groupId>
             <artifactId>TransportClient</artifactId>
+            <classifier>signed</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.eqtechnologic.eqube.platform.transport</groupId>
+            <artifactId>Transport-UIService</artifactId>
             <classifier>signed</classifier>
             <exclusions>
                 <exclusion>

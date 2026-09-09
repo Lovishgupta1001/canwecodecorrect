@@ -47,6 +47,8 @@ define(function (require) {
                 }
             });
 
+            manager._ensureSampleOpcUaConnection(finalConnArr);
+
             globalSelf.connectionComboBox = uilayer.dropDownList({
                 elem: globalSelf.$el.find("#connectionComboBox"),
                 dataSource: finalConnArr,
@@ -119,6 +121,8 @@ define(function (require) {
                 }
             });
 
+            manager._ensureSampleOpcUaConnection(finalConnArr);
+
             if (globalSelf.connectionComboBox) {
                 globalSelf.connectionComboBox.setDataSource(finalConnArr);
 
@@ -129,6 +133,25 @@ define(function (require) {
                 } else {
                     uilayer.notifier("warning", globalSelf.nls.InvalidConnection || globalSelf.nls.SelectConnection);
                 }
+            }
+        },
+
+        _ensureSampleOpcUaConnection: function (finalConnArr) {
+            var sampleOpcUaConn = {
+                key: "Sample_OPCUA_Connection",
+                connectionId: "9999",
+                connectionName: "Sample_OPCUA_Connection",
+                connectionType: "OPCUA",
+                pluginType: "OPC UA",
+                type: "OPCUA",
+                connectionColor: "#0078d4"
+            };
+
+            var hasSample = _.some(finalConnArr, function (c) {
+                return String(c.connectionId) === String(sampleOpcUaConn.connectionId) || c.key === sampleOpcUaConn.key;
+            });
+            if (!hasSample) {
+                finalConnArr.unshift(sampleOpcUaConn);
             }
         },
 
@@ -163,9 +186,10 @@ define(function (require) {
                 manager.showOpcUaConfiguration(globalSelf, connItem, connId, isInitial);
             } else {
                 manager.hideAllConfiguration(globalSelf);
-                manager._showConnErrorTooltip(globalSelf, element, globalSelf.nls.InvalidOPCUAConnection || globalSelf.nls.InvalidConnection);
+                var errorMsg = globalSelf.nls.InvalidOPCUAConnection || globalSelf.nls.InvalidConnection || "Only OPC UA connections are allowed.";
+                manager._showConnErrorTooltip(globalSelf, element, errorMsg);
                 if (!isInitial) {
-                    uilayer.notifier("error", globalSelf.nls.InvalidOPCUAConnection || globalSelf.nls.InvalidConnection);
+                    uilayer.notifier("error", errorMsg);
                 }
                 if (globalSelf.connectionComboBox) {
                     globalSelf.connectionComboBox.value("");
@@ -174,8 +198,16 @@ define(function (require) {
         },
 
         _getConnectionType: function (connItem) {
-            // Allow any connection to be treated as OPC UA for testing/development
-            return "OPCUA";
+            if (!connItem) {
+                return "";
+            }
+
+            var typeStr = (connItem.connectionType || connItem.pluginType || connItem.type || connItem.pluginName || "").toUpperCase();
+            if (typeStr.indexOf("OPC") !== -1 || typeStr.indexOf("OPCUA") !== -1 || typeStr.indexOf("OPC UA") !== -1) {
+                return "OPCUA";
+            }
+
+            return "";
         },
 
         showOpcUaConfiguration: function (globalSelf, connItem, connId, isInitial) {
