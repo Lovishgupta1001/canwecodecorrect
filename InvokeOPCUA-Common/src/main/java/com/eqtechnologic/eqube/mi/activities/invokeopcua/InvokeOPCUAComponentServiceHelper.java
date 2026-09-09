@@ -345,11 +345,11 @@ public class InvokeOPCUAComponentServiceHelper {
             if (strConnName != null && !strConnName.isEmpty()) {
                 try {
                     TransportClientBean transportClientBean = getTransportClientService().getTransportDetail(strConnName);
-                    if (transportClientBean != null) {
-                        exportEntities.add(new eQExportEntity(AdminConsoleConstants.TransferElement.CONNECTION, transportClientBean.getTransportId().toString()));
+                    if (transportClientBean != null && transportClientBean.getTransportId() != null) {
+                        exportEntities.add(new eQExportEntity(AdminConsoleConstants.TransferElement.TRANSPORT, transportClientBean.getTransportId().toString()));
                     }
                 } catch (BusinessException e) {
-                    LOGGER.error("Error while fetching Connection");
+                    LOGGER.error("Error while fetching Transport for InvokeOPCUA: " + strConnName, e);
                 }
             }
         }
@@ -361,11 +361,14 @@ public class InvokeOPCUAComponentServiceHelper {
         ProcessRemapInfos processRemapInfos = (ProcessRemapInfos) completeRemapInfo;
         String strConnName = (String) configData.get(InvokeOPCUAConstants.CONNECTION_COMBOBOX);
         if (strConnName == null || strConnName.trim().isEmpty()) {
+            strConnName = (String) configData.get(InvokeOPCUAConstants.SELECT_CONNECTION);
+        }
+        if (strConnName == null || strConnName.trim().isEmpty()) {
             strConnName = (String) configData.get(InvokeOPCUAConstants.CONNECTION_NAME);
         }
         if (strConnName != null && !strConnName.trim().isEmpty()) {
-            DeployRemapBean deployRemapBean = new DeployRemapBean(eQResourceType.CONNECTION, strConnName, strConnName, null);
-            processRemapInfos.addDeployRemapInfo(eQResourceType.CONNECTION.name(), deployRemapBean);
+            DeployRemapBean deployRemapBean = new DeployRemapBean(eQResourceType.TRANSPORT, strConnName, strConnName, null);
+            processRemapInfos.addDeployRemapInfo(eQResourceType.TRANSPORT.name(), deployRemapBean);
         }
     }
 
@@ -373,13 +376,29 @@ public class InvokeOPCUAComponentServiceHelper {
         ProcessRemapInfos completeRemapInfos = ((ProcessRemapInfos) completeRemapInfo);
         String strConnName = (String) configData.get(InvokeOPCUAConstants.CONNECTION_COMBOBOX);
         if (strConnName == null || strConnName.trim().isEmpty()) {
+            strConnName = (String) configData.get(InvokeOPCUAConstants.SELECT_CONNECTION);
+        }
+        if (strConnName == null || strConnName.trim().isEmpty()) {
             strConnName = (String) configData.get(InvokeOPCUAConstants.CONNECTION_NAME);
         }
-        for (DeployRemapBean remapInfo : completeRemapInfos.getDeployRemapInfo(eQResourceType.CONNECTION.name())) {
-            if (remapInfo.getOldValue().equals(strConnName)) {
-                configData.put(InvokeOPCUAConstants.CONNECTION_COMBOBOX, remapInfo.getNewValue());
-                configData.put(InvokeOPCUAConstants.CONNECTION_NAME, remapInfo.getNewValue());
-                break;
+        List<DeployRemapBean> transportRemaps = completeRemapInfos.getDeployRemapInfo(eQResourceType.TRANSPORT.name());
+        if (transportRemaps != null) {
+            for (DeployRemapBean remapInfo : transportRemaps) {
+                if (remapInfo.getOldValue() != null && remapInfo.getOldValue().equals(strConnName)) {
+                    configData.put(InvokeOPCUAConstants.CONNECTION_COMBOBOX, remapInfo.getNewValue());
+                    configData.put(InvokeOPCUAConstants.CONNECTION_NAME, remapInfo.getNewValue());
+                    return;
+                }
+            }
+        }
+        List<DeployRemapBean> connRemaps = completeRemapInfos.getDeployRemapInfo(eQResourceType.CONNECTION.name());
+        if (connRemaps != null) {
+            for (DeployRemapBean remapInfo : connRemaps) {
+                if (remapInfo.getOldValue() != null && remapInfo.getOldValue().equals(strConnName)) {
+                    configData.put(InvokeOPCUAConstants.CONNECTION_COMBOBOX, remapInfo.getNewValue());
+                    configData.put(InvokeOPCUAConstants.CONNECTION_NAME, remapInfo.getNewValue());
+                    return;
+                }
             }
         }
     }

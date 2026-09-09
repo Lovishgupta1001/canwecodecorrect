@@ -26,7 +26,9 @@ public enum InvokeOPCUAErrorCode implements ErrorCode {
     ERROR_WHILE_VALIDATING_EXPRESSION(902004, "Error occurred while validating expression"),
     ERROR_WHILE_FETCHING_CONNECTION_DETAILS(902005, "Error occurred while getting connection details"),
     ERROR_WHILE_BROWSING_ADDRESS_SPACE(902006, "Error occurred while browsing OPC UA address space"),
-    ERROR_WHILE_FETCHING_METHOD_PARAMS(902007, "Error occurred while fetching method parameters");
+    ERROR_WHILE_FETCHING_METHOD_PARAMS(902007, "Error occurred while fetching method parameters"),
+    INVALID_INPUT(902008, "Invalid input provided"),
+    CANNOT_READ_OPCUA_NODE(902009, "Cannot read OPC UA node");
 
     private final int errorCode;
     private final String errorMessage;
