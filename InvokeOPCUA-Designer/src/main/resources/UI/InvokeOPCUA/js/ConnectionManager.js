@@ -161,14 +161,11 @@ define(function (require) {
             if (connType === "OPCUA") {
                 manager._hideConnErrorTooltip(globalSelf, element);
                 manager.showOpcUaConfiguration(globalSelf, connItem, connId, isInitial);
-            } else if (connType === "MQTT") {
-                manager._hideConnErrorTooltip(globalSelf, element);
-                manager.showMqttConfiguration(globalSelf, connItem, connId, isInitial);
             } else {
                 manager.hideAllConfiguration(globalSelf);
-                manager._showConnErrorTooltip(globalSelf, element, globalSelf.nls.InvalidConnection);
+                manager._showConnErrorTooltip(globalSelf, element, globalSelf.nls.InvalidOPCUAConnection || globalSelf.nls.InvalidConnection);
                 if (!isInitial) {
-                    uilayer.notifier("error", globalSelf.nls.InvalidConnection);
+                    uilayer.notifier("error", globalSelf.nls.InvalidOPCUAConnection || globalSelf.nls.InvalidConnection);
                 }
                 if (globalSelf.connectionComboBox) {
                     globalSelf.connectionComboBox.value("");
@@ -184,10 +181,6 @@ define(function (require) {
             var typeStr = (connItem.connectionType || connItem.pluginType || connItem.type || connItem.pluginName || "").toUpperCase();
             if (!typeStr) {
                 return "OPCUA";
-            }
-
-            if (typeStr.indexOf("MQTT") !== -1) {
-                return "MQTT";
             }
 
             if (typeStr.indexOf("OPC") !== -1 || typeStr.indexOf("OPCUA") !== -1 || typeStr.indexOf("OPC UA") !== -1) {
@@ -234,32 +227,6 @@ define(function (require) {
 
             DataChangeGridManager.refreshGridMode(globalSelf);
             CallMethodGridManager.refreshGridMode(globalSelf);
-        },
-
-        showMqttConfiguration: function (globalSelf, connItem, connId, isInitial) {
-            // Hide OPC UA specific controls & grids
-            globalSelf.$(".invokeopcua-config-controls, .invokeopcua-grids-section").hide();
-
-            var connText = globalSelf.connectionComboBox ? globalSelf.connectionComboBox.text() : "";
-            var connName = connItem?.connectionName || connItem?.key || connText;
-
-            globalSelf.model.setKey("connectionComboBox", connText);
-            globalSelf.model.setKey("connectionName", connName);
-            globalSelf.model.setKey("connectionId", connId);
-            globalSelf.model.setKey("connectionType", "MQTT");
-            globalSelf.model.setKey("selectConnection", connText || connId);
-
-            globalSelf.dataChangeOptions = [];
-            globalSelf.callMethodOptions = [];
-            globalSelf.model.setKey("dataChangeWrite", []);
-            globalSelf.model.setKey("callMethod", []);
-
-            if (globalSelf.dataChangeWriteGrid?.widget?.dataSource) {
-                globalSelf.dataChangeWriteGrid.widget.dataSource.data([]);
-            }
-            if (globalSelf.callMethodGrid?.widget?.dataSource) {
-                globalSelf.callMethodGrid.widget.dataSource.data([]);
-            }
         },
 
         hideAllConfiguration: function (globalSelf) {

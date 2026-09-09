@@ -43,7 +43,7 @@ public class InvokeOPCUAComponentRestController {
     @GetMapping(value = "/getSupportedPluginType")
     public List<String> getSupportedPluginType() {
         checkMultipleOperations(operations);
-        return Arrays.asList("OPC UA", "OPCUA", "MQTT");
+        return Arrays.asList("OPC UA", "OPCUA");
     }
 
     @Authorize

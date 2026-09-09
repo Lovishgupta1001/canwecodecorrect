@@ -69,14 +69,11 @@ public class InvokeOPCUAValidator implements ComponentValidator<Map, Map> {
             validateConnection(connName, errorList);
         }
 
-        String connType = (String) configMap.get(InvokeOPCUAConstants.CONNECTION_TYPE);
-        if (connType == null || !InvokeOPCUAConstants.MQTT_TYPE.equalsIgnoreCase(connType)) {
-            String operation = (String) configMap.get(InvokeOPCUAConstants.OPERATION);
-            if (InvokeOPCUAConstants.DATA_CHANGE_WRITE.equals(operation)) {
-                validateDataChangeWrite((List<?>) configMap.get("dataChangeWrite"), additionalInfo, errorList);
-            } else if (InvokeOPCUAConstants.CALL_METHOD.equals(operation)) {
-                validateCallMethod((List<?>) configMap.get("callMethod"), additionalInfo, errorList);
-            }
+        String operation = (String) configMap.get(InvokeOPCUAConstants.OPERATION);
+        if (InvokeOPCUAConstants.DATA_CHANGE_WRITE.equals(operation)) {
+            validateDataChangeWrite((List<?>) configMap.get("dataChangeWrite"), additionalInfo, errorList);
+        } else if (InvokeOPCUAConstants.CALL_METHOD.equals(operation)) {
+            validateCallMethod((List<?>) configMap.get("callMethod"), additionalInfo, errorList);
         }
 
         return errorList;

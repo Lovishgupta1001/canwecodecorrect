@@ -28,7 +28,6 @@ public final class InvokeOPCUAConstants {
     public static final String OPERATION = "operation";
     public static final String EXECUTION_MODE = "executionMode";
     public static final String OPCUA_TYPE = "OPCUA";
-    public static final String MQTT_TYPE = "MQTT";
 
     // Validation Error Keys
     public static final String ERR_SEL_CONNECTION = "invokeopcua.selConnection";

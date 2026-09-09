@@ -26,7 +26,8 @@ define(function (require) {
             this.activityId = options.activityId;
             this.activityReqres = options.activityReqres;
             this.designerReqres = options.reqres;
-            this.allowedTypes = options.allowedTypes || Constants.DEFAULT_ALLOWED_TYPES;
+            this.allowedTypes = options.allowedTypes || null;
+            this.pluginType = options.pluginType || null;
             this.processModel = this.designerReqres ? this.designerReqres.request("getCurrentActiveEntityModelFromDataStore") : null;
         },
 
@@ -86,7 +87,8 @@ define(function (require) {
                 connectionName: connText,
                 name: connText,
                 type: connType,
-                connectionType: connType
+                connectionType: connType,
+                pluginType: this.model.get("pluginType") || ""
             };
         },
 
@@ -195,8 +197,9 @@ define(function (require) {
             }
 
             var connType = globalSelf._resolveConnectionType(connItem);
+            var isAllowed = globalSelf._isConnectionAllowed(connType, connItem);
 
-            if (connType === "OPCUA" || connType === "MQTT") {
+            if (isAllowed) {
                 globalSelf._hideConnErrorTooltip(element);
 
                 var connText = globalSelf.connectionComboBox ? globalSelf.connectionComboBox.text() : "";
@@ -206,12 +209,14 @@ define(function (require) {
                 globalSelf.model.set("connectionName", connName);
                 globalSelf.model.set("connectionId", connId);
                 globalSelf.model.set("connectionType", connType);
+                globalSelf.model.set("pluginType", connItem?.pluginType || "");
                 globalSelf.model.set("selectConnection", connText || connId);
 
                 globalSelf.trigger(Constants.EVENTS.CHANGE_CONNECTION_VARIABLE, {
                     connectionId: connId,
                     connectionName: connName,
                     connectionType: connType,
+                    pluginType: connItem?.pluginType,
                     connectionItem: connItem,
                     isInitial: isInitial
                 });
@@ -228,25 +233,28 @@ define(function (require) {
             }
         },
 
+        _isConnectionAllowed: function (connType, connItem) {
+            if (!this.allowedTypes || !this.allowedTypes.length) {
+                return true;
+            }
+
+            var typeUpper = (connType || "").toUpperCase();
+            var pluginUpper = (connItem?.pluginType || "").toUpperCase();
+
+            return this.allowedTypes.some(function (allowed) {
+                var allowedUpper = (allowed || "").toUpperCase();
+                return typeUpper === allowedUpper ||
+                    typeUpper.indexOf(allowedUpper) !== -1 ||
+                    pluginUpper.indexOf(allowedUpper) !== -1;
+            });
+        },
+
         _resolveConnectionType: function (connItem) {
             if (!connItem) {
-                return "OPCUA";
+                return "";
             }
 
-            var typeStr = (connItem.connectionType || connItem.pluginType || connItem.type || connItem.pluginName || "").toUpperCase();
-            if (!typeStr) {
-                return "OPCUA";
-            }
-
-            if (typeStr.indexOf("MQTT") !== -1) {
-                return "MQTT";
-            }
-
-            if (typeStr.indexOf("OPC") !== -1 || typeStr.indexOf("OPCUA") !== -1 || typeStr.indexOf("OPC UA") !== -1) {
-                return "OPCUA";
-            }
-
-            return "";
+            return connItem.connectionType || connItem.pluginType || connItem.type || connItem.pluginName || "";
         },
 
         _refreshConnection: function () {
@@ -335,6 +343,7 @@ define(function (require) {
             this.designerReqres = null;
             this.processModel = null;
             this.allowedTypes = null;
+            this.pluginType = null;
             if (this.connectionComboBox) {
                 this.connectionComboBox.destroy();
                 this.connectionComboBox = null;

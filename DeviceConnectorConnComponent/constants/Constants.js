@@ -14,8 +14,7 @@ define(function () {
             INITIAL_CONNECTION_FETCH: "INITIAL_CONNECTION_FETCH",
             INVALID_CONNECTION_SELECTED: "INVALID_CONNECTION_SELECTED"
         },
-        NO_CONN_ID: "NO_CONN_ID",
-        DEFAULT_ALLOWED_TYPES: ["OPCUA", "MQTT", "OPC UA"]
+        NO_CONN_ID: "NO_CONN_ID"
     };
 
     return Object.freeze(CONSTANTS);
