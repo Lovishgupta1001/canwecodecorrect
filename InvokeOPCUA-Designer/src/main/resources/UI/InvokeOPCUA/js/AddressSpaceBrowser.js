@@ -57,14 +57,25 @@ define([
             this._bindTreeEvents();
         },
 
-        _initTreeList: function () {
+        _initTreeList: function (initialData) {
             var browser = this;
             var elem = this.containerElem.find("#address-space-treelist");
+            if (!elem.length) {
+                return;
+            }
+
+            if (this.treeListWidget) {
+                try {
+                    this.treeListWidget.destroy?.();
+                } catch (e) {}
+                this.treeListWidget = null;
+                elem.empty();
+            }
 
             this.treeListWidget = uilayer.treeList({
                 elem: elem,
                 dataSource: new uilayer.data.TreeListDataSource({
-                    data: [],
+                    data: initialData || [],
                     schema: {
                         model: {
                             id: "id",
@@ -347,29 +358,24 @@ define([
                 var flatList = browser._processNodes(data, null);
 
                 var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
-                if (tree?.setDataSource) {
-                    var ds = new uilayer.data.TreeListDataSource({
-                        data: flatList,
-                        schema: {
-                            model: {
-                                id: "id",
-                                parentId: "parentId",
-                                expanded: true,
-                                fields: {
-                                    id: { type: "string" },
-                                    parentId: { type: "string", nullable: true },
-                                    displayName: { type: "string" },
-                                    nodeClass: { type: "string" },
-                                    nodeId: { type: "string" },
-                                    hasChildren: { type: "boolean" }
-                                }
-                            }
-                        }
-                    });
-                    tree.setDataSource(ds);
-                    if (tree.resize) {
-                        tree.resize();
+                var updated = false;
+                if (tree && tree.dataSource && typeof tree.dataSource.data === "function") {
+                    try {
+                        tree.dataSource.data(flatList);
+                        updated = true;
+                    } catch (e) {
+                        updated = false;
                     }
+                }
+
+                if (!updated) {
+                    browser._initTreeList(flatList);
+                    browser._bindTreeEvents();
+                }
+
+                var activeTree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
+                if (activeTree?.resize) {
+                    activeTree.resize();
                 }
 
                 // Automatically fetch children for root nodes so that top-level items are open and loaded
