@@ -219,41 +219,41 @@ public class InvokeOPCUAComponentServiceHelper {
     public List<AbstractNodeBean> fetchAddressSpace(Object connectionDetails) throws BusinessException {
         TransportBean transportBean = resolveTransportBean(connectionDetails);
         if (transportBean == null) {
-            throw new BusinessException(InvokeOPCUAErrorCode.INVALID_INPUT, "Please select a valid OPC UA connection.");
+            throw new BusinessException(InvokeOPCUAExceptionType.INVOKE_OPCUA_ACTIVITY_EXCEPTION, InvokeOPCUAErrorCode.ERROR_WHILE_FETCHING_CONNECTION_DETAILS, "Please select a valid OPC UA connection.");
         }
         try {
             List<AbstractNodeBean> nodes = getOpcUaTransportService().browseAddressSpace(transportBean, null);
             return nodes != null ? nodes : Collections.emptyList();
         } catch (Exception e) {
             LOGGER.error("Error browsing live OPC UA address space for transport: " + transportBean.getName(), e);
-            throw new BusinessException(InvokeOPCUAErrorCode.CANNOT_READ_OPCUA_NODE, "Error browsing OPC UA address space: " + e.getMessage(), e);
+            throw new BusinessException(InvokeOPCUAExceptionType.INVOKE_OPCUA_ACTIVITY_EXCEPTION, InvokeOPCUAErrorCode.ERROR_WHILE_BROWSING_ADDRESS_SPACE, "Error browsing OPC UA address space: " + e.getMessage());
         }
     }
 
     public List<AbstractNodeBean> fetchChildrenByID(String nodeId, Object connectionDetails) throws BusinessException {
         TransportBean transportBean = resolveTransportBean(connectionDetails);
         if (transportBean == null) {
-            throw new BusinessException(InvokeOPCUAErrorCode.INVALID_INPUT, "Please select a valid OPC UA connection.");
+            throw new BusinessException(InvokeOPCUAExceptionType.INVOKE_OPCUA_ACTIVITY_EXCEPTION, InvokeOPCUAErrorCode.ERROR_WHILE_FETCHING_CONNECTION_DETAILS, "Please select a valid OPC UA connection.");
         }
         try {
             List<AbstractNodeBean> nodes = getOpcUaTransportService().browseAddressSpace(transportBean, nodeId);
             return nodes != null ? nodes : Collections.emptyList();
         } catch (Exception e) {
             LOGGER.error("Error browsing live OPC UA child nodes for: " + nodeId, e);
-            throw new BusinessException(InvokeOPCUAErrorCode.CANNOT_READ_OPCUA_NODE, "Error browsing OPC UA child nodes for nodeId: " + nodeId + " - " + e.getMessage(), e);
+            throw new BusinessException(InvokeOPCUAExceptionType.INVOKE_OPCUA_ACTIVITY_EXCEPTION, InvokeOPCUAErrorCode.ERROR_WHILE_BROWSING_ADDRESS_SPACE, "Error browsing OPC UA child nodes for nodeId: " + nodeId + " - " + e.getMessage());
         }
     }
 
     public OpcUaMethodWriteItem fetchMethodParamsByID(String nodeId, Object connectionDetails) throws BusinessException {
         TransportBean transportBean = resolveTransportBean(connectionDetails);
         if (transportBean == null) {
-            throw new BusinessException(InvokeOPCUAErrorCode.INVALID_INPUT, "Please select a valid OPC UA connection.");
+            throw new BusinessException(InvokeOPCUAExceptionType.INVOKE_OPCUA_ACTIVITY_EXCEPTION, InvokeOPCUAErrorCode.ERROR_WHILE_FETCHING_CONNECTION_DETAILS, "Please select a valid OPC UA connection.");
         }
         try {
             return getOpcUaTransportService().getMethodNodeInfo(transportBean, nodeId);
         } catch (Exception e) {
             LOGGER.error("Error fetching live OPC UA method params for: " + nodeId, e);
-            throw new BusinessException(InvokeOPCUAErrorCode.CANNOT_READ_OPCUA_NODE, "Error fetching method parameters for nodeId: " + nodeId + " - " + e.getMessage(), e);
+            throw new BusinessException(InvokeOPCUAExceptionType.INVOKE_OPCUA_ACTIVITY_EXCEPTION, InvokeOPCUAErrorCode.ERROR_WHILE_FETCHING_METHOD_PARAMS, "Error fetching method parameters for nodeId: " + nodeId + " - " + e.getMessage());
         }
     }
 
