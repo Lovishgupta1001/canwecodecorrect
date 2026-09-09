@@ -61,9 +61,9 @@ define(function (require) {
                         connectionId: id !== undefined ? id : name,
                         connectionName: name || idStr,
                         connectionColor: conn.connectionColor || "rgb(226, 0, 132)",
-                        connectionType: conn.connectionType || conn.type || "OPCUA",
-                        pluginType: conn.pluginDisplayName || conn.pluginType || "Device Connector",
-                        pluginDisplayName: conn.pluginDisplayName || conn.pluginType || "Device Connector",
+                        connectionType: conn.connectionType || conn.type || conn.transportType || "",
+                        pluginType: conn.pluginType || conn.pluginDisplayName || conn.pluginName || "",
+                        pluginDisplayName: conn.pluginDisplayName || conn.pluginType || conn.pluginName || "",
                         rawConnection: conn
                     });
                 }
@@ -85,8 +85,8 @@ define(function (require) {
                                 connectionId: id !== undefined ? id : name,
                                 connectionName: name || idStr,
                                 connectionColor: item.connectionColor || "#0078d4",
-                                connectionType: item.connectionType || "OPCUA",
-                                pluginType: item.pluginType || "OPC UA",
+                                connectionType: item.connectionType || item.type || "",
+                                pluginType: item.pluginType || item.pluginDisplayName || item.pluginName || "",
                                 rawConnection: item
                             });
                         }
@@ -128,13 +128,25 @@ define(function (require) {
             var selectedConn = globalSelf.model.getKey("connectionComboBox") ||
                 globalSelf.model.getKey("connectionName") ||
                 globalSelf.model.getKey("selectConnection") ||
-                (globalSelf.initialData && (globalSelf.initialData.connectionComboBox || globalSelf.initialData.selectConnection || globalSelf.initialData.connectionName));
+                globalSelf.model.getKey("connectionId") ||
+                (globalSelf.initialData && (globalSelf.initialData.connectionComboBox || globalSelf.initialData.selectConnection || globalSelf.initialData.connectionName || globalSelf.initialData.connectionId));
 
             if (selectedConn) {
-                globalSelf.connectionComboBox.text(selectedConn);
-                var currentVal = globalSelf.connectionComboBox.value();
-                if (currentVal) {
-                    manager._validateAndHandleConnection(currentVal, globalSelf, true);
+                var matchItem = finalConnArr.find(function (item) {
+                    return String(item.connectionId) === String(selectedConn) ||
+                        String(item.connectionName) === String(selectedConn) ||
+                        String(item.key) === String(selectedConn);
+                });
+
+                if (matchItem) {
+                    globalSelf.connectionComboBox.value(matchItem.connectionId);
+                    manager._validateAndHandleConnection(matchItem.connectionId, globalSelf, true);
+                } else {
+                    globalSelf.connectionComboBox.value(selectedConn);
+                    var currentVal = globalSelf.connectionComboBox.value();
+                    if (currentVal) {
+                        manager._validateAndHandleConnection(currentVal, globalSelf, true);
+                    }
                 }
             }
         },
@@ -144,26 +156,105 @@ define(function (require) {
             var finalConnArr = manager._buildFinalConnectionArray(globalSelf);
 
             if (globalSelf.connectionComboBox) {
+                var prevVal = globalSelf.connectionComboBox.value();
+                var prevText = globalSelf.connectionComboBox.text();
+
                 globalSelf.connectionComboBox.setDataSource(finalConnArr);
 
-                var connId = globalSelf.connectionComboBox.value();
-                if (parseInt(connId, 10) > 0) {
-                    manager._validateAndHandleConnection(connId, globalSelf, false);
+                var matchItem = null;
+                if (prevVal) {
+                    matchItem = finalConnArr.find(function (item) {
+                        return String(item.connectionId) === String(prevVal);
+                    });
+                }
+                if (!matchItem && prevText && prevText !== globalSelf.nls.SelectConnection) {
+                    matchItem = finalConnArr.find(function (item) {
+                        return String(item.key) === String(prevText) || String(item.connectionName) === String(prevText);
+                    });
+                }
+
+                if (matchItem) {
+                    globalSelf.connectionComboBox.value(matchItem.connectionId);
+                    if (globalSelf.addressSpaceBrowser) {
+                        globalSelf.addressSpaceBrowser.lastFetchedConnId = null;
+                        globalSelf.addressSpaceBrowser.allNodesMap = {};
+                    }
+                    manager._validateAndHandleConnection(matchItem.connectionId, globalSelf, false);
                     uilayer.notifier("success", globalSelf.nls.ConnectionsRefreshed);
                 } else {
-                    uilayer.notifier("warning", globalSelf.nls.InvalidConnection || globalSelf.nls.SelectConnection);
+                    manager.hideAllConfiguration(globalSelf);
+                    uilayer.notifier("warning", globalSelf.nls.SelectConnection || "Please select a connection.");
                 }
             }
         },
 
+        _isOpcUaConnection: function (connItem) {
+            if (!connItem) return false;
+            var raw = connItem.rawConnection || connItem;
+
+            var pluginDisplayName = String(raw.pluginDisplayName || connItem.pluginDisplayName || "").toUpperCase();
+            var pluginType = String(raw.pluginType || connItem.pluginType || "").toUpperCase();
+            var connectionType = String(raw.connectionType || connItem.connectionType || raw.type || connItem.type || "").toUpperCase();
+            var pluginName = String(raw.pluginName || connItem.pluginName || "").toUpperCase();
+            var transportType = String(raw.transportType || raw.transportName || "").toUpperCase();
+            var transportClass = String(raw.transportBeanClass || raw.transportClass || raw.className || "").toUpperCase();
+            var connName = String(connItem.connectionName || connItem.key || raw.connectionName || raw.name || "").toUpperCase();
+
+            // Explicitly disallow non-OPC UA connector types (Database, REST, Kafka, File, Salesforce, SAP, etc.)
+            var nonOpcTypes = [
+                "DATABASE", "RDBMS", "ORACLE", "MYSQL", "POSTGRES", "SQLSERVER", "SQL SERVER", "DB2",
+                "KAFKA", "REST", "FILE", "FTP", "SFTP", "SALESFORCE", "SAP", "SOAP", "JMS", "AMQP", "RABBITMQ",
+                "ACTIVEMQ", "EMAIL", "SMTP", "IMAP", "POP3", "HDFS", "HADOOP", "MONGODB", "CASSANDRA", "SOLR", "ELASTICSEARCH"
+            ];
+
+            for (var i = 0; i < nonOpcTypes.length; i++) {
+                var t = nonOpcTypes[i];
+                if (pluginDisplayName.indexOf(t) !== -1 ||
+                    pluginType.indexOf(t) !== -1 ||
+                    connectionType === t ||
+                    connectionType.indexOf(t) !== -1 ||
+                    pluginName.indexOf(t) !== -1) {
+                    return false;
+                }
+            }
+
+            // Positive OPC UA / Device Connector markers
+            if (pluginDisplayName.indexOf("DEVICE CONNECTOR") !== -1 ||
+                pluginDisplayName.indexOf("OPC") !== -1 ||
+                pluginType.indexOf("DEVICE CONNECTOR") !== -1 ||
+                pluginType.indexOf("OPC") !== -1 ||
+                pluginName.indexOf("DEVICE CONNECTOR") !== -1 ||
+                pluginName.indexOf("OPC") !== -1 ||
+                transportType.indexOf("DEVICE CONNECTOR") !== -1 ||
+                transportType.indexOf("OPC") !== -1 ||
+                transportClass.indexOf("OPC") !== -1 ||
+                transportClass.indexOf("DEVICECONNECTOR") !== -1 ||
+                connectionType.indexOf("OPC") !== -1 ||
+                connectionType === "DEVICE CONNECTOR" ||
+                connectionType === "DEVICECONNECTOR") {
+                return true;
+            }
+
+            // Fallback: connection name contains "OPC"
+            if (connName.indexOf("OPC") !== -1) {
+                return true;
+            }
+
+            return false;
+        },
+
         _validateAndHandleConnection: function (connId, globalSelf, isInitial) {
             var manager = this;
-            var element = globalSelf.$el.find("#connectionComboBox").parent().find(".k-input, .k-dropdown-wrap");
+            var element = globalSelf.$el.find("#connectionComboBox").parent().find(".k-input, .k-dropdown-wrap, .k-widget, .k-dropdown");
+            if (!element.length) {
+                element = globalSelf.$el.find("#connectionComboBox");
+            }
 
             if (!connId || ((typeof connId === "string") && !parseInt(connId, 10))) {
                 manager.hideAllConfiguration(globalSelf);
                 if (connId && !isInitial) {
-                    manager._showConnErrorTooltip(globalSelf, element, globalSelf.nls.InvalidConnection);
+                    manager._showConnErrorTooltip(globalSelf, element, globalSelf.nls.InvalidConnection || "Please select a valid OPC UA connection.");
+                    uilayer.notifier("error", globalSelf.nls.InvalidConnection || "Please select a valid OPC UA connection.");
                 }
                 return;
             }
@@ -178,6 +269,14 @@ define(function (require) {
                         break;
                     }
                 }
+            }
+
+            var isOpcUa = manager._isOpcUaConnection(connItem);
+            if (!isOpcUa) {
+                manager.hideAllConfiguration(globalSelf);
+                manager._showConnErrorTooltip(globalSelf, element, globalSelf.nls.InvalidConnection || "Please select a valid OPC UA connection.");
+                uilayer.notifier("error", globalSelf.nls.InvalidConnection || "Please select a valid OPC UA connection.");
+                return;
             }
 
             manager._hideConnErrorTooltip(globalSelf, element);
@@ -231,14 +330,15 @@ define(function (require) {
                     connectionId: connId,
                     connectionName: connName,
                     name: connName,
-                    type: "OPCUA"
+                    type: "OPCUA",
+                    connectionType: "OPCUA"
                 };
                 globalSelf.addressSpaceBrowser.prefetchAddressSpace(connPayload);
             }
         },
 
         hideAllConfiguration: function (globalSelf) {
-            globalSelf.$(".invokeopcua-config-controls, .invokeopcua-grids-section").hide();
+            globalSelf.$(".invokeopcua-config-controls, .invokeopcua-grids-section").show();
 
             globalSelf.dataChangeOptions = [];
             globalSelf.callMethodOptions = [];
@@ -249,24 +349,39 @@ define(function (require) {
             globalSelf.model.setKey("connectionType", "");
             globalSelf.model.setKey("selectConnection", "");
 
-            globalSelf.model.setKey("dataChangeWrite", []);
-            globalSelf.model.setKey("callMethod", []);
+            var blankDc = [{ name: "", nodeId: "", sampleValue: "", newValue: "" }];
+            var blankCm = [{ name: "", nodeId: "", objectNodeId: "", objectName: "", inputParameters: [], outputValue: "" }];
+
+            globalSelf.model.setKey("dataChangeWrite", blankDc);
+            globalSelf.model.setKey("callMethod", blankCm);
 
             if (globalSelf.dataChangeWriteGrid?.widget?.dataSource) {
-                globalSelf.dataChangeWriteGrid.widget.dataSource.data([]);
+                globalSelf.dataChangeWriteGrid.widget.dataSource.data(blankDc);
             }
             if (globalSelf.callMethodGrid?.widget?.dataSource) {
-                globalSelf.callMethodGrid.widget.dataSource.data([]);
+                globalSelf.callMethodGrid.widget.dataSource.data(blankCm);
             }
+
+            DataChangeGridManager.refreshGridMode(globalSelf);
+            CallMethodGridManager.refreshGridMode(globalSelf);
         },
 
         _showConnErrorTooltip: function (globalSelf, element, message) {
             if (!element || !element.length) {
+                element = globalSelf.$el.find("#connectionComboBox").parent().find(".k-input, .k-dropdown-wrap, .k-widget, .k-dropdown");
+            }
+            if (!element || !element.length) {
+                element = globalSelf.$el.find("#connectionComboBox");
+            }
+            if (!element || !element.length) {
                 return;
             }
-            element.addErrorHighlightClass("components-error-red-highlight");
+            element.addClass("components-error-red-highlight");
+            if (typeof element.addErrorHighlightClass === "function") {
+                element.addErrorHighlightClass("components-error-red-highlight");
+            }
             if (!message) {
-                message = globalSelf.nls.InvalidConnection;
+                message = globalSelf.nls.InvalidConnection || "Please select a valid OPC UA connection.";
             }
             if (globalSelf.connErrorTooltip) {
                 globalSelf.connErrorTooltip.destroy();
@@ -286,8 +401,17 @@ define(function (require) {
         },
 
         _hideConnErrorTooltip: function (globalSelf, element) {
+            if (!element || !element.length) {
+                element = globalSelf.$el.find("#connectionComboBox").parent().find(".k-input, .k-dropdown-wrap, .k-widget, .k-dropdown");
+            }
+            if (!element || !element.length) {
+                element = globalSelf.$el.find("#connectionComboBox");
+            }
             if (element && element.length) {
                 element.removeClass("components-error-red-highlight");
+                if (typeof element.removeErrorHighlightClass === "function") {
+                    element.removeErrorHighlightClass("components-error-red-highlight");
+                }
             }
             if (globalSelf.connErrorTooltip) {
                 globalSelf.connErrorTooltip.destroy();

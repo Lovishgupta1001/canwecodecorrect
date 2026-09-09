@@ -114,8 +114,8 @@ define(function (require) {
         },
 
         getConnectionPayload: function () {
-            var connId = this.connectionComboBox ? this.connectionComboBox.value() : this.model.getKey("connectionId");
-            var connText = this.connectionComboBox ? this.connectionComboBox.text() : this.model.getKey("connectionName");
+            var connId = (this.connectionComboBox ? this.connectionComboBox.value() : null) || this.model.getKey("connectionId");
+            var connText = (this.connectionComboBox ? this.connectionComboBox.text() : null) || this.model.getKey("connectionName") || this.model.getKey("connectionComboBox");
             var connType = this.model.getKey("connectionType") || "OPCUA";
             return {
                 connectionId: connId || "",
@@ -147,10 +147,8 @@ define(function (require) {
         },
 
         _initializeControls: function () {
-            this.$(".data-change-write-container").hide();
-            this.$(".call-method-container").hide();
-            this.$(".invokeopcua-config-controls").hide();
-            this.$(".invokeopcua-grids-section").hide();
+            this.$(".invokeopcua-config-controls").show();
+            this.$(".invokeopcua-grids-section").show();
         },
 
         _getGridInstance: function () {
@@ -360,6 +358,9 @@ define(function (require) {
         },
 
         setData: function (obj) {
+            if (!obj) {
+                return;
+            }
             for (var key in obj) {
                 if (Object.prototype.hasOwnProperty.call(obj, key)) {
                     this.model.setKey(key, obj[key]);
@@ -367,14 +368,43 @@ define(function (require) {
             }
             this.initialData = obj;
 
-            var connVal = obj?.connectionComboBox || obj?.selectConnection || obj?.connectionName;
+            var connVal = obj.connectionComboBox || obj.connectionName || obj.selectConnection || obj.connectionId;
             if (connVal && this.connectionComboBox) {
-                this.connectionComboBox.text(connVal);
-                var currentVal = this.connectionComboBox.value();
-                if (currentVal) {
-                    ConnectionManager._validateAndHandleConnection(currentVal, this, true);
+                var allItems = (this.connectionComboBox.dataSource && this.connectionComboBox.dataSource.data()) ? this.connectionComboBox.dataSource.data() : [];
+                var matchItem = null;
+                for (var i = 0; i < allItems.length; i++) {
+                    var item = allItems[i];
+                    if (String(item.connectionId) === String(connVal) ||
+                        String(item.connectionName) === String(connVal) ||
+                        String(item.key) === String(connVal)) {
+                        matchItem = item;
+                        break;
+                    }
+                }
+
+                if (matchItem) {
+                    this.connectionComboBox.value(matchItem.connectionId);
+                    ConnectionManager._validateAndHandleConnection(matchItem.connectionId, this, true);
+                } else {
+                    this.connectionComboBox.value(connVal);
+                    var currentVal = this.connectionComboBox.value();
+                    if (currentVal) {
+                        ConnectionManager._validateAndHandleConnection(currentVal, this, true);
+                    }
                 }
             }
+
+            var operation = obj.operation || (obj.callMethod && obj.callMethod.length ? Constants.CALL_METHOD : Constants.DATA_CHANGE_WRITE);
+            this.model.setKey("operation", operation);
+            this.$(".data-change-write-radio").prop("checked", operation === Constants.DATA_CHANGE_WRITE);
+            this.$(".call-method-radio").prop("checked", operation === Constants.CALL_METHOD);
+
+            var executionMode = obj.executionMode || Constants.PARALLEL;
+            this.model.setKey("executionMode", executionMode);
+            this.$(".parallel-mode-radio").prop("checked", executionMode === Constants.PARALLEL);
+            this.$(".sequential-mode-radio").prop("checked", executionMode === Constants.SEQUENTIAL);
+
+            this._updateOperationUI();
         },
 
         _getGridRowAndCellByField: function (gridWidget, rowIndex, fieldName) {
@@ -384,7 +414,14 @@ define(function (require) {
             var colIndex = -1;
             var columns = gridWidget.columns || [];
             for (var c = 0; c < columns.length; c++) {
-                if (columns[c].field === fieldName) {
+                var f = columns[c].field;
+                if (f === fieldName ||
+                    (fieldName === "nodeId" && (f === "name" || f === "objectNodeId")) ||
+                    (fieldName === "name" && f === "name") ||
+                    (fieldName === "variableNode" && f === "name") ||
+                    (fieldName === "methodNode" && f === "name") ||
+                    (fieldName === "parentObjectNode" && f === "objectNodeId") ||
+                    (fieldName === "outputParameter" && f === "outputValue")) {
                     colIndex = c;
                     break;
                 }

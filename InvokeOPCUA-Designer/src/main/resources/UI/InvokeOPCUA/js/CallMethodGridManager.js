@@ -40,28 +40,24 @@ define([
                 },
                 {
                     field: "name",
-                    title: globalSelf.nls.MethodName,
-                    width: "25%",
-                    attributes: { "class": "name" },
-                    template: function (dataItem) {
-                        var name = dataItem.get ? dataItem.get("name") : dataItem.name;
-                        name = name || "";
-                        return "<span class='method-name-cell eq-common-ellipsis' title='" + _.escape(name) + "'>" + _.escape(name) + "</span>";
-                    },
+                    title: globalSelf.nls.MethodNode || "Method Node",
+                    width: "30%",
+                    attributes: { "class": "methodNode name nodeId" },
+                    template: GridUtils.getMethodNodeTemplate(globalSelf),
                     editable: function () {
                         return false;
                     },
-                    filterable: false
+                    filterable: true
                 },
                 {
-                    field: "nodeId",
-                    title: globalSelf.nls.NodeId,
-                    width: "25%",
-                    attributes: { "class": "nodeId" },
+                    field: "objectNodeId",
+                    title: globalSelf.nls.ParentObjectNode || "Parent Object Node",
+                    width: "30%",
+                    attributes: { "class": "parentObjectNode objectNodeId" },
+                    template: GridUtils.getParentObjectNodeTemplate(globalSelf),
                     editable: function () {
                         return false;
                     },
-                    template: GridUtils.getNodeIdTemplate(true),
                     filterable: true
                 },
                 {
@@ -78,30 +74,15 @@ define([
                 },
                 {
                     field: "outputValue",
-                    title: globalSelf.nls.OutputValue,
-                    width: "25%",
-                    attributes: { "class": "outputValue" },
+                    title: globalSelf.nls.OutputParameter || globalSelf.nls.OutputValue,
+                    width: "20%",
+                    attributes: { "class": "outputValue outputParameter" },
                     template: GridUtils.getOutputValueTemplate,
                     editor: this._outputValueEditor,
                     editable: function () {
                         return true;
                     },
                     filterable: false
-                },
-                {
-                    field: "browseAction",
-                    title: globalSelf.nls.Action || "Action",
-                    width: "90px",
-                    attributes: { "class": "browse-action-cell" },
-                    template: function (dataItem) {
-                        return "<button type='button' class='k-button ul-tertiary-button browse-call-method-btn' data-row-uid='" +
-                            dataItem.uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>";
-                    },
-                    editable: function () {
-                        return false;
-                    },
-                    filterable: false,
-                    sortable: false
                 }
             ];
         },
@@ -127,6 +108,10 @@ define([
                             },
                             nodeId: {
                                 type: "string"
+                            },
+                            objectName: {
+                                type: "string",
+                                defaultValue: ""
                             },
                             objectNodeId: {
                                 type: "string"
@@ -315,7 +300,7 @@ define([
             globalSelf.callMethodSearchBar = GridUtils.renderGridSearchBar(
                 "call-method-search",
                 globalSelf.callMethodGrid,
-                ["name", "nodeId", "outputValue"],
+                ["name", "nodeId", "objectNodeId", "objectName", "outputValue"],
                 globalSelf,
                 globalSelf.nls
             );
@@ -347,6 +332,32 @@ define([
 
                 if (globalSelf.addressSpaceBrowser) {
                     globalSelf.addressSpaceBrowser.openForBrowse(dataItem, "CALL_METHOD", connData);
+                }
+            });
+
+            globalSelf.$(".cvt-grid-div-call-method").off("click", ".browse-parent-object-btn").on("click", ".browse-parent-object-btn", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                var row = $(this).closest("tr");
+                var grid = globalSelf.callMethodGrid ? (globalSelf.callMethodGrid.widget || globalSelf.callMethodGrid) : null;
+                if (!grid) {
+                    return;
+                }
+
+                var dataItem = grid.dataItem(row);
+                if (!dataItem) {
+                    return;
+                }
+
+                var connData = globalSelf.getConnectionPayload ? globalSelf.getConnectionPayload() : null;
+                if (!connData || !connData.connectionId) {
+                    uilayer.notifier("warning", globalSelf.nls.SelectConnection || "Please select a connection.");
+                    return;
+                }
+
+                if (globalSelf.addressSpaceBrowser) {
+                    globalSelf.addressSpaceBrowser.openForBrowse(dataItem, "PARENT_OBJECT", connData);
                 }
             });
         },

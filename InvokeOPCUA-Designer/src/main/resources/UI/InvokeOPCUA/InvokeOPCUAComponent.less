@@ -122,11 +122,42 @@
 }
 
 .browse-data-change-btn,
-.browse-call-method-btn {
-    padding: 0.25rem 0.75rem;
+.browse-call-method-btn,
+.browse-parent-object-btn {
+    padding: 0.2rem 0.6rem;
     font-size: 0.85rem;
     line-height: 1.2;
     cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.invokeopcua-node-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    gap: 0.5rem;
+    box-sizing: border-box;
+
+    .invokeopcua-node-cell-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+    }
+
+    .invokeopcua-node-cell-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
 }
 
 .browse-action-cell {

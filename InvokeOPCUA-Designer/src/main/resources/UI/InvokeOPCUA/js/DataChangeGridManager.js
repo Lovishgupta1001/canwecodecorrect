@@ -29,34 +29,19 @@ define([
                 },
                 {
                     field: "name",
-                    title: globalSelf.nls.DataChangeName,
-                    width: "25%",
-                    attributes: { "class": "name" },
-                    template: function (dataItem) {
-                        var name = dataItem.get ? dataItem.get("name") : dataItem.name;
-                        name = name || "";
-                        return "<span class='data-change-name-cell eq-common-ellipsis' title='" + _.escape(name) + "'>" + _.escape(name) + "</span>";
-                    },
+                    title: globalSelf.nls.VariableNode || "Variable Node",
+                    width: "50%",
+                    attributes: { "class": "variableNode name nodeId" },
+                    template: GridUtils.getVariableNodeTemplate(globalSelf),
                     editable: function () {
                         return false;
                     },
-                    filterable: false
-                },
-                {
-                    field: "nodeId",
-                    title: globalSelf.nls.NodeId,
-                    width: "25%",
-                    attributes: { "class": "nodeId" },
-                    editable: function () {
-                        return false;
-                    },
-                    template: GridUtils.getNodeIdTemplate(false),
                     filterable: true
                 },
                 {
                     field: "sampleValue",
                     title: globalSelf.nls.SampleValue,
-                    width: "20%",
+                    width: "25%",
                     attributes: { "class": "sampleValue" },
                     editable: function () {
                         return false;
@@ -73,21 +58,6 @@ define([
                     template: ExpressionBuilderManager.getTemplate("newValue", globalSelf),
                     editor: ExpressionBuilderManager.getEditor("newValue", globalSelf),
                     filterable: false
-                },
-                {
-                    field: "browseAction",
-                    title: globalSelf.nls.Action || "Action",
-                    width: "90px",
-                    attributes: { "class": "browse-action-cell" },
-                    template: function (dataItem) {
-                        return "<button type='button' class='k-button ul-tertiary-button browse-data-change-btn' data-row-uid='" +
-                            dataItem.uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>";
-                    },
-                    editable: function () {
-                        return false;
-                    },
-                    filterable: false,
-                    sortable: false
                 }
             ];
         },

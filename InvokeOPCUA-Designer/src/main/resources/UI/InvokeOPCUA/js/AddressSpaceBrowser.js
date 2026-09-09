@@ -192,6 +192,9 @@ define([
             if (this.targetMode === "CALL_METHOD") {
                 return nodeClass === "METHOD" || nodeClass.indexOf("METHOD") !== -1;
             }
+            if (this.targetMode === "PARENT_OBJECT") {
+                return nodeClass !== "METHOD";
+            }
             return false;
         },
 
@@ -231,9 +234,23 @@ define([
                 return;
             }
             var currentConnId = this.connectionData.connectionId;
-            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
+            var hasNodes = Object.keys(this.allNodesMap || {}).length > 0;
+            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId) || !hasNodes) {
                 this._fetchRootAddressSpace();
             }
+        },
+
+        _expandDrawer: function () {
+            var browser = this;
+            if (this.globalSelf.addressSpaceDrawer) {
+                this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
+            }
+            setTimeout(function () {
+                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
+                if (tree?.resize) {
+                    tree.resize();
+                }
+            }, 150);
         },
 
         openForBrowse: function (targetRow, targetMode, connectionData) {
@@ -244,23 +261,14 @@ define([
 
             var actionLabel = (this.targetMode === "CALL_METHOD")
                 ? (this.nls.SelectMethod || "Select Method")
-                : (this.nls.SelectNode || "Select Node");
+                : (this.targetMode === "PARENT_OBJECT")
+                    ? (this.nls.SelectParentObject || "Select Parent Object")
+                    : (this.nls.SelectNode || this.nls.SelectVariableNode || "Select Node");
 
             this.containerElem.find("#address-space-select-btn").text(actionLabel);
 
             this.selectedNode = null;
             this._updateActionButtonState();
-
-            if (this.globalSelf.addressSpaceDrawer) {
-                this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
-            }
-
-            setTimeout(function () {
-                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
-                if (tree?.resize) {
-                    tree.resize();
-                }
-            }, 100);
 
             if (!this.connectionData || !this.connectionData.connectionId) {
                 uilayer.notifier("warning", this.nls.SelectConnection || "Please select a connection.");
@@ -268,10 +276,15 @@ define([
             }
 
             var currentConnId = this.connectionData.connectionId;
-            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
-                this._fetchRootAddressSpace();
+            var hasNodes = Object.keys(this.allNodesMap || {}).length > 0;
+            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId) || !hasNodes) {
+                this._fetchRootAddressSpace(function () {
+                    browser._expandDrawer();
+                    browser._preselectTargetNode();
+                });
             } else {
-                this._preselectTargetNode();
+                browser._expandDrawer();
+                browser._preselectTargetNode();
             }
         },
 
@@ -279,7 +292,9 @@ define([
             if (!this.targetRow) {
                 return;
             }
-            var targetNodeId = this.targetRow.get ? this.targetRow.get("nodeId") : this.targetRow.nodeId;
+            var targetNodeId = this.targetMode === "PARENT_OBJECT"
+                ? (this.targetRow.get ? this.targetRow.get("objectNodeId") : this.targetRow.objectNodeId)
+                : (this.targetRow.get ? this.targetRow.get("nodeId") : this.targetRow.nodeId);
             if (!targetNodeId) {
                 return;
             }
@@ -293,7 +308,7 @@ define([
             }
         },
 
-        _fetchRootAddressSpace: function () {
+        _fetchRootAddressSpace: function (onSuccess) {
             var browser = this;
             var payload = this._getEffectiveConnectionPayload();
             if (!payload || !payload.connectionId) {
@@ -301,6 +316,15 @@ define([
             }
 
             this.waitWidget.show();
+            var globalWait = null;
+            if (uilayer.wait && browser.globalSelf?.$el) {
+                globalWait = uilayer.wait({
+                    elem: browser.globalSelf.$el,
+                    isTransparent: true
+                });
+                globalWait.show();
+            }
+
             this.allNodesMap = {};
             this.loadedNodeIds = {};
             this.lastFetchedConnId = payload.connectionId;
@@ -314,6 +338,11 @@ define([
 
             promise.done(function (response) {
                 browser.waitWidget.hide();
+                if (globalWait) {
+                    globalWait.hide();
+                    globalWait.destroy();
+                }
+
                 var data = response?.data || response || [];
                 var flatList = browser._processNodes(data, null);
 
@@ -354,11 +383,18 @@ define([
                     });
                 }
 
-                browser._preselectTargetNode();
+                if (typeof onSuccess === "function") {
+                    onSuccess();
+                }
             });
 
             promise.fail(function (e) {
                 browser.waitWidget.hide();
+                if (globalWait) {
+                    globalWait.hide();
+                    globalWait.destroy();
+                }
+                browser.lastFetchedConnId = null;
                 uilayer.notifier("error", browser.nls.ErrorFetchingAddressSpace || "Error while fetching address space.");
             });
         },
@@ -462,6 +498,9 @@ define([
                 this._closeDrawer();
             } else if (this.targetMode === "CALL_METHOD") {
                 this._populateCallMethodRow(row, node);
+            } else if (this.targetMode === "PARENT_OBJECT") {
+                this._populateParentObjectRow(row, node);
+                this._closeDrawer();
             }
         },
 
@@ -519,16 +558,19 @@ define([
             var name = displayName.replace(/\s+/g, "");
             var nodeId = node.nodeId || "";
             var parentObjectNodeId = this._resolveParentNodeId(node);
+            var parentObjectName = this._resolveParentNodeName(node);
 
             row.name = name;
             row.nodeId = nodeId;
             row.objectNodeId = parentObjectNodeId;
+            row.objectName = parentObjectName;
 
             if (typeof row.set === "function") {
                 try {
                     row.set("name", name);
                     row.set("nodeId", nodeId);
                     row.set("objectNodeId", parentObjectNodeId);
+                    row.set("objectName", parentObjectName);
                 } catch (e) {
                     // Ignore
                 }
@@ -591,12 +633,44 @@ define([
             });
         },
 
+        _populateParentObjectRow: function (row, node) {
+            var objectName = node.displayName || node.nodeId || "";
+            var objectNodeId = node.nodeId || "";
+
+            row.objectName = objectName;
+            row.objectNodeId = objectNodeId;
+
+            if (typeof row.set === "function") {
+                try {
+                    row.set("objectName", objectName);
+                    row.set("objectNodeId", objectNodeId);
+                } catch (e) {
+                    // Ignore
+                }
+            }
+
+            var gridObj = this.globalSelf.callMethodGrid;
+            var gridWidget = gridObj ? (gridObj.widget || gridObj) : null;
+            if (gridWidget?.refresh) {
+                gridWidget.refresh();
+            }
+            GridUtils.initializeGridHelpTooltips(this.globalSelf.$(".cvt-grid-div-call-method"));
+        },
+
         _resolveParentNodeId: function (node) {
             if (!node || !node.parentId) {
                 return "";
             }
             var parentNode = this.allNodesMap[node.parentId];
             return parentNode ? (parentNode.nodeId || "") : "";
+        },
+
+        _resolveParentNodeName: function (node) {
+            if (!node || !node.parentId) {
+                return "";
+            }
+            var parentNode = this.allNodesMap[node.parentId];
+            return parentNode ? (parentNode.displayName || parentNode.nodeId || "") : "";
         },
 
         _onSearch: function (query) {
