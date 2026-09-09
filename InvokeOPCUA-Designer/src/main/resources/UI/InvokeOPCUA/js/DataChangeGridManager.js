@@ -103,6 +103,11 @@ define([
         },
 
         renderDataChangeWriteComponent: function (globalSelf) {
+            var elem = globalSelf.$(".cvt-grid-div-data-change-write");
+            if (!elem || !elem.length) {
+                return;
+            }
+
             if (this._resizeGridIfExists(globalSelf.dataChangeWriteGrid)) {
                 return;
             }
@@ -119,7 +124,7 @@ define([
             }
 
             globalSelf.dataChangeWriteGrid = uilayer.grid({
-                elem: globalSelf.$(".cvt-grid-div-data-change-write"),
+                elem: elem,
                 toolbar: GridUtils.getOperationGridToolbar("data-change-write-search", globalSelf.nls),
                 editable: {
                     mode: "incell",

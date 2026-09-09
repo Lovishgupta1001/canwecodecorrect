@@ -249,6 +249,11 @@ define([
         },
 
         renderCallMethodComponent: function (globalSelf) {
+            var elem = globalSelf.$(".cvt-grid-div-call-method");
+            if (!elem || !elem.length) {
+                return;
+            }
+
             if (this._resizeGridIfExists(globalSelf.callMethodGrid)) {
                 return;
             }
@@ -267,7 +272,7 @@ define([
             }
 
             globalSelf.callMethodGrid = uilayer.grid({
-                elem: globalSelf.$(".cvt-grid-div-call-method"),
+                elem: elem,
                 toolbar: GridUtils.getOperationGridToolbar("call-method-search", globalSelf.nls),
                 editable: {
                     mode: "incell",

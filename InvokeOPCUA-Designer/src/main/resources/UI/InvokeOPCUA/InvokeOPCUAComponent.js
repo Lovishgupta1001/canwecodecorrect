@@ -34,6 +34,7 @@ define(function (require) {
         },
 
         onInitialize: function (options) {
+            this._isRendered = false;
             this.activityId = options.activityId;
             this.designerReqres = options.reqres;
             this.processModel = this.designerReqres.request("getCurrentActiveEntityModelFromDataStore");
@@ -50,6 +51,8 @@ define(function (require) {
         onRender: function () {
             var globalSelf = this;
             var deferred = $.Deferred();
+
+            this._isRendered = true;
 
             this._initializeControls();
 
@@ -273,6 +276,10 @@ define(function (require) {
         },
 
         _updateOperationUI: function () {
+            if (!this._isRendered || !this.$el) {
+                return;
+            }
+
             var operation = this.$(".data-change-write-radio").is(":checked")
                 ? Constants.DATA_CHANGE_WRITE
                 : Constants.CALL_METHOD;
@@ -367,6 +374,10 @@ define(function (require) {
                 }
             }
             this.initialData = obj;
+
+            if (!this._isRendered || !this.$el || !this.$el.find("#connectionComboBox").length) {
+                return;
+            }
 
             var connVal = obj.connectionComboBox || obj.connectionName || obj.selectConnection || obj.connectionId;
             if (connVal && this.connectionComboBox) {
@@ -697,6 +708,7 @@ define(function (require) {
         },
 
         onBeforeDestroy: function () {
+            this._isRendered = false;
             $(window).off("resize.invokeopcua");
 
             CallMethodGridManager._destroyInputParametersModal(this);
