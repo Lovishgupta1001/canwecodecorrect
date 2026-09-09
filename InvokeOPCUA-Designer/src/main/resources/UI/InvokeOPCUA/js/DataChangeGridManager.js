@@ -102,7 +102,6 @@ define([
                         fields: {
                             rowId: {
                                 type: "number",
-                                editable: false,
                                 nullable: true
                             },
                             name: {
@@ -110,12 +109,10 @@ define([
                                 parse: GridUtils.parseStringField
                             },
                             nodeId: {
-                                type: "string",
-                                editable: false
+                                type: "string"
                             },
                             sampleValue: {
-                                type: "string",
-                                editable: false
+                                type: "string"
                             },
                             newValue: {
                                 type: "string",

@@ -69,6 +69,7 @@ define([
                         model: {
                             id: "id",
                             parentId: "parentId",
+                            expanded: true,
                             fields: {
                                 id: { type: "string" },
                                 parentId: { type: "string", nullable: true },
@@ -80,7 +81,7 @@ define([
                         }
                     }
                 }),
-                height: "calc(100% - 7rem)",
+                height: "100%",
                 columns: [
                     {
                         field: "selection",
@@ -88,7 +89,7 @@ define([
                         width: "48px",
                         template: function (item) {
                             var selectable = browser.isNodeSelectable(item);
-                            var isChecked = browser.selectedNode && String(browser.selectedNode.id) === String(item.id);
+                            var isChecked = browser.selectedNode && (String(browser.selectedNode.id) === String(item.id) || String(browser.selectedNode.nodeId) === String(item.nodeId));
                             if (!selectable) {
                                 return "";
                             }
@@ -102,10 +103,11 @@ define([
                         title: browser.nls.Node || "Node",
                         expandable: true,
                         template: function (item) {
+                            var nc = (item.nodeClass || "").toUpperCase();
                             var icon = "eQ-fonts-folder";
-                            if (item.nodeClass === "Method") {
+                            if (nc === "METHOD" || nc.indexOf("METHOD") !== -1) {
                                 icon = "eQ-fonts-process";
-                            } else if (item.nodeClass === "Variable") {
+                            } else if (nc === "VARIABLE" || nc === "VARIABLETYPE" || nc === "PROPERTY") {
                                 icon = "eQ-fonts-variable";
                             }
                             return "<span class='eQ-icon " + icon + " ul-pad-1x-r'></span>" +
@@ -147,16 +149,17 @@ define([
                 });
             }
 
-            this.containerElem.off("click", ".address-space-node-radio").on("click", ".address-space-node-radio", function () {
-                var nodeId = $(this).val();
-                var node = browser.allNodesMap[nodeId];
+            this.containerElem.off("click", ".address-space-node-radio").on("click", ".address-space-node-radio", function (e) {
+                e.stopPropagation();
+                var id = $(this).val();
+                var node = browser.allNodesMap[id];
                 if (node) {
                     browser._selectNode(node);
                 }
             });
 
             this.containerElem.off("click", "#address-space-treelist tbody tr").on("click", "#address-space-treelist tbody tr", function (e) {
-                if ($(e.target).is(".k-icon, .k-i-expand, .k-i-collapse, input[type='radio']")) {
+                if ($(e.target).is(".k-icon, .k-i-expand, .k-i-collapse")) {
                     return;
                 }
                 var row = $(this);
@@ -176,11 +179,18 @@ define([
             if (!node) {
                 return false;
             }
+            var nodeClass = (node.nodeClass || "").toUpperCase();
             if (this.targetMode === "DATA_CHANGE_WRITE") {
-                return node.nodeClass === "Variable";
+                if (nodeClass === "VARIABLE" || nodeClass === "VARIABLETYPE" || nodeClass === "PROPERTY" || nodeClass === "DATAVARIABLE") {
+                    return true;
+                }
+                if (nodeClass !== "OBJECT" && nodeClass !== "OBJECTTYPE" && nodeClass !== "FOLDER" && nodeClass !== "VIEW" && nodeClass !== "METHOD") {
+                    return !!node.nodeId && !node.hasChildren;
+                }
+                return false;
             }
             if (this.targetMode === "CALL_METHOD") {
-                return node.nodeClass === "Method";
+                return nodeClass === "METHOD" || nodeClass.indexOf("METHOD") !== -1;
             }
             return false;
         },
@@ -193,9 +203,9 @@ define([
         _updateActionButtonState: function () {
             var btn = this.containerElem.find("#address-space-select-btn");
             if (this.selectedNode && this.isNodeSelectable(this.selectedNode)) {
-                btn.removeAttr("disabled").removeClass("k-state-disabled");
+                btn.removeAttr("disabled").removeClass("k-state-disabled").prop("disabled", false);
             } else {
-                btn.attr("disabled", "disabled").addClass("k-state-disabled");
+                btn.attr("disabled", "disabled").addClass("k-state-disabled").prop("disabled", true);
             }
         },
 
@@ -227,6 +237,7 @@ define([
         },
 
         openForBrowse: function (targetRow, targetMode, connectionData) {
+            var browser = this;
             this.targetRow = targetRow;
             this.targetMode = targetMode || "DATA_CHANGE_WRITE";
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
@@ -243,6 +254,13 @@ define([
             if (this.globalSelf.addressSpaceDrawer) {
                 this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
             }
+
+            setTimeout(function () {
+                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
+                if (tree?.resize) {
+                    tree.resize();
+                }
+            }, 100);
 
             if (!this.connectionData || !this.connectionData.connectionId) {
                 uilayer.notifier("warning", this.nls.SelectConnection || "Please select a connection.");
@@ -307,6 +325,7 @@ define([
                             model: {
                                 id: "id",
                                 parentId: "parentId",
+                                expanded: true,
                                 fields: {
                                     id: { type: "string" },
                                     parentId: { type: "string", nullable: true },
@@ -319,6 +338,20 @@ define([
                         }
                     });
                     tree.setDataSource(ds);
+                    if (tree.resize) {
+                        tree.resize();
+                    }
+                }
+
+                // Automatically fetch children for root nodes so that top-level items are open and loaded
+                var rootNodesToFetch = flatList.filter(function (n) {
+                    return !n.parentId && n.needToFetchChildren;
+                });
+
+                if (rootNodesToFetch.length > 0) {
+                    rootNodesToFetch.forEach(function (rootNode) {
+                        browser._fetchChildren(rootNode);
+                    });
                 }
 
                 browser._preselectTargetNode();
@@ -341,6 +374,7 @@ define([
             nodes.forEach(function (node, index) {
                 var uniqueId = node.id || (parentId ? parentId + "_" + (node.nodeId || index) : (node.nodeId || "node_" + index));
                 var hasChildren = !!(node.needToFetchChildren || (node.children && node.children.length > 0));
+                var isRoot = !parentId;
 
                 var nodeItem = {
                     id: String(uniqueId),
@@ -350,6 +384,7 @@ define([
                     nodeClass: node.nodeClass || "",
                     needToFetchChildren: node.needToFetchChildren !== undefined ? node.needToFetchChildren : false,
                     hasChildren: hasChildren,
+                    expanded: isRoot,
                     value: node.value !== undefined ? node.value : "",
                     valueType: node.valueType || "",
                     rawNode: node
@@ -373,6 +408,10 @@ define([
                 return;
             }
 
+            if (browser.loadedNodeIds[parentNode.nodeId]) {
+                return;
+            }
+
             this.waitWidget.show();
             this.loadedNodeIds[parentNode.nodeId] = true;
 
@@ -392,7 +431,14 @@ define([
                             tree.dataSource.add(childItem);
                         }
                     });
-                    parentNode.set("needToFetchChildren", false);
+                    if (parentNode.set) {
+                        parentNode.set("needToFetchChildren", false);
+                    } else {
+                        parentNode.needToFetchChildren = false;
+                    }
+                    if (tree.resize) {
+                        tree.resize();
+                    }
                 }
             });
 
@@ -420,49 +466,78 @@ define([
         },
 
         _populateDataChangeRow: function (row, node) {
-            var displayName = node.displayName || "";
-            var name = displayName.replace(/\s/g, "");
+            var displayName = node.displayName || node.nodeId || "";
+            var name = displayName.replace(/\s+/g, "");
             var nodeId = node.nodeId || "";
             var sampleVal = node.value !== undefined ? String(node.value) : "";
+            var rawNode = node.rawNode || {};
 
-            if (row.set) {
-                row.set("name", name);
-                row.set("nodeId", nodeId);
-                row.set("sampleValue", sampleVal);
-                var curNewVal = row.get("newValue");
-                if (!curNewVal && node.value !== undefined) {
-                    row.set("newValue", GridUtils.getDefaultExpression(node.value));
-                }
-            } else {
-                row.name = name;
-                row.nodeId = nodeId;
-                row.sampleValue = sampleVal;
-                if (!row.newValue && node.value !== undefined) {
-                    row.newValue = GridUtils.getDefaultExpression(node.value);
+            row.name = name;
+            row.nodeId = nodeId;
+            row.sampleValue = sampleVal;
+            if (rawNode.dataTypeName) {
+                row.dataTypeName = rawNode.dataTypeName;
+            }
+            if (rawNode.dataTypeNodeId) {
+                row.dataTypeNodeId = rawNode.dataTypeNodeId;
+            }
+            if (!row.newValue && node.value !== undefined && node.value !== "") {
+                row.newValue = GridUtils.getDefaultExpression(node.value);
+            }
+
+            if (typeof row.set === "function") {
+                try {
+                    row.set("name", name);
+                    row.set("nodeId", nodeId);
+                    row.set("sampleValue", sampleVal);
+                    if (rawNode.dataTypeName) {
+                        row.set("dataTypeName", rawNode.dataTypeName);
+                    }
+                    if (rawNode.dataTypeNodeId) {
+                        row.set("dataTypeNodeId", rawNode.dataTypeNodeId);
+                    }
+                    var curNewVal = row.get ? row.get("newValue") : row.newValue;
+                    if (!curNewVal && node.value !== undefined && node.value !== "") {
+                        row.set("newValue", GridUtils.getDefaultExpression(node.value));
+                    }
+                } catch (e) {
+                    // Ignore
                 }
             }
 
-            if (this.globalSelf.dataChangeWriteGrid?.widget) {
-                this.globalSelf.dataChangeWriteGrid.widget.refresh();
-                GridUtils.initializeGridHelpTooltips(this.globalSelf.$(".cvt-grid-div-data-change-write"));
+            var gridObj = this.globalSelf.dataChangeWriteGrid;
+            var gridWidget = gridObj ? (gridObj.widget || gridObj) : null;
+            if (gridWidget?.refresh) {
+                gridWidget.refresh();
             }
+            GridUtils.initializeGridHelpTooltips(this.globalSelf.$(".cvt-grid-div-data-change-write"));
         },
 
         _populateCallMethodRow: function (row, node) {
             var browser = this;
-            var displayName = node.displayName || "";
-            var name = displayName.replace(/\s/g, "");
+            var displayName = node.displayName || node.nodeId || "";
+            var name = displayName.replace(/\s+/g, "");
             var nodeId = node.nodeId || "";
             var parentObjectNodeId = this._resolveParentNodeId(node);
 
-            if (row.set) {
-                row.set("name", name);
-                row.set("nodeId", nodeId);
-                row.set("objectNodeId", parentObjectNodeId);
-            } else {
-                row.name = name;
-                row.nodeId = nodeId;
-                row.objectNodeId = parentObjectNodeId;
+            row.name = name;
+            row.nodeId = nodeId;
+            row.objectNodeId = parentObjectNodeId;
+
+            if (typeof row.set === "function") {
+                try {
+                    row.set("name", name);
+                    row.set("nodeId", nodeId);
+                    row.set("objectNodeId", parentObjectNodeId);
+                } catch (e) {
+                    // Ignore
+                }
+            }
+
+            var gridObj = browser.globalSelf.callMethodGrid;
+            var gridWidget = gridObj ? (gridObj.widget || gridObj) : null;
+            if (gridWidget?.refresh) {
+                gridWidget.refresh();
             }
 
             this.waitWidget.show();
@@ -485,26 +560,33 @@ define([
                     };
                 });
 
-                if (row.set) {
-                    row.set("inputParameters", params);
-                } else {
-                    row.inputParameters = params;
+                row.inputParameters = params;
+                if (typeof row.set === "function") {
+                    try {
+                        row.set("inputParameters", params);
+                    } catch (e) {
+                        // Ignore
+                    }
                 }
 
-                if (browser.globalSelf.callMethodGrid?.widget) {
-                    browser.globalSelf.callMethodGrid.widget.refresh();
-                    GridUtils.initializeGridHelpTooltips(browser.globalSelf.$(".cvt-grid-div-call-method"));
+                var gObj = browser.globalSelf.callMethodGrid;
+                var gWidget = gObj ? (gObj.widget || gObj) : null;
+                if (gWidget?.refresh) {
+                    gWidget.refresh();
                 }
+                GridUtils.initializeGridHelpTooltips(browser.globalSelf.$(".cvt-grid-div-call-method"));
 
                 browser._closeDrawer();
             });
 
             promise.fail(function () {
                 browser.waitWidget.hide();
-                if (browser.globalSelf.callMethodGrid?.widget) {
-                    browser.globalSelf.callMethodGrid.widget.refresh();
-                    GridUtils.initializeGridHelpTooltips(browser.globalSelf.$(".cvt-grid-div-call-method"));
+                var gObj = browser.globalSelf.callMethodGrid;
+                var gWidget = gObj ? (gObj.widget || gObj) : null;
+                if (gWidget?.refresh) {
+                    gWidget.refresh();
                 }
+                GridUtils.initializeGridHelpTooltips(browser.globalSelf.$(".cvt-grid-div-call-method"));
                 browser._closeDrawer();
             });
         },

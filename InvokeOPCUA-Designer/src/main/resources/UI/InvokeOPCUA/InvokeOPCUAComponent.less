@@ -21,9 +21,21 @@
 
     #invokeopcua-address-space-drawer-section {
         height: 100%;
-        overflow-y: auto;
+        overflow: hidden;
         background: #fff;
         border-left: 1px solid #d9d9d9;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #invokeopcua-address-space-component {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        flex: 1 1 auto;
+        box-sizing: border-box;
     }
 
     .cvt-grid-div.k-grid {
@@ -260,25 +272,56 @@
 /* Address Space Drawer Styles */
 .opcua-browse-address-space-div {
     height: 100%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    overflow: hidden;
+    padding: 1rem;
 
     .address-space-header {
+        flex: 0 0 auto;
         border-bottom: 1px solid #e0e0e0;
-        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .address-space-search-row {
+        flex: 0 0 auto;
+        margin-bottom: 0.5rem;
     }
 
     .address-space-treelist-wrapper {
-        flex: 1;
-        min-height: 250px;
+        flex: 1 1 auto;
+        height: calc(100% - 130px);
+        min-height: 380px;
         overflow: hidden;
         border: 1px solid #d9d9d9;
         border-radius: 4px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
 
-        .k-treelist {
-            height: 100%;
+        .k-treelist,
+        .ul-mi-treelist {
+            height: 100% !important;
+            width: 100% !important;
             border: none;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+        }
+
+        .k-treelist-header {
+            flex: 0 0 auto;
+        }
+
+        .k-treelist-content {
+            flex: 1 1 auto !important;
+            height: 100% !important;
+            min-height: 250px !important;
+            overflow-y: auto !important;
+            overflow-x: auto !important;
         }
 
         .k-treelist-table {
@@ -299,8 +342,10 @@
     }
 
     .address-space-actions {
+        flex: 0 0 auto;
         display: flex;
         justify-content: flex-end;
+        padding-top: 0.75rem;
     }
 
     .address-space-loading-container {

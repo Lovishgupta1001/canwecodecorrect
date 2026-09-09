@@ -116,7 +116,6 @@ define([
                         fields: {
                             rowId: {
                                 type: "number",
-                                editable: false,
                                 nullable: true
                             },
                             fieldId: {
@@ -127,16 +126,13 @@ define([
                                 type: "string"
                             },
                             nodeId: {
-                                type: "string",
-                                editable: false
+                                type: "string"
                             },
                             objectNodeId: {
-                                type: "string",
-                                editable: false
+                                type: "string"
                             },
                             inputParameters: {
-                                defaultValue: [],
-                                editable: true
+                                defaultValue: []
                             },
                             outputValue: {
                                 type: "string"
