@@ -208,7 +208,7 @@ public class InvokeOPCUAValidator implements ComponentValidator<Map, Map> {
                 errorList.add(error);
             }
         } catch (BusinessException e) {
-            LogTemplate lt = LogTemplate.of(InvokeOPCUAErrorCode.ERROR_WHILE_VALIDATING_TRANSPORT.getMessage());
+            LogTemplate lt = LogTemplate.of(InvokeOPCUAErrorCode.ERROR_WHILE_VALIDATING_CONNECTION.getMessage());
             LOGGER.error(lt, e);
             eQError errorMsg = new eQError(InvokeOPCUAConstants.ERR_CONNECTION_FRAMEWORK_ERROR, COMPONENT_ERR,
                     null, true);
