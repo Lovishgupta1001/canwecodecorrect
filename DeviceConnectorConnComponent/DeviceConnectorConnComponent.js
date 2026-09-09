@@ -10,13 +10,12 @@ define(function (require) {
         ActivitiesUtility = require("Components/Activities/ActivitiesUtility/ActivitiesUtility"),
         model = require("./model/DeviceConnectorConnComponentModel"),
         template = require("tpl!./template/DeviceConnectorConnComponentTemplate"),
-        nls = require("i18n!./nls/DeviceConnectorConnComponentNLS"),
         Constants = require("./constants/Constants");
 
     var DeviceConnectorConnComponent = MIUIComponentI.extend({
         model: model,
         template: template,
-        nls: nls,
+        nls: {},
 
         events: {
             "click #refresh-connection-button": "_refreshConnection"
@@ -59,7 +58,7 @@ define(function (require) {
             var connText = "";
             if (this.connectionComboBox) {
                 var rawText = this.connectionComboBox.text();
-                if (rawText && rawText !== nls.messages.selectConnection) {
+                if (rawText && rawText !== "Select Connection") {
                     connText = rawText;
                 }
             }
@@ -147,7 +146,7 @@ define(function (require) {
                         text: item.key
                     });
                 },
-                optionLabel: nls.messages.selectConnection,
+                optionLabel: "Select Connection",
                 select: function (e) {
                     if (!(e.dataItem?.connectionId)) {
                         e.preventDefault();
@@ -179,7 +178,7 @@ define(function (require) {
                 globalSelf.model.set("connectionType", "");
                 globalSelf.trigger(Constants.EVENTS.INVALID_CONNECTION_SELECTED);
                 if (connId && !isInitial) {
-                    globalSelf._showConnErrorTooltip(element, nls.messages.selectValidConnection);
+                    globalSelf._showConnErrorTooltip(element, "Select a valid connection.");
                 }
                 return;
             }
@@ -222,9 +221,9 @@ define(function (require) {
                 });
             } else {
                 globalSelf.model.set("connectionType", "");
-                globalSelf._showConnErrorTooltip(element, nls.messages.invalidConnection);
+                globalSelf._showConnErrorTooltip(element, "Select a valid connection.");
                 if (!isInitial) {
-                    uilayer.notifier("error", nls.messages.invalidConnection);
+                    uilayer.notifier("error", "Select a valid connection.");
                 }
                 if (globalSelf.connectionComboBox) {
                     globalSelf.connectionComboBox.value("");
@@ -303,9 +302,9 @@ define(function (require) {
                         connectionId: connId,
                         connectionData: globalSelf.getConnectionData()
                     });
-                    uilayer.notifier("success", nls.messages.connectionsRefreshed);
+                    uilayer.notifier("success", "Connections refreshed successfully.");
                 } else {
-                    uilayer.notifier("warning", nls.messages.selectValidConnection);
+                    uilayer.notifier("warning", "Select a valid connection.");
                 }
             }
         },

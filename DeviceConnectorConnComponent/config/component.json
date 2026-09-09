@@ -1,5 +1,4 @@
 {
   "ComponentName": "DeviceConnectorConnComponent",
-  "Path": "Components/Activities/DeviceConnectorConnComponent/DeviceConnectorConnComponent",
-  "nls": "Components/Activities/DeviceConnectorConnComponent/nls/DeviceConnectorConnComponentNLS"
+  "Path": "Components/Activities/DeviceConnectorConnComponent/DeviceConnectorConnComponent"
 }
