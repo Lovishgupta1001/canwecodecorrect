@@ -24,7 +24,7 @@ import com.eqtechnologic.eqube.mi.component.service.RemapInfo;
 import com.eqtechnologic.eqube.soa.servicemanagement.annotations.Exported;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.AbstractNodeBean;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
-import com.eqtechnologic.eqube.transport.uiservice.beans.opcua.OPCUATransportInfoBean;
+import com.eqtechnologic.eqube.transport.uiservice.beans.OPCUATransportInfoBean;
 import com.google.auto.service.AutoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -28,7 +28,6 @@ import com.eqtechnologic.eqube.platform.transport.client.constants.TransportClie
 import com.eqtechnologic.eqube.platform.transport.client.service.TransportClientService;
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
 import com.eqtechnologic.eqube.transport.bean.TransportBean;
-import com.eqtechnologic.eqube.transport.constants.TransportConstant;
 import com.eqtechnologic.eqube.transport.constants.TransportServiceConstants;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.AbstractNodeBean;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaEventField;
@@ -38,10 +37,11 @@ import com.eqtechnologic.eqube.transport.opcuatransport.bo.beans.OpcUaTransportI
 import com.eqtechnologic.eqube.transport.opcuatransport.service.OpcUaTransportService;
 import com.eqtechnologic.eqube.transport.opcuatransport.service.constants.OpcUaTransportServiceConstants;
 import com.eqtechnologic.eqube.transport.service.TransportService;
+import com.eqtechnologic.eqube.transport.uiservice.TransportConstant;
+import com.eqtechnologic.eqube.transport.uiservice.beans.OPCUATransportInfoBean;
 import com.eqtechnologic.eqube.transport.uiservice.beans.TransportAbstractUIBean;
 import com.eqtechnologic.eqube.transport.uiservice.beans.opcua.OPCUAEventFieldBean;
 import com.eqtechnologic.eqube.transport.uiservice.beans.opcua.OPCUAEventTypeBean;
-import com.eqtechnologic.eqube.transport.uiservice.beans.opcua.OPCUATransportInfoBean;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;

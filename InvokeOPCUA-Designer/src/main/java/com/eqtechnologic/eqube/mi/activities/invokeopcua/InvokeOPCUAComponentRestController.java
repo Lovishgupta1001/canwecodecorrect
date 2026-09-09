@@ -17,7 +17,7 @@ import com.eqtechnologic.eqube.soa.methodauthorization.annotations.Authorize;
 import com.eqtechnologic.eqube.soa.methodauthorization.annotations.OperationNames;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.AbstractNodeBean;
 import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
-import com.eqtechnologic.eqube.transport.uiservice.beans.opcua.OPCUATransportInfoBean;
+import com.eqtechnologic.eqube.transport.uiservice.beans.OPCUATransportInfoBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
