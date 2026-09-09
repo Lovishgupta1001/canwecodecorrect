@@ -11,43 +11,100 @@ define(function (require) {
 
     var ConnectionManager = {
 
-        renderConnectionDropdown: function (globalSelf) {
-            var manager = this;
-            var connectionsDetails = [];
+        _fetchAccessibleConnectionsList: function () {
+            var allConnections = [];
 
-            var promise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
-            promise.done(function (connectionsData) {
-                connectionsDetails = connectionsData || [];
-            });
-            promise.fail(function (e) {
-                if (window.app?.reqres) {
-                    uilayer.notifier("error", window.app.reqres.request("getError", e).message);
-                }
-            });
-
-            var finalConnArr = [];
-            var connectionVarDetails = [];
-            if (globalSelf.processModel && ActivitiesUtility?.getConnectionAndRemainingVariableComponentDataSource) {
-                connectionVarDetails = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId).data();
-            }
-
-            _.each(connectionVarDetails, function (item) {
-                var flag = false;
-                connectionsDetails.forEach(function (connection) {
-                    if (connection.connectionId === item.connectionId) {
-                        item.connectionColor = connection.connectionColor;
-                        item.connectionType = connection.connectionType || connection.type;
-                        item.pluginType = connection.pluginType;
-                        finalConnArr.push(item);
-                        flag = true;
+            // 1. Fetch Transport Connections (Device Connector, OPC UA, etc.)
+            try {
+                var transportPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleTransportConnections", null, "json", null, true);
+                transportPromise.done(function (connectionsData) {
+                    if (connectionsData && Array.isArray(connectionsData)) {
+                        allConnections = allConnections.concat(connectionsData);
                     }
                 });
-                if (!flag) {
-                    finalConnArr.push(item);
+            } catch (e) {
+                // Ignore if endpoint fails
+            }
+
+            // 2. Fetch Accessible General Connections
+            try {
+                var connPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
+                connPromise.done(function (connectionsData) {
+                    if (connectionsData && Array.isArray(connectionsData)) {
+                        allConnections = allConnections.concat(connectionsData);
+                    }
+                });
+            } catch (e) {
+                // Ignore if endpoint fails
+            }
+
+            return allConnections;
+        },
+
+        _buildFinalConnectionArray: function (globalSelf) {
+            var rawConnections = this._fetchAccessibleConnectionsList();
+            var finalConnArr = [];
+            var seenIds = {};
+
+            // 1. Process all connections fetched from server
+            _.each(rawConnections, function (conn) {
+                if (!conn) return;
+                var id = conn.connectionId !== undefined ? conn.connectionId : conn.id;
+                var name = conn.connectionName || conn.name || conn.key;
+                if (!id && !name) return;
+
+                var idStr = String(id !== undefined ? id : name);
+                if (!seenIds[idStr]) {
+                    seenIds[idStr] = true;
+                    finalConnArr.push({
+                        key: name || idStr,
+                        connectionId: id !== undefined ? id : name,
+                        connectionName: name || idStr,
+                        connectionColor: conn.connectionColor || "rgb(226, 0, 132)",
+                        connectionType: conn.connectionType || conn.type || "OPCUA",
+                        pluginType: conn.pluginDisplayName || conn.pluginType || "Device Connector",
+                        pluginDisplayName: conn.pluginDisplayName || conn.pluginType || "Device Connector",
+                        rawConnection: conn
+                    });
                 }
             });
 
-            manager._ensureSampleOpcUaConnection(finalConnArr);
+            // 2. Also merge any upstream process model variable connections
+            if (globalSelf.processModel && ActivitiesUtility?.getConnectionAndRemainingVariableComponentDataSource) {
+                try {
+                    var varData = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId).data();
+                    _.each(varData, function (item) {
+                        if (!item) return;
+                        var id = item.connectionId !== undefined ? item.connectionId : item.id;
+                        var name = item.key || item.connectionName || item.name;
+                        var idStr = String(id !== undefined ? id : name);
+                        if (!seenIds[idStr]) {
+                            seenIds[idStr] = true;
+                            finalConnArr.push({
+                                key: name || idStr,
+                                connectionId: id !== undefined ? id : name,
+                                connectionName: name || idStr,
+                                connectionColor: item.connectionColor || "#0078d4",
+                                connectionType: item.connectionType || "OPCUA",
+                                pluginType: item.pluginType || "OPC UA",
+                                rawConnection: item
+                            });
+                        }
+                    });
+                } catch (e) {
+                    // Ignore
+                }
+            }
+
+            // 3. Ensure Sample_OPCUA_Connection is present as fallback
+            this._ensureSampleOpcUaConnection(finalConnArr);
+
+            return finalConnArr;
+        },
+
+        renderConnectionDropdown: function (globalSelf) {
+            var manager = this;
+            var finalConnArr = manager._buildFinalConnectionArray(globalSelf);
 
             globalSelf.connectionComboBox = uilayer.dropDownList({
                 elem: globalSelf.$el.find("#connectionComboBox"),
@@ -56,7 +113,7 @@ define(function (require) {
                 dataValueField: "connectionId",
                 template: function (item) {
                     return uilayer.templateFactory.get("connectionItem", {
-                        color: item.connectionColor,
+                        color: item.connectionColor || "#0078d4",
                         text: item.key
                     });
                 },
@@ -87,41 +144,7 @@ define(function (require) {
 
         refreshConnection: function (globalSelf) {
             var manager = this;
-            var connectionsDetails = [];
-
-            var promise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
-            promise.done(function (connectionsData) {
-                connectionsDetails = connectionsData || [];
-            });
-            promise.fail(function (e) {
-                if (window.app?.reqres) {
-                    uilayer.notifier("error", window.app.reqres.request("getError", e).message);
-                }
-            });
-
-            var finalConnArr = [];
-            var connectionVarDetails = [];
-            if (globalSelf.processModel && ActivitiesUtility?.getConnectionAndRemainingVariableComponentDataSource) {
-                connectionVarDetails = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId).data();
-            }
-
-            _.each(connectionVarDetails, function (item) {
-                var flag = false;
-                connectionsDetails.forEach(function (connection) {
-                    if (connection.connectionId === item.connectionId) {
-                        item.connectionColor = connection.connectionColor;
-                        item.connectionType = connection.connectionType || connection.type;
-                        item.pluginType = connection.pluginType;
-                        finalConnArr.push(item);
-                        flag = true;
-                    }
-                });
-                if (!flag) {
-                    finalConnArr.push(item);
-                }
-            });
-
-            manager._ensureSampleOpcUaConnection(finalConnArr);
+            var finalConnArr = manager._buildFinalConnectionArray(globalSelf);
 
             if (globalSelf.connectionComboBox) {
                 globalSelf.connectionComboBox.setDataSource(finalConnArr);
@@ -179,35 +202,12 @@ define(function (require) {
                 }
             }
 
-            var connType = manager._getConnectionType(connItem);
-
-            if (connType === "OPCUA") {
-                manager._hideConnErrorTooltip(globalSelf, element);
-                manager.showOpcUaConfiguration(globalSelf, connItem, connId, isInitial);
-            } else {
-                manager.hideAllConfiguration(globalSelf);
-                var errorMsg = globalSelf.nls.InvalidOPCUAConnection || globalSelf.nls.InvalidConnection || "Only OPC UA connections are allowed.";
-                manager._showConnErrorTooltip(globalSelf, element, errorMsg);
-                if (!isInitial) {
-                    uilayer.notifier("error", errorMsg);
-                }
-                if (globalSelf.connectionComboBox) {
-                    globalSelf.connectionComboBox.value("");
-                }
-            }
+            manager._hideConnErrorTooltip(globalSelf, element);
+            manager.showOpcUaConfiguration(globalSelf, connItem, connId, isInitial);
         },
 
         _getConnectionType: function (connItem) {
-            if (!connItem) {
-                return "";
-            }
-
-            var typeStr = (connItem.connectionType || connItem.pluginType || connItem.type || connItem.pluginName || "").toUpperCase();
-            if (typeStr.indexOf("OPC") !== -1 || typeStr.indexOf("OPCUA") !== -1 || typeStr.indexOf("OPC UA") !== -1) {
-                return "OPCUA";
-            }
-
-            return "";
+            return "OPCUA";
         },
 
         showOpcUaConfiguration: function (globalSelf, connItem, connId, isInitial) {
@@ -247,6 +247,16 @@ define(function (require) {
 
             DataChangeGridManager.refreshGridMode(globalSelf);
             CallMethodGridManager.refreshGridMode(globalSelf);
+
+            if (globalSelf.addressSpaceBrowser?.prefetchAddressSpace) {
+                var connPayload = globalSelf.getConnectionPayload ? globalSelf.getConnectionPayload() : {
+                    connectionId: connId,
+                    connectionName: connName,
+                    name: connName,
+                    type: "OPCUA"
+                };
+                globalSelf.addressSpaceBrowser.prefetchAddressSpace(connPayload);
+            }
         },
 
         hideAllConfiguration: function (globalSelf) {

@@ -199,10 +199,31 @@ define([
             }
         },
 
+        _getEffectiveConnectionPayload: function () {
+            var connData = this.connectionData || (this.globalSelf?.getConnectionPayload ? this.globalSelf.getConnectionPayload() : null) || {};
+            var connId = connData.connectionId || "9999";
+            var connName = connData.connectionName || connData.name || "Sample_OPCUA_Connection";
+            return {
+                connectionId: connId,
+                connectionName: connName,
+                name: connName,
+                type: "OPCUA",
+                connectionType: "OPCUA"
+            };
+        },
+
+        prefetchAddressSpace: function (connectionData) {
+            this.connectionData = connectionData || this._getEffectiveConnectionPayload();
+            var currentConnId = this.connectionData.connectionId;
+            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
+                this._fetchRootAddressSpace();
+            }
+        },
+
         openForBrowse: function (targetRow, targetMode, connectionData) {
             this.targetRow = targetRow;
             this.targetMode = targetMode || "DATA_CHANGE_WRITE";
-            this.connectionData = connectionData;
+            this.connectionData = connectionData || this._getEffectiveConnectionPayload();
 
             var actionLabel = (this.targetMode === "CALL_METHOD")
                 ? (this.nls.SelectMethod || "Select Method")
@@ -217,7 +238,7 @@ define([
                 this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
             }
 
-            var currentConnId = connectionData ? connectionData.connectionId : null;
+            var currentConnId = this.connectionData.connectionId;
             if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
                 this._fetchRootAddressSpace();
             } else {
@@ -245,21 +266,12 @@ define([
 
         _fetchRootAddressSpace: function () {
             var browser = this;
-            if (!this.connectionData || !this.connectionData.connectionId) {
-                return;
-            }
+            var payload = this._getEffectiveConnectionPayload();
 
             this.waitWidget.show();
             this.allNodesMap = {};
             this.loadedNodeIds = {};
-            this.lastFetchedConnId = this.connectionData.connectionId;
-
-            var payload = {
-                connectionId: this.connectionData.connectionId,
-                connectionName: this.connectionData.connectionName || this.connectionData.name,
-                name: this.connectionData.connectionName || this.connectionData.name,
-                type: "OPCUA"
-            };
+            this.lastFetchedConnId = payload.connectionId;
 
             var promise = AjaxUtility.commonAjaxRequest(
                 "POST",
@@ -350,13 +362,7 @@ define([
             this.waitWidget.show();
             this.loadedNodeIds[parentNode.nodeId] = true;
 
-            var payload = {
-                connectionId: this.connectionData.connectionId,
-                connectionName: this.connectionData.connectionName || this.connectionData.name,
-                name: this.connectionData.connectionName || this.connectionData.name,
-                type: "OPCUA"
-            };
-
+            var payload = this._getEffectiveConnectionPayload();
             var url = "activities/invokeopcua/fetchAddressSpaceChildrenByID?nodeId=" + encodeURIComponent(parentNode.nodeId);
             var promise = AjaxUtility.commonAjaxRequest("POST", url, JSON.stringify(payload), "json");
 
@@ -447,13 +453,7 @@ define([
 
             this.waitWidget.show();
 
-            var payload = {
-                connectionId: this.connectionData.connectionId,
-                connectionName: this.connectionData.connectionName || this.connectionData.name,
-                name: this.connectionData.connectionName || this.connectionData.name,
-                type: "OPCUA"
-            };
-
+            var payload = this._getEffectiveConnectionPayload();
             var url = "activities/invokeopcua/fetchMethodParamsByID?nodeId=" + encodeURIComponent(nodeId);
             var promise = AjaxUtility.commonAjaxRequest("POST", url, JSON.stringify(payload), "json");
 

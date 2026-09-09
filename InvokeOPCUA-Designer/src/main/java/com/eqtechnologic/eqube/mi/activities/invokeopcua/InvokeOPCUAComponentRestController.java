@@ -68,7 +68,7 @@ public class InvokeOPCUAComponentRestController {
      */
     @Loggable
     @PostMapping(value = "/fetchAddressSpace")
-    public List<AbstractNodeBean> fetchAddressSpace(@RequestBody Map<String, Object> connectionDetails) throws BusinessException {
+    public List<AbstractNodeBean> fetchAddressSpace(@RequestBody(required = false) Map<String, Object> connectionDetails) throws BusinessException {
         checkMultipleOperations(operations);
         return opcuaHelper.getInvokeOPCUAService().fetchAddressSpace(connectionDetails);
     }
@@ -83,7 +83,7 @@ public class InvokeOPCUAComponentRestController {
      */
     @Loggable
     @PostMapping(value = "/fetchAddressSpaceChildrenByID")
-    public List<AbstractNodeBean> fetchChildrenByID(@RequestParam("nodeId") String nodeId, @RequestBody Map<String, Object> connectionDetails) throws BusinessException {
+    public List<AbstractNodeBean> fetchChildrenByID(@RequestParam("nodeId") String nodeId, @RequestBody(required = false) Map<String, Object> connectionDetails) throws BusinessException {
         checkMultipleOperations(operations);
         return opcuaHelper.getInvokeOPCUAService().fetchChildrenByID(nodeId, connectionDetails);
     }
@@ -98,7 +98,7 @@ public class InvokeOPCUAComponentRestController {
      */
     @Loggable
     @PostMapping(value = "/fetchMethodParamsByID")
-    public OpcUaMethodWriteItem fetchMethodParamsByID(@RequestParam("nodeId") String nodeId, @RequestBody Map<String, Object> connectionDetails) throws BusinessException {
+    public OpcUaMethodWriteItem fetchMethodParamsByID(@RequestParam("nodeId") String nodeId, @RequestBody(required = false) Map<String, Object> connectionDetails) throws BusinessException {
         checkMultipleOperations(operations);
         return opcuaHelper.getInvokeOPCUAService().fetchMethodParamsByID(nodeId, connectionDetails);
     }
@@ -112,7 +112,7 @@ public class InvokeOPCUAComponentRestController {
      */
     @Loggable
     @PostMapping(value = "/fetchServerEventFieldsAndTypes")
-    public Map<String, Object> fetchServerEventFieldsAndTypes(@RequestBody Map<String, Object> connectionDetails) throws BusinessException {
+    public Map<String, Object> fetchServerEventFieldsAndTypes(@RequestBody(required = false) Map<String, Object> connectionDetails) throws BusinessException {
         checkMultipleOperations(operations);
         return opcuaHelper.getInvokeOPCUAService().fetchServerEventFieldsAndTypes(connectionDetails);
     }
@@ -132,7 +132,7 @@ public class InvokeOPCUAComponentRestController {
     public String fetchEnrichedMessageByID(@RequestParam("nodeId") String nodeId,
                                            @RequestParam("parentNodeId") String parentNodeId,
                                            @RequestParam("enrichmentPath") List<String> enrichmentPath,
-                                           @RequestBody Map<String, Object> connectionDetails) throws BusinessException {
+                                           @RequestBody(required = false) Map<String, Object> connectionDetails) throws BusinessException {
         checkMultipleOperations(operations);
         return opcuaHelper.getInvokeOPCUAService().fetchEnrichedMessageByID(nodeId, parentNodeId, enrichmentPath, connectionDetails);
     }
@@ -150,7 +150,7 @@ public class InvokeOPCUAComponentRestController {
     @PostMapping(value = "/validateMethodWriteItem")
     public Boolean validateMethodWriteItem(@RequestParam("nodeId") String nodeId,
                                            @RequestParam("objectNodeId") String objectNodeId,
-                                           @RequestBody Map<String, Object> connectionDetails) throws BusinessException {
+                                           @RequestBody(required = false) Map<String, Object> connectionDetails) throws BusinessException {
         checkMultipleOperations(operations);
         return opcuaHelper.getInvokeOPCUAService().validateMethodWriteItem(nodeId, objectNodeId, connectionDetails);
     }

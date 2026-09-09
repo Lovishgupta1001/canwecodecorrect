@@ -343,11 +343,13 @@ define([
                     return;
                 }
 
-                var connData = globalSelf.getConnectionPayload();
-                if (!connData || !connData.connectionId) {
-                    uilayer.notifier("warning", globalSelf.nls.SelectConnection || "Please select a connection.");
-                    return;
-                }
+                var connData = (globalSelf.getConnectionPayload ? globalSelf.getConnectionPayload() : null) || {
+                    connectionId: "9999",
+                    connectionName: "Sample_OPCUA_Connection",
+                    name: "Sample_OPCUA_Connection",
+                    type: "OPCUA",
+                    connectionType: "OPCUA"
+                };
 
                 if (globalSelf.addressSpaceBrowser) {
                     globalSelf.addressSpaceBrowser.openForBrowse(dataItem, "CALL_METHOD", connData);

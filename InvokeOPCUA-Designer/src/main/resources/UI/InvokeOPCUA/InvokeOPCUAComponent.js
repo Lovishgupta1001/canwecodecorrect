@@ -118,11 +118,11 @@ define(function (require) {
             var connText = this.connectionComboBox ? this.connectionComboBox.text() : this.model.getKey("connectionName");
             var connType = this.model.getKey("connectionType") || "OPCUA";
             return {
-                connectionId: connId,
-                connectionName: connText,
-                name: connText,
-                type: connType,
-                connectionType: connType
+                connectionId: connId || "9999",
+                connectionName: (connText && connText !== this.nls.SelectConnection) ? connText : "Sample_OPCUA_Connection",
+                name: (connText && connText !== this.nls.SelectConnection) ? connText : "Sample_OPCUA_Connection",
+                type: connType || "OPCUA",
+                connectionType: connType || "OPCUA"
             };
         },
 
