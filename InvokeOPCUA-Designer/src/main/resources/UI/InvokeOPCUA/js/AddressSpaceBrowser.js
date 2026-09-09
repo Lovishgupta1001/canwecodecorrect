@@ -201,19 +201,25 @@ define([
 
         _getEffectiveConnectionPayload: function () {
             var connData = this.connectionData || (this.globalSelf?.getConnectionPayload ? this.globalSelf.getConnectionPayload() : null) || {};
-            var connId = connData.connectionId || "9999";
-            var connName = connData.connectionName || connData.name || "Sample_OPCUA_Connection";
+            var connId = connData.connectionId;
+            var connName = connData.connectionName || connData.name;
+            if (!connId) {
+                return null;
+            }
             return {
                 connectionId: connId,
                 connectionName: connName,
                 name: connName,
-                type: "OPCUA",
-                connectionType: "OPCUA"
+                type: connData.type || "OPCUA",
+                connectionType: connData.connectionType || "OPCUA"
             };
         },
 
         prefetchAddressSpace: function (connectionData) {
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
+            if (!this.connectionData || !this.connectionData.connectionId) {
+                return;
+            }
             var currentConnId = this.connectionData.connectionId;
             if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
                 this._fetchRootAddressSpace();
@@ -236,6 +242,11 @@ define([
 
             if (this.globalSelf.addressSpaceDrawer) {
                 this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
+            }
+
+            if (!this.connectionData || !this.connectionData.connectionId) {
+                uilayer.notifier("warning", this.nls.SelectConnection || "Please select a connection.");
+                return;
             }
 
             var currentConnId = this.connectionData.connectionId;
@@ -267,6 +278,9 @@ define([
         _fetchRootAddressSpace: function () {
             var browser = this;
             var payload = this._getEffectiveConnectionPayload();
+            if (!payload || !payload.connectionId) {
+                return;
+            }
 
             this.waitWidget.show();
             this.allNodesMap = {};

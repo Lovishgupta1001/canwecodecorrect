@@ -96,9 +96,6 @@ define(function (require) {
                 }
             }
 
-            // 3. Ensure Sample_OPCUA_Connection is present as fallback
-            this._ensureSampleOpcUaConnection(finalConnArr);
-
             return finalConnArr;
         },
 
@@ -156,25 +153,6 @@ define(function (require) {
                 } else {
                     uilayer.notifier("warning", globalSelf.nls.InvalidConnection || globalSelf.nls.SelectConnection);
                 }
-            }
-        },
-
-        _ensureSampleOpcUaConnection: function (finalConnArr) {
-            var sampleOpcUaConn = {
-                key: "Sample_OPCUA_Connection",
-                connectionId: "9999",
-                connectionName: "Sample_OPCUA_Connection",
-                connectionType: "OPCUA",
-                pluginType: "OPC UA",
-                type: "OPCUA",
-                connectionColor: "#0078d4"
-            };
-
-            var hasSample = _.some(finalConnArr, function (c) {
-                return String(c.connectionId) === String(sampleOpcUaConn.connectionId) || c.key === sampleOpcUaConn.key;
-            });
-            if (!hasSample) {
-                finalConnArr.unshift(sampleOpcUaConn);
             }
         },
 
