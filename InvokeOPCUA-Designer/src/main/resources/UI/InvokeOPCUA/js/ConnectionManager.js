@@ -246,14 +246,13 @@ define(function (require) {
             if (!connId || ((typeof connId === "string") && !parseInt(connId, 10))) {
                 manager.hideAllConfiguration(globalSelf);
                 if (connId && !isInitial) {
-                    manager._showConnErrorTooltip(globalSelf, element, globalSelf.nls.InvalidConnection || "Please select a valid OPC UA connection.");
-                    uilayer.notifier("error", globalSelf.nls.InvalidConnection || "Please select a valid OPC UA connection.");
+                    manager._showConnErrorTooltip(globalSelf, element, globalSelf.nls.InvalidConnection || globalSelf.nls.SelectConnection);
                 }
                 return;
             }
 
             var connItem = null;
-            if (globalSelf.connectionComboBox?.dataSource) {
+            if (globalSelf.connectionComboBox && globalSelf.connectionComboBox.dataSource) {
                 var allItems = globalSelf.connectionComboBox.dataSource.data();
                 for (var i = 0; i < allItems.length; i++) {
                     var item = allItems[i];
@@ -262,14 +261,6 @@ define(function (require) {
                         break;
                     }
                 }
-            }
-
-            var isOpcUa = manager._isOpcUaConnection(connItem);
-            if (!isOpcUa) {
-                manager.hideAllConfiguration(globalSelf);
-                manager._showConnErrorTooltip(globalSelf, element, globalSelf.nls.InvalidConnection || "Please select a valid OPC UA connection.");
-                uilayer.notifier("error", globalSelf.nls.InvalidConnection || "Please select a valid OPC UA connection.");
-                return;
             }
 
             manager._hideConnErrorTooltip(globalSelf, element);
@@ -309,6 +300,7 @@ define(function (require) {
                         name: "",
                         nodeId: "",
                         objectNodeId: "",
+                        objectName: "",
                         inputParameters: [],
                         outputValue: ""
                     }]);
@@ -318,7 +310,7 @@ define(function (require) {
             DataChangeGridManager.refreshGridMode(globalSelf);
             CallMethodGridManager.refreshGridMode(globalSelf);
 
-            if (globalSelf.addressSpaceBrowser?.prefetchAddressSpace) {
+            if (globalSelf.addressSpaceBrowser && globalSelf.addressSpaceBrowser.prefetchAddressSpace) {
                 var connPayload = globalSelf.getConnectionPayload ? globalSelf.getConnectionPayload() : {
                     connectionId: connId,
                     connectionName: connName,
@@ -331,7 +323,7 @@ define(function (require) {
         },
 
         hideAllConfiguration: function (globalSelf) {
-            globalSelf.$(".invokeopcua-config-controls, .invokeopcua-grids-section").show();
+            globalSelf.$(".invokeopcua-config-controls, .invokeopcua-grids-section").hide();
 
             globalSelf.dataChangeOptions = [];
             globalSelf.callMethodOptions = [];
@@ -342,21 +334,15 @@ define(function (require) {
             globalSelf.model.setKey("connectionType", "");
             globalSelf.model.setKey("selectConnection", "");
 
-            var blankDc = [{ name: "", nodeId: "", sampleValue: "", newValue: "" }];
-            var blankCm = [{ name: "", nodeId: "", objectNodeId: "", objectName: "", inputParameters: [], outputValue: "" }];
+            globalSelf.model.setKey("dataChangeWrite", []);
+            globalSelf.model.setKey("callMethod", []);
 
-            globalSelf.model.setKey("dataChangeWrite", blankDc);
-            globalSelf.model.setKey("callMethod", blankCm);
-
-            if (globalSelf.dataChangeWriteGrid?.widget?.dataSource) {
-                globalSelf.dataChangeWriteGrid.widget.dataSource.data(blankDc);
+            if (globalSelf.dataChangeWriteGrid && globalSelf.dataChangeWriteGrid.widget && globalSelf.dataChangeWriteGrid.widget.dataSource) {
+                globalSelf.dataChangeWriteGrid.widget.dataSource.data([]);
             }
-            if (globalSelf.callMethodGrid?.widget?.dataSource) {
-                globalSelf.callMethodGrid.widget.dataSource.data(blankCm);
+            if (globalSelf.callMethodGrid && globalSelf.callMethodGrid.widget && globalSelf.callMethodGrid.widget.dataSource) {
+                globalSelf.callMethodGrid.widget.dataSource.data([]);
             }
-
-            DataChangeGridManager.refreshGridMode(globalSelf);
-            CallMethodGridManager.refreshGridMode(globalSelf);
         },
 
         _showConnErrorTooltip: function (globalSelf, element, message) {

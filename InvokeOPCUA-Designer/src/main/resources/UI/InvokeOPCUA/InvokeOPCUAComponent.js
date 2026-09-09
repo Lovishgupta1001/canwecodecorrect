@@ -150,8 +150,10 @@ define(function (require) {
         },
 
         _initializeControls: function () {
-            this.$(".invokeopcua-config-controls").show();
-            this.$(".invokeopcua-grids-section").show();
+            this.$(".data-change-write-container").hide();
+            this.$(".call-method-container").hide();
+            this.$(".invokeopcua-config-controls").hide();
+            this.$(".invokeopcua-grids-section").hide();
         },
 
         _getGridInstance: function () {
@@ -375,10 +377,6 @@ define(function (require) {
             }
             this.initialData = obj;
 
-            if (!this._isRendered || !this.$el || !this.$el.find("#connectionComboBox").length) {
-                return;
-            }
-
             var connVal = obj.connectionComboBox || obj.connectionName || obj.selectConnection || obj.connectionId;
             if (connVal && this.connectionComboBox) {
                 var allItems = (this.connectionComboBox.dataSource && this.connectionComboBox.dataSource.data()) ? this.connectionComboBox.dataSource.data() : [];
@@ -404,18 +402,6 @@ define(function (require) {
                     }
                 }
             }
-
-            var operation = obj.operation || (obj.callMethod && obj.callMethod.length ? Constants.CALL_METHOD : Constants.DATA_CHANGE_WRITE);
-            this.model.setKey("operation", operation);
-            this.$(".data-change-write-radio").prop("checked", operation === Constants.DATA_CHANGE_WRITE);
-            this.$(".call-method-radio").prop("checked", operation === Constants.CALL_METHOD);
-
-            var executionMode = obj.executionMode || Constants.PARALLEL;
-            this.model.setKey("executionMode", executionMode);
-            this.$(".parallel-mode-radio").prop("checked", executionMode === Constants.PARALLEL);
-            this.$(".sequential-mode-radio").prop("checked", executionMode === Constants.SEQUENTIAL);
-
-            this._updateOperationUI();
         },
 
         _getGridRowAndCellByField: function (gridWidget, rowIndex, fieldName) {

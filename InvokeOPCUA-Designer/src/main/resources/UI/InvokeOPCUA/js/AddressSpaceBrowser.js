@@ -327,15 +327,6 @@ define([
             }
 
             this.waitWidget.show();
-            var globalWait = null;
-            if (uilayer.wait && browser.globalSelf?.$el) {
-                globalWait = uilayer.wait({
-                    elem: browser.globalSelf.$el,
-                    isTransparent: true
-                });
-                globalWait.show();
-            }
-
             this.allNodesMap = {};
             this.loadedNodeIds = {};
             this.lastFetchedConnId = payload.connectionId;
@@ -349,11 +340,6 @@ define([
 
             promise.done(function (response) {
                 browser.waitWidget.hide();
-                if (globalWait) {
-                    globalWait.hide();
-                    globalWait.destroy();
-                }
-
                 var data = response?.data || response || [];
                 var flatList = browser._processNodes(data, null);
 
@@ -383,10 +369,6 @@ define([
 
             promise.fail(function (e) {
                 browser.waitWidget.hide();
-                if (globalWait) {
-                    globalWait.hide();
-                    globalWait.destroy();
-                }
                 browser.lastFetchedConnId = null;
                 uilayer.notifier("error", browser.nls.ErrorFetchingAddressSpace || "Error while fetching address space.");
             });
