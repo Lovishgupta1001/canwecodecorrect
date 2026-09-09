@@ -1,6 +1,6 @@
 /**
-* Created by Lovish.
-*/
+ * Created by Lovish.
+ */
 define(function (require) {
     "use strict";
 
@@ -34,7 +34,6 @@ define(function (require) {
         },
 
         onInitialize: function (options) {
-            this._isRendered = false;
             this.activityId = options.activityId;
             this.designerReqres = options.reqres;
             this.processModel = this.designerReqres.request("getCurrentActiveEntityModelFromDataStore");
@@ -51,8 +50,6 @@ define(function (require) {
         onRender: function () {
             var globalSelf = this;
             var deferred = $.Deferred();
-
-            this._isRendered = true;
 
             this._initializeControls();
 
@@ -117,8 +114,8 @@ define(function (require) {
         },
 
         getConnectionPayload: function () {
-            var connId = (this.connectionComboBox ? this.connectionComboBox.value() : null) || this.model.getKey("connectionId");
-            var connText = (this.connectionComboBox ? this.connectionComboBox.text() : null) || this.model.getKey("connectionName") || this.model.getKey("connectionComboBox");
+            var connId = this.connectionComboBox ? this.connectionComboBox.value() : this.model.getKey("connectionId");
+            var connText = this.connectionComboBox ? this.connectionComboBox.text() : this.model.getKey("connectionName");
             var connType = this.model.getKey("connectionType") || "OPCUA";
             return {
                 connectionId: connId || "",
@@ -278,10 +275,6 @@ define(function (require) {
         },
 
         _updateOperationUI: function () {
-            if (!this._isRendered || !this.$el) {
-                return;
-            }
-
             var operation = this.$(".data-change-write-radio").is(":checked")
                 ? Constants.DATA_CHANGE_WRITE
                 : Constants.CALL_METHOD;
@@ -367,9 +360,6 @@ define(function (require) {
         },
 
         setData: function (obj) {
-            if (!obj) {
-                return;
-            }
             for (var key in obj) {
                 if (Object.prototype.hasOwnProperty.call(obj, key)) {
                     this.model.setKey(key, obj[key]);
@@ -377,29 +367,12 @@ define(function (require) {
             }
             this.initialData = obj;
 
-            var connVal = obj.connectionComboBox || obj.connectionName || obj.selectConnection || obj.connectionId;
+            var connVal = obj?.connectionComboBox || obj?.selectConnection || obj?.connectionName;
             if (connVal && this.connectionComboBox) {
-                var allItems = (this.connectionComboBox.dataSource && this.connectionComboBox.dataSource.data()) ? this.connectionComboBox.dataSource.data() : [];
-                var matchItem = null;
-                for (var i = 0; i < allItems.length; i++) {
-                    var item = allItems[i];
-                    if (String(item.connectionId) === String(connVal) ||
-                        String(item.connectionName) === String(connVal) ||
-                        String(item.key) === String(connVal)) {
-                        matchItem = item;
-                        break;
-                    }
-                }
-
-                if (matchItem) {
-                    this.connectionComboBox.value(matchItem.connectionId);
-                    ConnectionManager._validateAndHandleConnection(matchItem.connectionId, this, true);
-                } else {
-                    this.connectionComboBox.value(connVal);
-                    var currentVal = this.connectionComboBox.value();
-                    if (currentVal) {
-                        ConnectionManager._validateAndHandleConnection(currentVal, this, true);
-                    }
+                this.connectionComboBox.text(connVal);
+                var currentVal = this.connectionComboBox.value();
+                if (currentVal) {
+                    ConnectionManager._validateAndHandleConnection(currentVal, this, true);
                 }
             }
         },
@@ -411,14 +384,7 @@ define(function (require) {
             var colIndex = -1;
             var columns = gridWidget.columns || [];
             for (var c = 0; c < columns.length; c++) {
-                var f = columns[c].field;
-                if (f === fieldName ||
-                    (fieldName === "nodeId" && (f === "name" || f === "objectNodeId")) ||
-                    (fieldName === "name" && f === "name") ||
-                    (fieldName === "variableNode" && f === "name") ||
-                    (fieldName === "methodNode" && f === "name") ||
-                    (fieldName === "parentObjectNode" && f === "objectNodeId") ||
-                    (fieldName === "outputParameter" && f === "outputValue")) {
+                if (columns[c].field === fieldName) {
                     colIndex = c;
                     break;
                 }
@@ -694,7 +660,6 @@ define(function (require) {
         },
 
         onBeforeDestroy: function () {
-            this._isRendered = false;
             $(window).off("resize.invokeopcua");
 
             CallMethodGridManager._destroyInputParametersModal(this);

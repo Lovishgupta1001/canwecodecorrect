@@ -1,0 +1,173 @@
+================================================================================
+INVOKE OPC UA - CODE REPLACEMENT & REMOVAL SUMMARY
+Generated on: 2026-09-10
+================================================================================
+
+This document details all differences between the current codebase and the code
+being pasted, highlighting what current features, functions, selectors, and
+logic will be replaced or removed upon applying the update.
+
+--------------------------------------------------------------------------------
+1. InvokeOPCUAComponent.less
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/InvokeOPCUAComponent.less
+
+What is being replaced / modified:
+- .browse-data-change-btn, .browse-call-method-btn, .browse-parent-object-btn padding
+  is replaced with identical CSS in the pasted snippet.
+- .invokeopcua-node-cell, .invokeopcua-node-cell-text, .invokeopcua-node-cell-actions
+  are maintained.
+- All drawer, grid, modal, and tooltip styling blocks are overwritten with the
+  pasted stylesheet.
+
+--------------------------------------------------------------------------------
+2. AddressSpaceTemplate.html
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/template/AddressSpaceTemplate.html
+
+What is being replaced:
+- The template structure for the Address Space browser drawer is overwritten
+  with the provided HTML. (Identical layout: header, search input, treelist container,
+  select button, and loading container).
+
+--------------------------------------------------------------------------------
+3. InvokeOPCUAComponentTemplate.html
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/template/InvokeOPCUAComponentTemplate.html
+
+What is being replaced / modified:
+- Radio button wrappers for Operation (Data Change Write / Call Method):
+  - Current uses: `.ul-field-container.ul-flex-container` with `<input class='k-radio ...'>`.
+  - Pasted uses: `.ul-input-container` with standard `<input type='radio' name='operation' ...>` and `.invokeopcua-radio-label`.
+- Radio button wrappers for Execution Mode (Parallel / Sequential):
+  - Current uses: `.ul-field-container.ul-flex-container` with `<input class='k-radio ...'>`.
+  - Pasted uses: `.execution-mode-option` wrappers with `<input type='radio' name='execution-mode' ...>` and `.parallel-mode-help-container`.
+
+--------------------------------------------------------------------------------
+4. InvokeOPCUAComponent.js
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/InvokeOPCUAComponent.js
+
+What is being replaced / removed:
+- Removed `this._isRendered` tracking flag.
+- In `onRender()`:
+  - Radio button name attributes are set from `operationGroupName` and `executionModeGroupName`.
+- In `getConnectionPayload()`:
+  - Current fallback chain `(this.connectionComboBox ? this.connectionComboBox.text() : null) || this.model.getKey("connectionName") || this.model.getKey("connectionComboBox")`
+    is replaced with `this.connectionComboBox ? this.connectionComboBox.text() : this.model.getKey("connectionName")`.
+- In `setData(obj)`:
+  - Replaced lookup logic that scanned `dataSource.data()` by `connectionId` / `connectionName` / `key` with direct `this.connectionComboBox.text(connVal)`.
+- In `_getGridRowAndCellByField()`:
+  - Removed multi-field alias mappings (`variableNode`, `methodNode`, `parentObjectNode`, `outputParameter`).
+- In `onBeforeDestroy()`:
+  - Removed `this._isRendered = false` cleanup line.
+
+--------------------------------------------------------------------------------
+5. AddressSpaceBrowser.js
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/js/AddressSpaceBrowser.js
+
+What is being removed:
+- Removed `PARENT_OBJECT` browsing mode:
+  - Removed `_populateParentObjectRow(row, node)` method.
+  - Removed `_resolveParentNodeName(node)` method.
+  - Removed `SelectParentObject` and `SelectVariableNode` label branches in `openForBrowse()`.
+- In `_initTreeList()`:
+  - Replaced `height: "100%"` with `height: "calc(100% - 7rem)"`.
+  - Removed node class icon logic for `VARIABLETYPE`, `PROPERTY`, `DATAVARIABLE`, and `OBJECTTYPE`.
+- In `isNodeSelectable(node)`:
+  - Replaced case-insensitive / multi-nodeClass check with strict `node.nodeClass === "Variable"` and `node.nodeClass === "Method"`.
+- In `_fetchRootAddressSpace()`:
+  - Replaced `tree.dataSource.data(flatList)` with `tree.setDataSource(ds)` creating a new `TreeListDataSource`.
+  - Removed automatic background child prefetching for root nodes.
+- In `_fetchChildren(parentNode)`:
+  - Removed `parentNode.set("needToFetchChildren", false)` fallback and `tree.resize()`.
+- In `_populateDataChangeRow(row, node)`:
+  - Removed `dataTypeName` and `dataTypeNodeId` property assignment.
+- In `_populateCallMethodRow(row, node)`:
+  - Removed `objectName` property population.
+
+--------------------------------------------------------------------------------
+6. CallMethodGridManager.js
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/js/CallMethodGridManager.js
+
+What is being replaced / removed:
+- Grid Columns:
+  - Replaced merged column "Method Node" (`getMethodNodeTemplate`) with "Method Name" (`name`, 25%).
+  - Replaced merged column "Parent Object Node" (`getParentObjectNodeTemplate`) with "Node ID" (`nodeId`, 25%, `getNodeIdTemplate(true)`).
+  - Replaced title "Output Parameter" with "Output Value" (`outputValue`, 25%).
+  - Added separate "Action" column (`browseAction`, 90px) containing the Browse button.
+- Removed `.browse-parent-object-btn` click event handler.
+- In `_getCallMethodDataSource(data)`:
+  - Removed `objectName` field from schema definition.
+- In `renderCallMethodComponent()`:
+  - Search bar search fields changed from `["name", "nodeId", "objectNodeId", "objectName", "outputValue"]` to `["name", "nodeId", "outputValue"]`.
+
+--------------------------------------------------------------------------------
+7. ConnectionManager.js
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/js/ConnectionManager.js
+
+What is being replaced / modified:
+- Added `try-catch` blocks around `AjaxUtility.commonAjaxSyncRequest` for transport connections and general connections.
+- Added `try-catch` block around `ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource`.
+- In `_validateAndHandleConnection()`:
+  - Replaced fallback element lookup with direct `.find(".k-input, .k-dropdown-wrap")`.
+- In `showOpcUaConfiguration()`:
+  - Blank row initialization for `callMethod` no longer includes `objectName: ""`.
+
+--------------------------------------------------------------------------------
+8. constants.js
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/js/constants.js
+
+What is being replaced:
+- Overwritten with identical constants structure.
+
+--------------------------------------------------------------------------------
+9. DataChangeGridManager.js
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/js/DataChangeGridManager.js
+
+What is being replaced / removed:
+- Grid Columns:
+  - Replaced merged column "Variable Node" (`getVariableNodeTemplate`, 50%) with separate:
+    - "Data Change Name" (`name`, 25%).
+    - "Node ID" (`nodeId`, 25%, `getNodeIdTemplate(false)`).
+  - "Sample Value" width changed from 25% to 20%.
+  - Added separate "Action" column (`browseAction`, 90px) containing the Browse button.
+
+--------------------------------------------------------------------------------
+10. GridUtils.js
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/js/GridUtils.js
+
+What is being removed:
+- Removed `getVariableNodeTemplate(globalSelf)` method.
+- Removed `getMethodNodeTemplate(globalSelf)` method.
+- Removed `getParentObjectNodeTemplate(globalSelf)` method.
+- Added `getEditableValueTemplate(field, iconClass)` helper method.
+
+--------------------------------------------------------------------------------
+11. InvokeOPCUAComponentModel.js
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/model/InvokeOPCUAComponentModel.js
+
+What is being replaced:
+- Overwritten with identical model definition.
+
+--------------------------------------------------------------------------------
+12. InvokeOPCUAComponentNLS.js
+--------------------------------------------------------------------------------
+File: InvokeOPCUA-Designer/src/main/resources/UI/InvokeOPCUA/nls/InvokeOPCUAComponentNLS.js
+
+What is being removed:
+- Removed NLS keys:
+  - "VariableNode": "Variable Node"
+  - "MethodNode": "Method Node"
+  - "ParentObjectNode": "Parent Object Node"
+  - "SelectVariableNode": "Select Variable Node"
+  - "SelectParentObject": "Select Parent Object"
+  - "OutputParameter": "Output Parameter"
+================================================================================

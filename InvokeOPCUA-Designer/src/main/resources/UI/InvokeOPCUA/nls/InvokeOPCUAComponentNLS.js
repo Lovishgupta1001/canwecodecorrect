@@ -1,6 +1,6 @@
 /**
-* Created by Lovish.
-*/
+ * Created by Lovish.
+ */
 define({
     "root": {
         "invokeopcua.displayName": "Invoke OPC UA",
@@ -24,9 +24,6 @@ define({
         "ParallelHelp": "Executes OPC UA write operations in parallel.",
         "Sequential": "Sequential",
         "SequentialHelp": "Executes OPC UA write operations in sequential order.",
-        "VariableNode": "Variable Node",
-        "MethodNode": "Method Node",
-        "ParentObjectNode": "Parent Object Node",
         "DataChangeName": "Data Change Name",
         "NodeId": "Node ID",
         "SampleValue": "Sample Value",
@@ -36,8 +33,6 @@ define({
         "BrowseAddressSpace": "Browse Address Space",
         "SelectNode": "Select Node",
         "SelectMethod": "Select Method",
-        "SelectVariableNode": "Select Variable Node",
-        "SelectParentObject": "Select Parent Object",
         "Node": "Node",
         "NodeClass": "Node Class",
         "SearchAddressSpace": "Search Address Space",
@@ -48,7 +43,6 @@ define({
         "MethodName": "Method Name",
         "InputParameters": "Input Parameters",
         "OutputValue": "Output Value",
-        "OutputParameter": "Output Parameter",
         "AddMethodCall": "Add Method Call:",
         "ParameterName": "Parameter Name",
         "DataType": "Data Type",
