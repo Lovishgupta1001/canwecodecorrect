@@ -9,31 +9,14 @@
 */
 package com.eqtechnologic.eqube.mi.activities.invokeopcua;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.eqtechnologic.eqube.exception.BusinessException;
-import com.eqtechnologic.eqube.logging.LogTemplate;
 import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.logging.transaction.annotation.LogModuleName;
-import com.eqtechnologic.eqube.mi.activities.invokeopcua.bean.CallMethodItem;
-import com.eqtechnologic.eqube.mi.activities.invokeopcua.bean.DataChangeWriteItem;
-import com.eqtechnologic.eqube.mi.activities.invokeopcua.bean.InputParameterItem;
-import com.eqtechnologic.eqube.mi.activities.invokeopcua.bean.InvokeOPCUAOutputBean;
-import com.eqtechnologic.eqube.mi.activities.invokeopcua.constants.InvokeOPCUAConstants;
 import com.eqtechnologic.eqube.mi.common.mierror.eQMIException;
 import com.eqtechnologic.eqube.mi.process.context.eQActivityState;
-import com.eqtechnologic.eqube.mi.process.context.eQContext;
 import com.eqtechnologic.eqube.mi.process.definition.activity.eQActivityExecutor;
-import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
-import com.eqtechnologic.eqube.transport.eQTransport;
-import com.eqtechnologic.eqube.transport.constants.TransportServiceConstants;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaDataChangeWriteItem;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
-import com.eqtechnologic.eqube.transport.service.TransportService;
 
 /**
 * Executor for Invoke OPC UA activity
@@ -41,7 +24,7 @@ import com.eqtechnologic.eqube.transport.service.TransportService;
 * @author Lovish
 */
 @LogModuleName(moduleName = "Activity")
-@SuppressWarnings("java:S101")
+@SuppressWarnings({"java:S101", "rawtypes"})
 public class eQInvokeOPCUAExecutor extends eQActivityExecutor {
 
     private static final Logger LOGGER;
@@ -56,6 +39,7 @@ public class eQInvokeOPCUAExecutor extends eQActivityExecutor {
                           Map<String, String> outPutMap)
             throws eQMIException, BusinessException {
 
+        /*
         Map configMap = (Map) configData;
         eQContext context = activityState.getContext();
         Object response = null;
@@ -64,9 +48,9 @@ public class eQInvokeOPCUAExecutor extends eQActivityExecutor {
         String transportName;
 
         if (!dynamicTransport) {
-            transportName = (String) configMap.get(InvokeOPCUAConstants.TRANSPORT_NAME);
+            transportName = (String) configMap.get(InvokeOPCUAConstants.CONNECTION_NAME);
         } else {
-            transportName = (String) context.get((String) configMap.get(InvokeOPCUAConstants.TRANSPORT_NAME));
+            transportName = (String) context.get((String) configMap.get(InvokeOPCUAConstants.CONNECTION_NAME));
         }
 
         eQTransport transport = null;
@@ -74,7 +58,7 @@ public class eQInvokeOPCUAExecutor extends eQActivityExecutor {
 
         if (transport != null) {
             Map<String, Object> opcUaWriteMap = new HashMap<>();
-            opcUaWriteMap.put(InvokeOPCUAConstants.TRANSPORT_NAME, transportName);
+            opcUaWriteMap.put("transportName", transportName);
             opcUaWriteMap.put(InvokeOPCUAConstants.EXECUTION_MODE, configMap.get(InvokeOPCUAConstants.EXECUTION_MODE));
             String operation = (String) configMap.get(InvokeOPCUAConstants.OPERATION);
             opcUaWriteMap.put(InvokeOPCUAConstants.OPERATION, operation);
@@ -99,8 +83,12 @@ public class eQInvokeOPCUAExecutor extends eQActivityExecutor {
         putResponseInContext(outPutMap, context, response);
 
         return output;
+        */
+
+        return null;
     }
 
+    /*
     private List<OpcUaDataChangeWriteItem> toOpcUaDataChangeWriteItems(List<?> rawItems, eQContext context) throws eQMIException {
         if (rawItems == null || rawItems.isEmpty()) return Collections.emptyList();
         List<OpcUaDataChangeWriteItem> result = new ArrayList<>(rawItems.size());
@@ -132,11 +120,6 @@ public class eQInvokeOPCUAExecutor extends eQActivityExecutor {
         return result;
     }
 
-    /**
-     * Converts the runtime input parameters to a List of JSON value strings, one per
-     * argument, each in {"Value": ...} format as expected by OpcUaJsonHelper.jsonToVariant.
-     * InputParameterItem.getValue() holds that JSON string set at design/runtime time.
-     */
     private List<String> toJsonValueList(List<InputParameterItem> inputParameters, eQContext context) throws eQMIException {
         if (inputParameters == null) return Collections.emptyList();
         if (!(inputParameters instanceof List)) return Collections.emptyList();
@@ -152,13 +135,6 @@ public class eQInvokeOPCUAExecutor extends eQActivityExecutor {
         return jsonValues;
     }
 
-    /**
-     * Get response variables and put them against appropriate Output variables
-     * @param outPutMap
-     * @param context
-     * @param response
-     * @throws Exception
-     */
     private void putResponseInContext(Map<String, String> outPutMap, eQContext context, Object response) {
         if (!(response instanceof Map)) return;
         Map<String, List<String>> result = (Map<String, List<String>>) response;
@@ -176,4 +152,5 @@ public class eQInvokeOPCUAExecutor extends eQActivityExecutor {
     private TransportService getTransportService() {
         return ServiceRegistry.getInstance().getService(TransportServiceConstants.SERVICE_NAME);
     }
+    */
 }
