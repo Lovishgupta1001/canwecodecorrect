@@ -117,6 +117,7 @@ define(function (require) {
                         position: "right",
                         toggleHandle: true,
                         resizable: true,
+                        collapsed: true,
                         dimensionValue: "50%",
                         min: "30%",
                         max: "70%"
@@ -124,37 +125,8 @@ define(function (require) {
                 }
             });
 
+            // Ensure the drawer starts collapsed regardless of uilayer's default behaviour.
             this.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
-
-            setTimeout(function () {
-                if (globalSelf.addressSpaceDrawer) {
-                    globalSelf.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
-                }
-            }, 50);
-
-            setTimeout(function () {
-                if (globalSelf.addressSpaceDrawer) {
-                    globalSelf.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
-                }
-            }, 200);
-
-            this.$el.on("click", ".k-drawer-toggle, .k-splitbar", function () {
-                setTimeout(function () {
-                    if (globalSelf.addressSpaceBrowser) {
-                        var browser = globalSelf.addressSpaceBrowser;
-                        if (browser.rawAddressSpaceNodes && browser.rawAddressSpaceNodes.length > 0) {
-                            var tree = browser._getTreeWidget ? browser._getTreeWidget() : null;
-                            if (!tree || !tree.dataSource) {
-                                browser._initTreeList(browser.rawAddressSpaceNodes);
-                            }
-                        }
-                        var activeTree = browser._getTreeWidget ? browser._getTreeWidget() : null;
-                        if (activeTree && typeof activeTree.resize === "function") {
-                            activeTree.resize();
-                        }
-                    }
-                }, 150);
-            });
         },
 
         _initAddressSpaceBrowser: function () {
