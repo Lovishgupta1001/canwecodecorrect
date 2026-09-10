@@ -26,7 +26,8 @@ define([
             this._rendered = false;
             this.lastFetchedConnId = null;
 
-            // Drawer starts hidden; defer rendering until browse is clicked or drawer opens
+            // Render drawer contents immediately with empty treelist
+            this.render();
         },
 
         _ensureRendered: function () {
@@ -333,21 +334,17 @@ define([
             this.selectedNode = null;
             this._updateActionButtonState();
 
-            if (this._rendered) {
-                if (this.connectionData && this.connectionData.connectionId) {
-                    var currentConnId = this.connectionData.connectionId;
-                    if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
-                        this._fetchRootAddressSpace();
-                    }
-                } else {
-                    this.lastFetchedConnId = null;
-                    var tree = this._getTreeWidget();
-                    if (tree && tree.setDataSource) {
-                        tree.setDataSource(this._createTreeDataSource([]));
-                    }
+            if (this.connectionData && this.connectionData.connectionId) {
+                var currentConnId = this.connectionData.connectionId;
+                if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
+                    this._fetchRootAddressSpace();
                 }
             } else {
                 this.lastFetchedConnId = null;
+                var tree = this._getTreeWidget();
+                if (tree && tree.setDataSource) {
+                    tree.setDataSource(this._createTreeDataSource([]));
+                }
             }
         },
 
