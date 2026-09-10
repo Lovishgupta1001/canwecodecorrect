@@ -19,7 +19,8 @@ define([
             this.nls = globalSelf.nls;
             this.selectedNode = null;
             this.targetRow = null;
-            this.targetMode = "DATA_CHANGE_WRITE";
+            this.targetMode = null;
+            this.openedFromBrowse = false;
             this.connectionData = null;
             this.allNodesMap = {};
             this.loadedNodeIds = {};
@@ -51,7 +52,9 @@ define([
                 elem: this.containerElem.find("#address-space-select-btn"),
                 uiStyle: "Tertiary",
                 click: function () {
-                    browser._onSelectNodeClick();
+                    if (browser.openedFromBrowse && browser.targetRow) {
+                        browser._onSelectNodeClick();
+                    }
                 }
             });
 
@@ -65,6 +68,7 @@ define([
 
             this._initTreeList([]);
             this._bindTreeEvents();
+            this._updateActionButtonState();
         },
 
         _createTreeDataSource: function (data) {
@@ -237,7 +241,7 @@ define([
                 .on("click.addressSpaceSelect", "#address-space-select-btn", function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (!$(this).hasClass("ul-state-disabled") && !$(this).attr("disabled")) {
+                    if (!$(this).hasClass("ul-state-disabled") && !$(this).attr("disabled") && browser.openedFromBrowse && browser.targetRow) {
                         browser._onSelectNodeClick();
                     }
                 });
@@ -257,7 +261,7 @@ define([
             if (this.targetMode === "PARENT_OBJECT") {
                 return nodeClass === "OBJECT" || nodeClass === "OBJECTTYPE" || nodeClass === "FOLDER";
             }
-            return false;
+            return Boolean(nodeClass);
         },
 
         _selectNode: function (node) {
@@ -287,19 +291,21 @@ define([
         },
 
         _updateActionButtonState: function () {
-            var canSelect = Boolean(this.selectedNode && this.isNodeSelectable(this.selectedNode));
+            var canSelect = Boolean(this.openedFromBrowse && this.targetRow && this.selectedNode && this.isNodeSelectable(this.selectedNode));
             if (this.selectButton && this.selectButton.enable) {
                 this.selectButton.enable(canSelect);
             }
-            var btn = this.containerElem.find("#address-space-select-btn");
-            var kendoBtn = btn.data ? btn.data("kendoButton") : null;
-            if (kendoBtn && kendoBtn.enable) {
-                kendoBtn.enable(canSelect);
-            }
-            if (canSelect) {
-                btn.removeAttr("disabled").removeClass("ul-state-disabled k-state-disabled");
-            } else {
-                btn.attr("disabled", "disabled").addClass("ul-state-disabled k-state-disabled");
+            var btn = this.containerElem ? this.containerElem.find("#address-space-select-btn") : null;
+            if (btn && btn.length) {
+                var kendoBtn = btn.data ? btn.data("kendoButton") : null;
+                if (kendoBtn && kendoBtn.enable) {
+                    kendoBtn.enable(canSelect);
+                }
+                if (canSelect) {
+                    btn.removeAttr("disabled").removeClass("ul-state-disabled k-state-disabled");
+                } else {
+                    btn.attr("disabled", "disabled").addClass("ul-state-disabled k-state-disabled");
+                }
             }
         },
 
@@ -347,6 +353,7 @@ define([
         },
 
         openForBrowse: function (targetRow, targetMode, connectionData) {
+            this.openedFromBrowse = true;
             this.targetRow = targetRow;
             this.targetMode = targetMode || "DATA_CHANGE_WRITE";
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
@@ -397,10 +404,17 @@ define([
         },
 
         openOnDrawerExpand: function () {
+            this.openedFromBrowse = false;
+            this.targetRow = null;
+            this.targetMode = null;
+
             if (this.globalSelf && this.globalSelf.$el) {
                 this.globalSelf.$el.find("#invokeopcua-address-space-drawer-section").removeClass("ul-state-collapsed");
             }
             this._ensureRendered();
+
+            this.containerElem.find("#address-space-select-btn").text(this.nls.SelectNode || "Select Node");
+            this._updateActionButtonState();
 
             var browser = this;
             setTimeout(function () {
@@ -597,15 +611,7 @@ define([
         },
 
         _onSelectNodeClick: function () {
-            if (!this.selectedNode) {
-                return;
-            }
-
-            if (!this.targetRow) {
-                this.targetRow = this._resolveCurrentTargetRow();
-            }
-
-            if (!this.targetRow) {
+            if (!this.openedFromBrowse || !this.targetRow || !this.selectedNode) {
                 return;
             }
 
@@ -796,9 +802,23 @@ define([
         },
 
         _closeDrawer: function () {
+            this.openedFromBrowse = false;
+            this.targetRow = null;
+            this.targetMode = null;
+            this._updateActionButtonState();
             if (this.globalSelf && this.globalSelf.addressSpaceDrawer && this.globalSelf.addressSpaceDrawer.collapse) {
                 this.globalSelf.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
             }
+            if (this.globalSelf && this.globalSelf.$el) {
+                this.globalSelf.$el.find("#invokeopcua-address-space-drawer-section").addClass("ul-state-collapsed");
+            }
+        },
+
+        onDrawerCollapse: function () {
+            this.openedFromBrowse = false;
+            this.targetRow = null;
+            this.targetMode = null;
+            this._updateActionButtonState();
             if (this.globalSelf && this.globalSelf.$el) {
                 this.globalSelf.$el.find("#invokeopcua-address-space-drawer-section").addClass("ul-state-collapsed");
             }

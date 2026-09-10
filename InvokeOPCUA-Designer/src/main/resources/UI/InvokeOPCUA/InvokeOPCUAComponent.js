@@ -73,12 +73,21 @@ define(function (require) {
             this._renderHelp();
 
             $(window).off("resize.invokeopcua").on("resize.invokeopcua", function () {
-                globalSelf.dataChangeWriteGrid?.widget?.resize();
-                globalSelf.callMethodGrid?.widget?.resize();
+                if (globalSelf.dataChangeWriteGrid && globalSelf.dataChangeWriteGrid.widget && globalSelf.dataChangeWriteGrid.widget.resize) {
+                    globalSelf.dataChangeWriteGrid.widget.resize();
+                }
+                if (globalSelf.callMethodGrid && globalSelf.callMethodGrid.widget && globalSelf.callMethodGrid.widget.resize) {
+                    globalSelf.callMethodGrid.widget.resize();
+                }
                 var drawerElem = globalSelf.$el.find("#invokeopcua-address-space-drawer-section");
                 if (drawerElem.is(":visible") && drawerElem.width() > 50) {
-                    globalSelf.addressSpaceDrawer?.resizeDrawer("invokeopcua-address-space-drawer-section", "50%");
-                    globalSelf.addressSpaceBrowser?._getTreeWidget?.()?.resize?.();
+                    if (globalSelf.addressSpaceDrawer && globalSelf.addressSpaceDrawer.resizeDrawer) {
+                        globalSelf.addressSpaceDrawer.resizeDrawer("invokeopcua-address-space-drawer-section", "50%");
+                    }
+                    var tree = (globalSelf.addressSpaceBrowser && globalSelf.addressSpaceBrowser._getTreeWidget) ? globalSelf.addressSpaceBrowser._getTreeWidget() : null;
+                    if (tree && tree.resize) {
+                        tree.resize();
+                    }
                 }
             });
 
@@ -124,9 +133,15 @@ define(function (require) {
                 function () {
                     setTimeout(function () {
                         var $sec = globalSelf.$el.find("#invokeopcua-address-space-drawer-section");
-                        var isVisible = $sec.length && $sec.is(":visible") && $sec.width() > 50 && !$sec.hasClass("ul-state-collapsed");
-                        if (isVisible && globalSelf.addressSpaceBrowser?.openOnDrawerExpand) {
-                            globalSelf.addressSpaceBrowser.openOnDrawerExpand();
+                        var isVisible = Boolean($sec.length && $sec.is(":visible") && $sec.width() > 50 && !$sec.hasClass("ul-state-collapsed"));
+                        if (isVisible) {
+                            if (globalSelf.addressSpaceBrowser && globalSelf.addressSpaceBrowser.openOnDrawerExpand) {
+                                globalSelf.addressSpaceBrowser.openOnDrawerExpand();
+                            }
+                        } else {
+                            if (globalSelf.addressSpaceBrowser && globalSelf.addressSpaceBrowser.onDrawerCollapse) {
+                                globalSelf.addressSpaceBrowser.onDrawerCollapse();
+                            }
                         }
                     }, 200);
                 }
@@ -538,7 +553,9 @@ define(function (require) {
         },
 
         _destroyComponent: function (component) {
-            component?.destroy?.();
+            if (component && component.destroy) {
+                component.destroy();
+            }
         },
 
         onBeforeDestroy: function () {
@@ -551,8 +568,12 @@ define(function (require) {
             this._destroyComponent(this.callMethodSearchBar);
             this._destroyComponent(this.dataChangeWriteGrid);
             this._destroyComponent(this.callMethodGrid);
-            this.addressSpaceBrowser?.onDestroy?.();
-            this.addressSpaceDrawer?.destroy?.();
+            if (this.addressSpaceBrowser && this.addressSpaceBrowser.onDestroy) {
+                this.addressSpaceBrowser.onDestroy();
+            }
+            if (this.addressSpaceDrawer && this.addressSpaceDrawer.destroy) {
+                this.addressSpaceDrawer.destroy();
+            }
             if (this.deviceConnComp) {
                 this.stopListening(this.deviceConnComp);
                 if (this.deviceConnComp.destroy) {

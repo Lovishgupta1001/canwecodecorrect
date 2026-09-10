@@ -349,6 +349,13 @@
 
             #address-space-select-btn {
                 white-space: nowrap;
+
+                &.ul-state-disabled,
+                &[disabled] {
+                    opacity: 0.5;
+                    pointer-events: none !important;
+                    cursor: not-allowed !important;
+                }
             }
         }
     }
@@ -397,18 +404,6 @@
 
     .address-space-node-radio {
         cursor: pointer;
-    }
-
-    .address-space-actions {
-        flex: 0 0 auto;
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        padding-top: 0;
-
-        #address-space-select-btn {
-            white-space: nowrap;
-        }
     }
 
     .address-space-loading-container {
