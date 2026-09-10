@@ -227,14 +227,14 @@ define(function (require) {
             DataChangeGridManager.refreshGridMode(globalSelf);
             CallMethodGridManager.refreshGridMode(globalSelf);
 
-            if (globalSelf.addressSpaceBrowser?.prefetchAddressSpace) {
+            if (globalSelf.addressSpaceBrowser?.onConnectionChange) {
                 var connPayload = globalSelf.getConnectionPayload ? globalSelf.getConnectionPayload() : {
                     connectionId: connId,
                     connectionName: connName,
                     name: connName,
                     type: "OPCUA"
                 };
-                globalSelf.addressSpaceBrowser.prefetchAddressSpace(connPayload);
+                globalSelf.addressSpaceBrowser.onConnectionChange(connPayload);
             }
         },
 

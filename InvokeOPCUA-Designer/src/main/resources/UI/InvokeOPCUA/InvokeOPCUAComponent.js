@@ -127,6 +127,37 @@ define(function (require) {
 
             // Ensure the drawer starts collapsed regardless of uilayer's default behaviour.
             this.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
+            this._bindDrawerEvents();
+        },
+
+        _bindDrawerEvents: function () {
+            var globalSelf = this;
+            var drawerSection = this.$el.find("#invokeopcua-address-space-drawer-section");
+
+            this.$el.off("click.invokeopcuaDrawer").on("click.invokeopcuaDrawer",
+                ".ul-drawer-toggle, .k-drawer-toggle, [class*='drawer-toggle'], [class*='toggle-handle'], [class*='toggleHandle'], .k-splitbar",
+                function () {
+                    setTimeout(function () {
+                        var $sec = globalSelf.$el.find("#invokeopcua-address-space-drawer-section");
+                        var isVisible = $sec.length && $sec.is(":visible") && $sec.width() > 50 && !$sec.hasClass("ul-state-collapsed");
+                        if (isVisible && globalSelf.addressSpaceBrowser && typeof globalSelf.addressSpaceBrowser.openOnDrawerExpand === "function") {
+                            globalSelf.addressSpaceBrowser.openOnDrawerExpand();
+                        }
+                    }, 200);
+                }
+            );
+
+            if (drawerSection.length && window.MutationObserver) {
+                var observer = new MutationObserver(function () {
+                    var $sec = globalSelf.$el.find("#invokeopcua-address-space-drawer-section");
+                    var isVisible = $sec.length && $sec.is(":visible") && $sec.width() > 50 && !$sec.hasClass("ul-state-collapsed");
+                    if (isVisible && globalSelf.addressSpaceBrowser && typeof globalSelf.addressSpaceBrowser.openOnDrawerExpand === "function") {
+                        globalSelf.addressSpaceBrowser.openOnDrawerExpand();
+                    }
+                });
+                observer.observe(drawerSection[0], { attributes: true, attributeFilter: ["style", "class"] });
+                this._drawerObserver = observer;
+            }
         },
 
         _initAddressSpaceBrowser: function () {
@@ -683,6 +714,11 @@ define(function (require) {
 
         onBeforeDestroy: function () {
             $(window).off("resize.invokeopcua");
+            this.$el.off("click.invokeopcuaDrawer");
+            if (this._drawerObserver) {
+                this._drawerObserver.disconnect();
+                this._drawerObserver = null;
+            }
 
             CallMethodGridManager._destroyInputParametersModal(this);
 

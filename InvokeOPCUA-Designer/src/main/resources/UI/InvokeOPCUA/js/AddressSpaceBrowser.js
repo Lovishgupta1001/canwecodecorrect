@@ -23,7 +23,17 @@ define([
             this.connectionData = null;
             this.allNodesMap = {};
             this.loadedNodeIds = {};
+            this._rendered = false;
+            this.lastFetchedConnId = null;
 
+            // Defer all rendering and widget creation until the drawer is explicitly opened
+        },
+
+        _ensureRendered: function () {
+            if (this._rendered) {
+                return;
+            }
+            this._rendered = true;
             this.render();
         },
 
@@ -53,33 +63,44 @@ define([
                 browser._onSearch($(this).val());
             });
 
-            this._initTreeList();
+            this._initTreeList([]);
             this._bindTreeEvents();
         },
 
-        _initTreeList: function () {
+        _createTreeDataSource: function (data) {
+            return new uilayer.data.TreeListDataSource({
+                data: data || [],
+                schema: {
+                    model: {
+                        id: "id",
+                        parentId: "parentId",
+                        fields: {
+                            id: { type: "string" },
+                            parentId: { type: "string", nullable: true },
+                            displayName: { type: "string" },
+                            nodeClass: { type: "string" },
+                            nodeId: { type: "string" },
+                            hasChildren: { type: "boolean" }
+                        }
+                    }
+                }
+            });
+        },
+
+        _getTreeWidget: function () {
+            return this.treeListWidget ? (this.treeListWidget.widget || this.treeListWidget) : null;
+        },
+
+        _initTreeList: function (initialData) {
             var browser = this;
             var elem = this.containerElem.find("#address-space-treelist");
+            if (!elem.length) {
+                return;
+            }
 
             this.treeListWidget = uilayer.treeList({
                 elem: elem,
-                dataSource: new uilayer.data.TreeListDataSource({
-                    data: [],
-                    schema: {
-                        model: {
-                            id: "id",
-                            parentId: "parentId",
-                            fields: {
-                                id: { type: "string" },
-                                parentId: { type: "string", nullable: true },
-                                displayName: { type: "string" },
-                                nodeClass: { type: "string" },
-                                nodeId: { type: "string" },
-                                hasChildren: { type: "boolean" }
-                            }
-                        }
-                    }
-                }),
+                dataSource: this._createTreeDataSource(initialData || []),
                 height: 400,
                 columns: [
                     {
@@ -199,13 +220,12 @@ define([
             var canSelect = !!(this.selectedNode && this.isNodeSelectable(this.selectedNode));
             if (this.selectButton && typeof this.selectButton.enable === "function") {
                 this.selectButton.enable(canSelect);
+            }
+            var btn = this.containerElem.find("#address-space-select-btn");
+            if (canSelect) {
+                btn.removeAttr("disabled").removeClass("ul-state-disabled");
             } else {
-                var btn = this.containerElem.find("#address-space-select-btn");
-                if (canSelect) {
-                    btn.removeAttr("disabled");
-                } else {
-                    btn.attr("disabled", "disabled");
-                }
+                btn.attr("disabled", "disabled").addClass("ul-state-disabled");
             }
         },
 
@@ -226,21 +246,36 @@ define([
             };
         },
 
-        prefetchAddressSpace: function (connectionData) {
+        onConnectionChange: function (connectionData) {
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
-            if (!this.connectionData || !this.connectionData.connectionId) {
-                return;
+            this.lastFetchedConnId = null;
+            this.allNodesMap = {};
+            this.loadedNodeIds = {};
+            this.selectedNode = null;
+            if (this._rendered) {
+                var tree = this._getTreeWidget();
+                if (tree && tree.setDataSource) {
+                    tree.setDataSource(this._createTreeDataSource([]));
+                }
+                this._updateActionButtonState();
             }
-            var currentConnId = this.connectionData.connectionId;
-            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
-                this._fetchRootAddressSpace();
-            }
+        },
+
+        prefetchAddressSpace: function (connectionData) {
+            // Connection changed: update connection state without fetching while drawer is closed.
+            this.onConnectionChange(connectionData);
         },
 
         openForBrowse: function (targetRow, targetMode, connectionData) {
             this.targetRow = targetRow;
             this.targetMode = targetMode || "DATA_CHANGE_WRITE";
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
+
+            if (this.globalSelf.addressSpaceDrawer) {
+                this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
+            }
+
+            this._ensureRendered();
 
             var actionLabel = (this.targetMode === "CALL_METHOD")
                 ? (this.nls.SelectMethod || "Select Method")
@@ -251,19 +286,13 @@ define([
             this.selectedNode = null;
             this._updateActionButtonState();
 
-            if (this.globalSelf.addressSpaceDrawer) {
-                this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
-            }
-
-            // After the drawer animation finishes, resize the TreeList so it fills
-            // the available space. 250ms covers most drawer slide animations.
+            // After drawer animation, resize TreeList so it properly paints in expanded container
             var browser = this;
             setTimeout(function () {
-                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
+                var tree = browser._getTreeWidget();
                 if (tree && typeof tree.resize === "function") {
                     tree.resize(true);
                 }
-                // Also update height to fill the wrapper
                 var wrapper = browser.containerElem.find(".address-space-treelist-wrapper");
                 var wh = wrapper.length ? wrapper.height() : 0;
                 if (wh > 50 && tree && typeof tree.setOptions === "function") {
@@ -281,6 +310,33 @@ define([
                 this._fetchRootAddressSpace();
             } else {
                 this._preselectTargetNode();
+            }
+        },
+
+        openOnDrawerExpand: function () {
+            this._ensureRendered();
+
+            var browser = this;
+            setTimeout(function () {
+                var tree = browser._getTreeWidget();
+                if (tree && typeof tree.resize === "function") {
+                    tree.resize(true);
+                }
+                var wrapper = browser.containerElem.find(".address-space-treelist-wrapper");
+                var wh = wrapper.length ? wrapper.height() : 0;
+                if (wh > 50 && tree && typeof tree.setOptions === "function") {
+                    tree.setOptions({ height: wh });
+                }
+            }, 250);
+
+            var conn = this._getEffectiveConnectionPayload();
+            if (!conn || !conn.connectionId) {
+                return;
+            }
+
+            var currentConnId = conn.connectionId;
+            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
+                this._fetchRootAddressSpace();
             }
         },
 
@@ -309,7 +365,9 @@ define([
                 return;
             }
 
-            this.waitWidget.show();
+            if (this.waitWidget && typeof this.waitWidget.show === "function") {
+                this.waitWidget.show();
+            }
             this.allNodesMap = {};
             this.loadedNodeIds = {};
             this.lastFetchedConnId = payload.connectionId;
@@ -322,37 +380,33 @@ define([
             );
 
             promise.done(function (response) {
-                browser.waitWidget.hide();
+                if (browser.waitWidget && typeof browser.waitWidget.hide === "function") {
+                    browser.waitWidget.hide();
+                }
                 var data = (response && response.data) ? response.data : (response || []);
                 var flatList = browser._processNodes(data, null);
 
-                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
-                if (tree && tree.setDataSource) {
-                    var ds = new uilayer.data.TreeListDataSource({
-                        data: flatList,
-                        schema: {
-                            model: {
-                                id: "id",
-                                parentId: "parentId",
-                                fields: {
-                                    id: { type: "string" },
-                                    parentId: { type: "string", nullable: true },
-                                    displayName: { type: "string" },
-                                    nodeClass: { type: "string" },
-                                    nodeId: { type: "string" },
-                                    hasChildren: { type: "boolean" }
-                                }
-                            }
-                        }
-                    });
+                var tree = browser._getTreeWidget();
+                if (!tree) {
+                    browser._initTreeList(flatList);
+                    browser._bindTreeEvents();
+                    tree = browser._getTreeWidget();
+                } else if (tree.setDataSource) {
+                    var ds = browser._createTreeDataSource(flatList);
                     tree.setDataSource(ds);
+                }
+
+                if (tree && typeof tree.resize === "function") {
+                    tree.resize(true);
                 }
 
                 browser._preselectTargetNode();
             });
 
             promise.fail(function () {
-                browser.waitWidget.hide();
+                if (browser.waitWidget && typeof browser.waitWidget.hide === "function") {
+                    browser.waitWidget.hide();
+                }
                 uilayer.notifier("error", browser.nls.ErrorFetchingAddressSpace || "Error while fetching address space.");
             });
         },
@@ -609,6 +663,7 @@ define([
         onDestroy: function () {
             if (this.containerElem) {
                 this.containerElem.off();
+                this.containerElem.empty();
             }
             if (this.waitWidget) {
                 this.waitWidget.destroy();
@@ -626,6 +681,8 @@ define([
                 this.treeListWidget.destroy();
                 this.treeListWidget = null;
             }
+            this._rendered = false;
+            this.lastFetchedConnId = null;
             this.selectedNode = null;
             this.targetRow = null;
             this.allNodesMap = null;
