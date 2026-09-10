@@ -80,7 +80,7 @@ define([
                         }
                     }
                 }),
-                height: "calc(100% - 7rem)",
+                height: 400,
                 columns: [
                     {
                         field: "selection",
@@ -254,6 +254,22 @@ define([
             if (this.globalSelf.addressSpaceDrawer) {
                 this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
             }
+
+            // After the drawer animation finishes, resize the TreeList so it fills
+            // the available space. 250ms covers most drawer slide animations.
+            var browser = this;
+            setTimeout(function () {
+                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
+                if (tree && typeof tree.resize === "function") {
+                    tree.resize(true);
+                }
+                // Also update height to fill the wrapper
+                var wrapper = browser.containerElem.find(".address-space-treelist-wrapper");
+                var wh = wrapper.length ? wrapper.height() : 0;
+                if (wh > 50 && tree && typeof tree.setOptions === "function") {
+                    tree.setOptions({ height: wh });
+                }
+            }, 250);
 
             if (!this.connectionData || !this.connectionData.connectionId) {
                 uilayer.notifier("warning", this.nls.SelectConnection || "Please select a connection.");
