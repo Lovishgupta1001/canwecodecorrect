@@ -42,7 +42,6 @@ define(function (require) {
             if (!this.model.getKey("dataChangeWrite")) {
                 this.model.setKey("dataChangeWrite", []);
             }
-
             if (!this.model.getKey("callMethod")) {
                 this.model.setKey("callMethod", []);
             }
@@ -55,14 +54,8 @@ define(function (require) {
             this._initializeControls();
 
             var actId = this.activityId;
-            var operationGroupName = "operation-" + actId;
-            var executionModeGroupName = "execution-mode-" + actId;
-
-            this.$(".data-change-write-radio, .call-method-radio")
-                .attr("name", operationGroupName);
-
-            this.$(".parallel-mode-radio, .sequential-mode-radio")
-                .attr("name", executionModeGroupName);
+            this.$(".data-change-write-radio, .call-method-radio").attr("name", "operation-" + actId);
+            this.$(".parallel-mode-radio, .sequential-mode-radio").attr("name", "execution-mode-" + actId);
 
             var operation = this.model.getKey("operation") || Constants.DATA_CHANGE_WRITE;
             this.$(".data-change-write-radio").prop("checked", operation === Constants.DATA_CHANGE_WRITE);
@@ -80,34 +73,22 @@ define(function (require) {
             this._renderHelp();
 
             $(window).off("resize.invokeopcua").on("resize.invokeopcua", function () {
-                if (globalSelf.dataChangeWriteGrid?.widget) {
-                    globalSelf.dataChangeWriteGrid.widget.resize();
-                }
-                if (globalSelf.callMethodGrid?.widget) {
-                    globalSelf.callMethodGrid.widget.resize();
-                }
+                globalSelf.dataChangeWriteGrid?.widget?.resize();
+                globalSelf.callMethodGrid?.widget?.resize();
                 var drawerElem = globalSelf.$el.find("#invokeopcua-address-space-drawer-section");
-                var isDrawerOpen = drawerElem.length && drawerElem.is(":visible") && drawerElem.width() > 50;
-                if (isDrawerOpen) {
+                if (drawerElem.is(":visible") && drawerElem.width() > 50) {
                     globalSelf.addressSpaceDrawer?.resizeDrawer("invokeopcua-address-space-drawer-section", "50%");
-                    var tree = globalSelf.addressSpaceBrowser?._getTreeWidget ? globalSelf.addressSpaceBrowser._getTreeWidget() : null;
-                    if (tree && typeof tree.resize === "function") {
-                        tree.resize();
-                    }
+                    globalSelf.addressSpaceBrowser?._getTreeWidget?.()?.resize?.();
                 }
             });
 
             deferred.resolve();
-
             return deferred.promise();
         },
 
         _renderDrawer: function () {
             var globalSelf = this;
             var containerElem = this.$el.find("#invokeopcua-main-container");
-            if (!containerElem.length) {
-                containerElem = this.$("#invokeopcua-main-container");
-            }
             if (!containerElem.length) {
                 containerElem = this.$el;
             }
@@ -126,37 +107,18 @@ define(function (require) {
                 }
             });
 
-            this._bindDrawerEvents();
-        },
-
-        _bindDrawerEvents: function () {
-            var globalSelf = this;
-            var drawerSection = this.$el.find("#invokeopcua-address-space-drawer-section");
-
             this.$el.off("click.invokeopcuaDrawer").on("click.invokeopcuaDrawer",
                 ".ul-drawer-toggle, [class*='drawer-toggle'], [class*='toggle-handle'], [class*='toggleHandle'], [class*='splitbar']",
                 function () {
                     setTimeout(function () {
                         var $sec = globalSelf.$el.find("#invokeopcua-address-space-drawer-section");
                         var isVisible = $sec.length && $sec.is(":visible") && $sec.width() > 50 && !$sec.hasClass("ul-state-collapsed");
-                        if (isVisible && globalSelf.addressSpaceBrowser && typeof globalSelf.addressSpaceBrowser.openOnDrawerExpand === "function") {
+                        if (isVisible && globalSelf.addressSpaceBrowser?.openOnDrawerExpand) {
                             globalSelf.addressSpaceBrowser.openOnDrawerExpand();
                         }
                     }, 200);
                 }
             );
-
-            if (drawerSection.length && window.MutationObserver) {
-                var observer = new MutationObserver(function () {
-                    var $sec = globalSelf.$el.find("#invokeopcua-address-space-drawer-section");
-                    var isVisible = $sec.length && $sec.is(":visible") && $sec.width() > 50 && !$sec.hasClass("ul-state-collapsed");
-                    if (isVisible && globalSelf.addressSpaceBrowser && typeof globalSelf.addressSpaceBrowser.openOnDrawerExpand === "function") {
-                        globalSelf.addressSpaceBrowser.openOnDrawerExpand();
-                    }
-                });
-                observer.observe(drawerSection[0], { attributes: true, attributeFilter: ["style", "class"] });
-                this._drawerObserver = observer;
-            }
         },
 
         _initAddressSpaceBrowser: function () {
@@ -165,57 +127,32 @@ define(function (require) {
         },
 
         getConnectionPayload: function () {
-            if (this.deviceConnComp && typeof this.deviceConnComp.getConnectionData === "function") {
-                var connData = this.deviceConnComp.getConnectionData();
-                var id = connData.connectionId || this.model.getKey("connectionId") || "";
-                var name = connData.connectionName || connData.name || this.model.getKey("connectionName") || "";
-                var type = connData.connectionType || connData.type || this.model.getKey("connectionType") || "";
-                return {
-                    connectionId: id,
-                    connectionName: (name && name !== this.nls.SelectConnection) ? name : "",
-                    name: (name && name !== this.nls.SelectConnection) ? name : "",
-                    type: type,
-                    connectionType: type
-                };
-            }
-            var connId = this.model.getKey("connectionId") || "";
-            var connText = this.model.getKey("connectionName") || this.model.getKey("connectionComboBox") || "";
-            var connType = this.model.getKey("connectionType") || "";
+            var connData = (this.deviceConnComp?.getConnectionData ? this.deviceConnComp.getConnectionData() : null) || {};
+            var id = connData.connectionId || this.model.getKey("connectionId") || "";
+            var name = connData.connectionName || connData.name || this.model.getKey("connectionName") || "";
+            var type = connData.connectionType || connData.type || this.model.getKey("connectionType") || "";
+            var text = (name && name !== this.nls.SelectConnection) ? name : "";
 
             return {
-                connectionId: connId || "",
-                connectionName: (connText && connText !== this.nls.SelectConnection) ? connText : "",
-                name: (connText && connText !== this.nls.SelectConnection) ? connText : "",
-                type: connType,
-                connectionType: connType
+                connectionId: id,
+                connectionName: text,
+                name: text,
+                type: type,
+                connectionType: type
             };
         },
 
         _renderHelp: function () {
-            var parallelElem = this.$el.find("#parallel-mode-help-container");
-            if (parallelElem.length) {
-                uilayer.help({
-                    elem: parallelElem,
-                    position: "top",
-                    width: "15%"
-                });
-            }
-
-            var sequentialElem = this.$el.find("#sequential-mode-help-container");
-            if (sequentialElem.length) {
-                uilayer.help({
-                    elem: sequentialElem,
-                    position: "top",
-                    width: "15%"
-                });
-            }
+            ["#parallel-mode-help-container", "#sequential-mode-help-container"].forEach(function (id) {
+                var elem = this.$el.find(id);
+                if (elem.length) {
+                    uilayer.help({ elem: elem, position: "top", width: "15%" });
+                }
+            }, this);
         },
 
         _initializeControls: function () {
-            this.$(".data-change-write-container").hide();
-            this.$(".call-method-container").hide();
-            this.$(".invokeopcua-config-controls").hide();
-            this.$(".invokeopcua-grids-section").hide();
+            this.$(".data-change-write-container, .call-method-container, .invokeopcua-config-controls, .invokeopcua-grids-section").hide();
         },
 
         _getGridInstance: function () {
@@ -228,60 +165,18 @@ define(function (require) {
             return null;
         },
 
-        getSelectedRows: function () {
-            var grid = this._getGridInstance();
-            if (!grid) {
-                return $();
-            }
-
-            var selected = grid.select ? grid.select() : $();
-            if (selected?.length) {
-                return selected;
-            }
-
-            var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
-            if (tbody?.length) {
-                var checked = tbody.find("input:checked");
-                if (checked.length) {
-                    return checked.closest("tr");
-                }
-            }
-
-            return $();
-        },
-
-        _collectRowsToDelete: function () {
-            var selectedRows = this.getSelectedRows();
-            if (selectedRows?.length) {
-                var uniqueRows = [];
-                selectedRows.each(function () {
-                    var tr = $(this).closest("tr");
-                    if (tr.length && uniqueRows.indexOf(tr[0]) === -1) {
-                        uniqueRows.push(tr[0]);
-                    }
-                });
-                return uniqueRows;
-            }
-            return [];
-        },
-
-        _deleteGridRows: function (grid, rowElements) {
-            var globalSelf = this;
-            var dataItems = _.compact(_.uniq(rowElements.map(function (elem) {
+        _deleteGridRows: function (grid, rows) {
+            var dataItems = _.compact(_.uniq(rows.map(function (elem) {
                 return grid.dataItem ? grid.dataItem(elem) : null;
             })));
 
             if (this.$(".call-method-radio").is(":checked") && dataItems.length) {
-                CallMethodGridManager.removeOutputVariablesFromProcessModel(dataItems, globalSelf);
+                CallMethodGridManager.removeOutputVariablesFromProcessModel(dataItems, this);
             }
 
-            if (dataItems.length && grid.dataSource) {
+            if (grid.dataSource) {
                 dataItems.forEach(function (item) {
                     grid.dataSource.remove(item);
-                });
-            } else {
-                rowElements.forEach(function (elem) {
-                    grid.removeRow?.($(elem));
                 });
             }
         },
@@ -296,25 +191,29 @@ define(function (require) {
 
         _onDeleteToolbarRow: function () {
             var grid = this._getGridInstance();
-            if (!grid) {
-                return;
+            if (!grid) return;
+
+            var rows = [];
+            var selected = grid.select ? grid.select() : $();
+            if (selected.length) {
+                selected.each(function () { rows.push($(this).closest("tr")[0]); });
+            } else {
+                var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
+                tbody?.find("input:checked").each(function () { rows.push($(this).closest("tr")[0]); });
             }
 
-            var rowsToBeDeleted = this._collectRowsToDelete(grid);
-            if (rowsToBeDeleted.length) {
-                this._deleteGridRows(grid, rowsToBeDeleted);
+            if (rows.length) {
+                this._deleteGridRows(grid, _.uniq(rows));
             }
         },
 
         _onAddDataChangeRow: function () {
-            if (this.dataChangeWriteGrid?.widget?.dataSource) {
-                this.dataChangeWriteGrid.widget.dataSource.add({
-                    name: "",
-                    nodeId: "",
-                    sampleValue: "",
-                    newValue: ""
-                });
-            }
+            this.dataChangeWriteGrid?.widget?.dataSource?.add({
+                name: "",
+                nodeId: "",
+                sampleValue: "",
+                newValue: ""
+            });
         },
 
         _onAddCallMethodRow: function () {
@@ -358,10 +257,7 @@ define(function (require) {
         _initConnectionUI: function () {
             var globalSelf = this;
             var container = this.$el.find("#invokeopcua-connection-component-container");
-            var connData = {};
-            if (this.initialData) {
-                connData = _.clone(this.initialData);
-            }
+            var connData = this.initialData ? _.clone(this.initialData) : {};
             var initialConn = this.model.getKey("connectionComboBox") || this.model.getKey("selectConnection") || this.model.getKey("connectionName") || (this.initialData && this.initialData.selectConnection);
             connData.connectionComboBox = initialConn;
             connData.selectConnection = initialConn;
@@ -409,9 +305,7 @@ define(function (require) {
         },
 
         _setupDeviceConnListeners: function () {
-            if (!this.deviceConnComp) {
-                return;
-            }
+            if (!this.deviceConnComp) return;
 
             this.listenTo(this.deviceConnComp, Constants.EVENTS.CHANGE_CONNECTION_VARIABLE, this._onConnectionChanged.bind(this));
             this.listenTo(this.deviceConnComp, Constants.EVENTS.REFRESH_CONNECTION, this._onConnectionRefreshed.bind(this));
@@ -446,24 +340,12 @@ define(function (require) {
             if (!connData.isInitial) {
                 var currentDc = this.model.getKey("dataChangeWrite") || [];
                 if (!currentDc.length) {
-                    this.model.setKey("dataChangeWrite", [{
-                        name: "",
-                        nodeId: "",
-                        sampleValue: "",
-                        newValue: ""
-                    }]);
+                    this.model.setKey("dataChangeWrite", [{ name: "", nodeId: "", sampleValue: "", newValue: "" }]);
                 }
 
                 var currentCm = this.model.getKey("callMethod") || [];
                 if (!currentCm.length) {
-                    this.model.setKey("callMethod", [{
-                        name: "",
-                        nodeId: "",
-                        objectName: "",
-                        objectNodeId: "",
-                        inputParameters: [],
-                        outputValue: ""
-                    }]);
+                    this.model.setKey("callMethod", [{ name: "", nodeId: "", objectName: "", objectNodeId: "", inputParameters: [], outputValue: "" }]);
                 }
             }
 
@@ -471,39 +353,29 @@ define(function (require) {
             CallMethodGridManager.refreshGridMode(this);
 
             if (this.addressSpaceBrowser?.onConnectionChange) {
-                var connPayload = this.getConnectionPayload();
-                this.addressSpaceBrowser.onConnectionChange(connPayload);
+                this.addressSpaceBrowser.onConnectionChange(this.getConnectionPayload());
             }
         },
 
         _onConnectionRefreshed: function () {
             if (this.addressSpaceBrowser?.onConnectionChange) {
-                var connPayload = this.getConnectionPayload();
-                this.addressSpaceBrowser.onConnectionChange(connPayload);
+                this.addressSpaceBrowser.onConnectionChange(this.getConnectionPayload());
             }
         },
 
         _onConnectionInvalid: function () {
             this.$(".invokeopcua-config-controls, .invokeopcua-grids-section").hide();
 
-            this.dataChangeOptions = [];
-            this.callMethodOptions = [];
-
             this.model.setKey("connectionComboBox", "");
             this.model.setKey("connectionName", "");
             this.model.setKey("connectionId", "");
             this.model.setKey("connectionType", "");
             this.model.setKey("selectConnection", "");
-
             this.model.setKey("dataChangeWrite", []);
             this.model.setKey("callMethod", []);
 
-            if (this.dataChangeWriteGrid?.widget?.dataSource) {
-                this.dataChangeWriteGrid.widget.dataSource.data([]);
-            }
-            if (this.callMethodGrid?.widget?.dataSource) {
-                this.callMethodGrid.widget.dataSource.data([]);
-            }
+            this.dataChangeWriteGrid?.widget?.dataSource?.data([]);
+            this.callMethodGrid?.widget?.dataSource?.data([]);
 
             if (this.addressSpaceBrowser?.onConnectionChange) {
                 this.addressSpaceBrowser.onConnectionChange(null);
@@ -511,21 +383,16 @@ define(function (require) {
         },
 
         _updateOperationUI: function () {
-            var operation = this.$(".data-change-write-radio").is(":checked")
-                ? Constants.DATA_CHANGE_WRITE
-                : Constants.CALL_METHOD;
+            var isDataChange = this.$(".data-change-write-radio").is(":checked");
+            var operation = isDataChange ? Constants.DATA_CHANGE_WRITE : Constants.CALL_METHOD;
 
             this.model.setKey("operation", operation);
+            this.$(".data-change-write-container").toggle(isDataChange);
+            this.$(".call-method-container").toggle(!isDataChange);
 
-            if (operation === Constants.DATA_CHANGE_WRITE) {
-                this.$(".data-change-write-container").show();
-                this.$(".call-method-container").hide();
-
+            if (isDataChange) {
                 DataChangeGridManager.renderDataChangeWriteComponent(this);
             } else {
-                this.$(".data-change-write-container").hide();
-                this.$(".call-method-container").show();
-
                 CallMethodGridManager.renderCallMethodComponent(this);
             }
         },
@@ -536,60 +403,37 @@ define(function (require) {
 
         getData: function () {
             var isDataChangeWrite = this.$(".data-change-write-radio").is(":checked");
-            var operation = isDataChangeWrite ? Constants.DATA_CHANGE_WRITE : Constants.CALL_METHOD;
-
-            this.model.setKey("operation", operation);
-
-            this.model.setKey(
-                "executionMode",
-                this.$(".parallel-mode-radio").is(":checked")
-                    ? Constants.PARALLEL
-                    : Constants.SEQUENTIAL
-            );
+            this.model.setKey("operation", isDataChangeWrite ? Constants.DATA_CHANGE_WRITE : Constants.CALL_METHOD);
+            this.model.setKey("executionMode", this.$(".parallel-mode-radio").is(":checked") ? Constants.PARALLEL : Constants.SEQUENTIAL);
 
             if (isDataChangeWrite) {
-                var dcData = [];
-                if (this.dataChangeWriteGrid?.widget?.dataSource) {
-                    dcData = this.dataChangeWriteGrid.widget.dataSource.data().toJSON();
-                    _.each(dcData, function (item) {
-                        if (item?.newValue && typeof item.newValue === "object") {
-                            item.newValue = ExpressionBuilderUtility.getExpression(item.newValue);
-                        }
-                    });
-                }
+                var dcData = this.dataChangeWriteGrid?.widget?.dataSource ? this.dataChangeWriteGrid.widget.dataSource.data().toJSON() : [];
+                _.each(dcData, function (item) {
+                    if (item?.newValue && typeof item.newValue === "object") {
+                        item.newValue = ExpressionBuilderUtility.getExpression(item.newValue);
+                    }
+                });
                 this.model.setKey("dataChangeWrite", dcData);
                 this.model.setKey("callMethod", []);
             } else {
-                var cmData = [];
-                if (this.callMethodGrid?.widget?.dataSource) {
-                    cmData = this.callMethodGrid.widget.dataSource.data().toJSON();
-                    _.each(cmData, function (item) {
-                        if (item?.inputParameters?.length) {
-                            _.each(item.inputParameters, function (param) {
-                                if (param?.value && typeof param.value === "object") {
-                                    param.value = ExpressionBuilderUtility.getExpression(param.value);
-                                }
-                            });
-                        }
-                    });
-                }
+                var cmData = this.callMethodGrid?.widget?.dataSource ? this.callMethodGrid.widget.dataSource.data().toJSON() : [];
+                _.each(cmData, function (item) {
+                    if (item?.inputParameters?.length) {
+                        _.each(item.inputParameters, function (param) {
+                            if (param?.value && typeof param.value === "object") {
+                                param.value = ExpressionBuilderUtility.getExpression(param.value);
+                            }
+                        });
+                    }
+                });
                 this.model.setKey("callMethod", cmData);
                 this.model.setKey("dataChangeWrite", []);
             }
 
-            if (this.deviceConnComp && typeof this.deviceConnComp.getData === "function") {
+            if (this.deviceConnComp?.getData) {
                 var compData = this.deviceConnComp.getData();
                 var connText = compData.connectionName || compData.connectionComboBox || "";
                 var connId = compData.connectionId || "";
-                this.model.setKey("connectionComboBox", connText);
-                this.model.setKey("connectionName", connText);
-                this.model.setKey("connectionId", connId);
-                this.model.setKey("selectConnection", connText || connId);
-            } else if (this.connectionComboBox) {
-                var rawText = this.connectionComboBox.text();
-                var connText = (rawText && rawText !== this.nls.SelectConnection) ? rawText : "";
-                var connId = this.connectionComboBox.value() || "";
-
                 this.model.setKey("connectionComboBox", connText);
                 this.model.setKey("connectionName", connText);
                 this.model.setKey("connectionId", connId);
@@ -606,282 +450,81 @@ define(function (require) {
                 }
             }
             this.initialData = obj;
-
-            if (this.deviceConnComp && typeof this.deviceConnComp.setData === "function") {
-                this.deviceConnComp.setData(obj);
-            }
-        },
-
-        _getGridRowAndCellByField: function (gridWidget, rowIndex, fieldName) {
-            if (!gridWidget?.dataSource) {
-                return null;
-            }
-            var colIndex = -1;
-            var columns = gridWidget.columns || [];
-            for (var c = 0; c < columns.length; c++) {
-                if (columns[c].field === fieldName) {
-                    colIndex = c;
-                    break;
-                }
-            }
-            if (colIndex === -1) {
-                return null;
-            }
-            var pageSize = gridWidget.dataSource.pageSize() || 50;
-            var pageNumber = Math.floor(rowIndex / pageSize) + 1;
-            var pageRowIndex = rowIndex % pageSize;
-            if (gridWidget.dataSource.page() !== pageNumber) {
-                gridWidget.dataSource.page(pageNumber);
-            }
-            var tbody = gridWidget.tbody || gridWidget.element.find("tbody");
-            var rows = tbody.find("tr");
-            if (pageRowIndex < 0 || pageRowIndex >= rows.length) {
-                return null;
-            }
-            var row = $(rows[pageRowIndex]);
-            if (!row.length) {
-                return null;
-            }
-            if (row[0]?.scrollIntoView) {
-                row[0].scrollIntoView({ behavior: "smooth", block: "center" });
-            }
-            var cell = row.find("td:eq(" + colIndex + ")");
-            if (!cell.length) {
-                return null;
-            }
-            return { row: row, cell: cell };
+            this.deviceConnComp?.setData?.(obj);
         },
 
         highlightErrors: function (errorObjectList) {
-            if (!errorObjectList?.length) {
-                return;
-            }
+            if (!errorObjectList?.length) return;
 
             errorObjectList.forEach(function (errorObject) {
-                this._processErrorObject(errorObject);
-            }, this);
-        },
+                if (!errorObject) return;
+                var path = errorObject.path || errorObject.resource || "";
+                if (!path) return;
 
-        _processErrorObject: function (errorObject) {
-            if (!errorObject) {
-                return;
-            }
+                var pathParts = path.split("/");
+                var prefix = pathParts[0];
 
-            var path = errorObject.path || errorObject.resource || "";
-            if (!path) {
-                return;
-            }
-
-            path = this._resolveErrorPath(errorObject, path);
-            if (path === null) {
-                return;
-            }
-
-            if (path.indexOf("connectionComboBox") !== -1 || path.indexOf("selectConnection") !== -1 || path.indexOf("connection") !== -1) {
-                this._highlightConnectionError(errorObject);
-                return;
-            }
-
-            if (path.indexOf("dataChangeWrite") !== -1) {
-                this._highlightDataChangeWriteError(errorObject, path);
-                return;
-            }
-
-            if (path.indexOf("callMethod") !== -1) {
-                this._highlightCallMethodError(errorObject, path);
-            }
-        },
-
-        _resolveErrorPath: function (errorObject, path) {
-            var pathParts = path.split("/");
-            if (pathParts.length <= 1) {
-                return path;
-            }
-
-            var actPrefix = pathParts[0];
-
-            if (actPrefix === "dataChangeWrite") {
-                this._highlightDataChangeWriteGridCell(pathParts, errorObject);
-            }
-            if (actPrefix === "callMethod") {
-                this._highlightCallMethodGridCell(pathParts, errorObject);
-            }
-
-            if (actPrefix === "InvokeOPCUA") {
-                return pathParts.slice(1).join("/");
-            }
-
-            if (this._isPrefixForOtherActivity(actPrefix)) {
-                return null;
-            }
-
-            return path;
-        },
-
-        _isPrefixForOtherActivity: function (actPrefix) {
-            var currentActId = this.activityId || "";
-            var currentActName = this.model?.getKey
-                ? (this.model.getKey("activityName") || this.model.getKey("name") || "")
-                : "";
-
-            return !!(currentActId && actPrefix !== currentActId && currentActName && actPrefix !== currentActName);
-        },
-
-        _highlightDataChangeWriteGridCell: function (pathParts, errorObject) {
-            var column = pathParts[2];
-            var row = pathParts[1];
-            var columnArr = this.dataChangeWriteGrid.widget.$el.find("." + column);
-            var ele = $(columnArr[row - 1]);
-
-            if (!ele.length) {
-                return;
-            }
-
-            ele.get(0).scrollIntoView();
-            ele.addErrorHighlightClass("components-error-red-highlight");
-            this.showErrorTooltip(errorObject, ele);
-        },
-
-        _highlightCallMethodGridCell: function (pathParts, errorObject) {
-            var column = pathParts[2];
-            var row = pathParts[1];
-            var columnArr = this.callMethodGrid.widget.$el.find("." + column);
-            var ele = $(columnArr[row - 1]);
-
-            if (!ele.length) {
-                return;
-            }
-
-            ele.get(0).scrollIntoView();
-            ele.addErrorHighlightClass("components-error-red-highlight");
-            this.showErrorTooltip(errorObject, ele);
-        },
-
-        _highlightConnectionError: function (errorObject) {
-            var element = this.$el.find("#connectionComboBox");
-            if (!element.length) {
-                return;
-            }
-
-            this.focusErrorComponent(element);
-
-            var dropdownWrapper = element.parent().find(".ul-container, [class*='dropdown'], [class*='input']");
-            var target = dropdownWrapper.length ? dropdownWrapper : element;
-            target.addErrorHighlightClass("components-error-red-highlight");
-            this.showErrorTooltip(errorObject, target);
-        },
-
-        _highlightDataChangeWriteError: function (errorObject, path) {
-            this._ensureDataChangeWriteGridVisible();
-
-            var rowInfo = this._extractGridRowInfo(path, "dataChangeWrite");
-            if (!rowInfo) {
-                this._highlightGridContainer(".cvt-grid-div-data-change-write", errorObject);
-                return;
-            }
-
-            if (!this.dataChangeWriteGrid?.widget) {
-                return;
-            }
-
-            var result = this._getGridRowAndCellByField(
-                this.dataChangeWriteGrid.widget,
-                rowInfo.rowIndex,
-                rowInfo.fieldName
-            );
-
-            if (result?.cell) {
-                result.cell.addErrorHighlightClass("components-error-red-highlight");
-                this.showErrorTooltip(errorObject, result.cell);
-            }
-        },
-
-        _ensureDataChangeWriteGridVisible: function () {
-            if (!this.$(".data-change-write-radio").is(":checked")) {
-                this.$(".data-change-write-radio").prop("checked", true);
-                this._updateOperationUI();
-            } else if (!this.dataChangeWriteGrid) {
-                DataChangeGridManager.renderDataChangeWriteComponent(this);
-            }
-        },
-
-        _highlightCallMethodError: function (errorObject, path) {
-            this._ensureCallMethodGridVisible();
-
-            var rowInfo = this._extractGridRowInfo(path, "callMethod");
-            if (!rowInfo) {
-                this._highlightGridContainer(".cvt-grid-div-call-method", errorObject);
-                return;
-            }
-
-            var gridWidget = this.callMethodGrid?.widget;
-            if (!gridWidget) {
-                return;
-            }
-
-            if (rowInfo.fieldName === "inputParameters") {
-                this._highlightCallMethodInputParameters(gridWidget, rowInfo.rowIndex, errorObject);
-                return;
-            }
-
-            var result = this._getGridRowAndCellByField(gridWidget, rowInfo.rowIndex, rowInfo.fieldName);
-            if (result?.cell) {
-                result.cell.addErrorHighlightClass("components-error-red-highlight");
-                this.showErrorTooltip(errorObject, result.cell);
-            }
-        },
-
-        _ensureCallMethodGridVisible: function () {
-            if (!this.$(".call-method-radio").is(":checked")) {
-                this.$(".call-method-radio").prop("checked", true);
-                this._updateOperationUI();
-            } else if (!this.callMethodGrid) {
-                CallMethodGridManager.renderCallMethodComponent(this);
-            }
-        },
-
-        _highlightCallMethodInputParameters: function (gridWidget, rowIndex, errorObject) {
-            var result = this._getGridRowAndCellByField(gridWidget, rowIndex, "inputParameters");
-            if (!result?.row) {
-                return;
-            }
-
-            var dataItem = gridWidget.dataItem(result.row);
-            if (!dataItem) {
-                return;
-            }
-
-            result.cell.addErrorHighlightClass("components-error-red-highlight");
-            this.showErrorTooltip(errorObject, result.cell);
-        },
-
-        _extractGridRowInfo: function (path, sectionKey) {
-            var parts = path.split("/");
-            var rowPartIndex = -1;
-
-            for (var i = 0; i < parts.length; i++) {
-                if (parts[i] === sectionKey) {
-                    rowPartIndex = i + 1;
-                    break;
+                if (prefix === "connectionComboBox" || prefix === "selectConnection" || prefix.indexOf("connection") !== -1 || path.indexOf("connection") !== -1) {
+                    if (this.deviceConnComp?.highlightErrors) {
+                        this.deviceConnComp.highlightErrors([errorObject]);
+                    } else {
+                        var elem = this.$el.find("#connectionComboBox");
+                        if (elem.length) {
+                            this.focusErrorComponent(elem);
+                            elem.addErrorHighlightClass("components-error-red-highlight");
+                            this.showErrorTooltip(errorObject, elem);
+                        }
+                    }
+                    return;
                 }
-            }
 
-            if (rowPartIndex === -1 || rowPartIndex >= parts.length || isNaN(parseInt(parts[rowPartIndex], 10))) {
-                return null;
-            }
+                var isDataChange = path.indexOf("dataChangeWrite") !== -1;
+                var isCallMethod = path.indexOf("callMethod") !== -1;
 
-            return {
-                rowIndex: parseInt(parts[rowPartIndex], 10) - 1,
-                fieldName: parts[rowPartIndex + 1] || "name"
-            };
-        },
+                if (isDataChange || isCallMethod) {
+                    var section = isDataChange ? "dataChangeWrite" : "callMethod";
+                    var radioClass = isDataChange ? ".data-change-write-radio" : ".call-method-radio";
+                    var gridObj = isDataChange ? this.dataChangeWriteGrid : this.callMethodGrid;
 
-        _highlightGridContainer: function (selector, errorObject) {
-            var gridElem = this.$el.find(selector);
-            if (gridElem.length) {
-                gridElem.addErrorHighlightClass("components-error-red-highlight");
-                this.showErrorTooltip(errorObject, gridElem);
-            }
+                    if (!this.$(radioClass).is(":checked")) {
+                        this.$(radioClass).prop("checked", true);
+                        this._updateOperationUI();
+                        gridObj = isDataChange ? this.dataChangeWriteGrid : this.callMethodGrid;
+                    }
+
+                    var rowIdx = -1;
+                    var fieldName = "";
+                    for (var i = 0; i < pathParts.length; i++) {
+                        if (pathParts[i] === section && i + 1 < pathParts.length) {
+                            rowIdx = parseInt(pathParts[i + 1], 10) - 1;
+                            fieldName = pathParts[i + 2] || "name";
+                            break;
+                        }
+                    }
+
+                    var grid = gridObj?.widget || gridObj;
+                    if (grid && rowIdx >= 0) {
+                        var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
+                        var rows = tbody ? tbody.find("tr") : [];
+                        var targetRow = $(rows[rowIdx]);
+                        if (targetRow.length) {
+                            targetRow[0].scrollIntoView?.({ behavior: "smooth", block: "center" });
+                            var cell = fieldName ? targetRow.find("." + fieldName) : targetRow;
+                            var target = cell.length ? cell : targetRow;
+                            target.addErrorHighlightClass("components-error-red-highlight");
+                            this.showErrorTooltip(errorObject, target);
+                            return;
+                        }
+                    }
+
+                    var containerClass = isDataChange ? ".cvt-grid-div-data-change-write" : ".cvt-grid-div-call-method";
+                    var cont = this.$el.find(containerClass);
+                    if (cont.length) {
+                        cont.addErrorHighlightClass("components-error-red-highlight");
+                        this.showErrorTooltip(errorObject, cont);
+                    }
+                }
+            }, this);
         },
 
         getErrorMessage: function () {
@@ -889,46 +532,30 @@ define(function (require) {
         },
 
         _destroyComponent: function (component) {
-            if (component?.destroy) {
-                component.destroy();
-            }
+            component?.destroy?.();
         },
 
         onBeforeDestroy: function () {
             $(window).off("resize.invokeopcua");
             this.$el.off("click.invokeopcuaDrawer");
-            if (this._drawerObserver) {
-                this._drawerObserver.disconnect();
-                this._drawerObserver = null;
-            }
 
             CallMethodGridManager._destroyInputParametersModal(this);
 
             this._destroyComponent(this.dataChangeWriteSearchBar);
-            this.dataChangeWriteSearchBar = null;
-
             this._destroyComponent(this.callMethodSearchBar);
-            this.callMethodSearchBar = null;
-
             this._destroyComponent(this.dataChangeWriteGrid);
-            this.dataChangeWriteGrid = null;
-
             this._destroyComponent(this.callMethodGrid);
+            this.addressSpaceBrowser?.onDestroy?.();
+            this.addressSpaceDrawer?.destroy?.();
+            this.deviceConnComp?.destroy?.();
+
+            this.dataChangeWriteSearchBar = null;
+            this.callMethodSearchBar = null;
+            this.dataChangeWriteGrid = null;
             this.callMethodGrid = null;
-
-            if (this.addressSpaceBrowser) {
-                this.addressSpaceBrowser.onDestroy();
-                this.addressSpaceBrowser = null;
-            }
-
-            this.addressSpaceDrawer?.destroy();
+            this.addressSpaceBrowser = null;
             this.addressSpaceDrawer = null;
-
-            if (this.deviceConnComp && typeof this.deviceConnComp.destroy === "function") {
-                this.deviceConnComp.destroy();
-                this.deviceConnComp = null;
-            }
-
+            this.deviceConnComp = null;
             this.selectedCallMethodRow = null;
         }
     });
