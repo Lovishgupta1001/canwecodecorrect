@@ -117,6 +117,7 @@ define(function (require) {
                         position: "right",
                         toggleHandle: true,
                         resizable: true,
+                        collapsed: true,
                         dimensionValue: "50%",
                         min: "30%",
                         max: "70%"
@@ -124,6 +125,8 @@ define(function (require) {
                 }
             });
 
+            // Ensure drawer starts hidden/collapsed until Browse is clicked
+            this.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
             this._bindDrawerEvents();
         },
 
