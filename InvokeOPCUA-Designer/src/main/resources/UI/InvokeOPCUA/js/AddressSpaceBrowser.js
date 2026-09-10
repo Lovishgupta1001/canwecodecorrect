@@ -53,7 +53,10 @@ define([
                 browser._onSearch($(this).val());
             });
 
-            this._initTreeList();
+            // NOTE: Do NOT call _initTreeList() here.
+            // The drawer is collapsed at render time (display:none), so Kendo
+            // would compute 0x0 dimensions and render a blank widget.
+            // TreeList is initialized lazily on first openForBrowse().
             this._bindTreeEvents();
         },
 
@@ -121,7 +124,8 @@ define([
             var elem = container.find("#address-space-treelist");
             if (!elem.length) {
                 this.render();
-                elem = container.find("#address-space-treelist");
+                container = this._getContainer();
+                elem = container ? container.find("#address-space-treelist") : $();
             }
             if (!elem.length) {
                 return;
@@ -137,10 +141,16 @@ define([
             var dataList = initialData || browser.rawAddressSpaceNodes || [];
             var dataSource = browser._createTreeListDataSource(dataList);
 
+            // Use a concrete pixel height. "100%" fails when the drawer
+            // is transitioning or the parent has display:none.
+            var wrapperElem = container.find(".address-space-treelist-wrapper");
+            var wrapperHeight = wrapperElem.length ? wrapperElem.height() : 0;
+            var treeHeight = (wrapperHeight && wrapperHeight > 50) ? wrapperHeight : 400;
+
             this.treeListWidget = uilayer.treeList({
                 elem: elem,
                 dataSource: dataSource,
-                height: "100%",
+                height: treeHeight,
                 columns: [
                     {
                         field: "displayName",
@@ -326,6 +336,8 @@ define([
             this.selectedNode = null;
             this._updateActionButtonState();
 
+            // Expand the drawer first, then init/refresh the TreeList after
+            // the drawer animation completes so Kendo can compute real dimensions.
             if (this.globalSelf.addressSpaceDrawer) {
                 this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
             }
@@ -339,27 +351,31 @@ define([
             var hasNodes = browser.rawAddressSpaceNodes && browser.rawAddressSpaceNodes.length > 0;
 
             if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId) || !hasNodes) {
+                // Fetch fresh data; TreeList will be (re)initialized inside _fetchRootAddressSpace.
                 this._fetchRootAddressSpace(function () {
                     browser._preselectTargetNode();
                 });
             } else {
-                browser._initTreeList(browser.rawAddressSpaceNodes);
-                browser._preselectTargetNode();
+                // Data already cached — re-init the TreeList once the drawer is open.
+                setTimeout(function () {
+                    browser._initTreeList(browser.rawAddressSpaceNodes);
+                    browser._preselectTargetNode();
+                    browser._forceTreeResize();
+                }, 150);
             }
+        },
 
-            setTimeout(function () {
-                var tree = browser._getTreeWidget();
-                if (tree && typeof tree.resize === "function") {
-                    tree.resize();
-                }
-            }, 150);
-
-            setTimeout(function () {
-                var tree = browser._getTreeWidget();
-                if (tree && typeof tree.resize === "function") {
-                    tree.resize();
-                }
-            }, 350);
+        _forceTreeResize: function () {
+            var browser = this;
+            var attempts = [100, 300, 600];
+            attempts.forEach(function (delay) {
+                setTimeout(function () {
+                    var tree = browser._getTreeWidget();
+                    if (tree && typeof tree.resize === "function") {
+                        tree.resize();
+                    }
+                }, delay);
+            });
         },
 
         _preselectTargetNode: function () {
@@ -410,29 +426,24 @@ define([
                 var flatList = browser._processNodes(data, null);
                 browser.rawAddressSpaceNodes = flatList;
 
-                browser._initTreeList(flatList);
-
-                var activeTree = browser._getTreeWidget();
-                if (activeTree && typeof activeTree.resize === "function") {
-                    activeTree.resize();
-                }
-
+                // Wait for the drawer to be fully visible before initializing
+                // the TreeList — otherwise Kendo computes 0px height.
                 setTimeout(function () {
-                    var t = browser._getTreeWidget();
-                    if (t && typeof t.resize === "function") {
-                        t.resize();
-                    }
-                }, 150);
+                    browser._initTreeList(flatList);
+                    browser._forceTreeResize();
+                }, 100);
 
-                // Automatically fetch children for root nodes so that top-level items are open and loaded
+                // Prefetch children for root nodes
                 var rootNodesToFetch = flatList.filter(function (n) {
                     return !n.parentId && n.needToFetchChildren && !browser.loadedNodeIds[n.nodeId];
                 });
 
                 if (rootNodesToFetch.length > 0) {
-                    rootNodesToFetch.forEach(function (rootNode) {
-                        browser._fetchChildren(rootNode);
-                    });
+                    setTimeout(function () {
+                        rootNodesToFetch.forEach(function (rootNode) {
+                            browser._fetchChildren(rootNode);
+                        });
+                    }, 250);
                 }
 
                 if (typeof onSuccess === "function") {
