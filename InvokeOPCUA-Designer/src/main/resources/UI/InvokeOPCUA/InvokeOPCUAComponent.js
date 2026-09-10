@@ -342,54 +342,73 @@ define(function (require) {
 
             AjaxUtility.commonAjaxRequest(
                 "GET",
-                "activities/InvokeOPCUA/getSupportedPluginType",
+                "activities/invokeopcua/getSupportedPluginType",
                 null,
                 "JSON"
             ).done(function (pluginType) {
                 this._pluginTypes = pluginType;
                 deferred.resolve(pluginType);
             }.bind(this)).fail(function () {
-                deferred.reject();
-            });
+                deferred.resolve(["OPC UA", "OPCUA"]);
+            }.bind(this));
 
             return deferred.promise();
         },
 
         _initConnectionUI: function () {
             var globalSelf = this;
-            this._fetchPluginTypes().done(function (pluginTypes) {
-                var container = globalSelf.$el.find("#invokeopcua-connection-component-container");
-                var connData = {};
-                if (globalSelf.initialData) {
-                    connData = _.clone(globalSelf.initialData);
-                }
-                var initialConn = globalSelf.model.getKey("connectionComboBox") || globalSelf.model.getKey("selectConnection") || globalSelf.model.getKey("connectionName") || (globalSelf.initialData && globalSelf.initialData.selectConnection);
-                connData.connectionComboBox = initialConn;
-                connData.selectConnection = initialConn;
-                connData.connectionName = globalSelf.model.getKey("connectionName") || initialConn;
-                connData.connectionId = globalSelf.model.getKey("connectionId") || (globalSelf.initialData && globalSelf.initialData.connectionId);
+            var container = this.$el.find("#invokeopcua-connection-component-container");
+            var connData = {};
+            if (this.initialData) {
+                connData = _.clone(this.initialData);
+            }
+            var initialConn = this.model.getKey("connectionComboBox") || this.model.getKey("selectConnection") || this.model.getKey("connectionName") || (this.initialData && this.initialData.selectConnection);
+            connData.connectionComboBox = initialConn;
+            connData.selectConnection = initialConn;
+            connData.connectionName = this.model.getKey("connectionName") || initialConn;
+            connData.connectionId = this.model.getKey("connectionId") || (this.initialData && this.initialData.connectionId);
 
-                var compOptions = {
-                    el: container,
-                    activityId: globalSelf.activityId,
-                    reqres: globalSelf.designerReqres,
-                    activityReqres: globalSelf.activityReqres,
-                    pluginType: pluginTypes,
-                    data: connData
-                };
+            var compOptions = {
+                el: container,
+                activityId: this.activityId,
+                reqres: this.designerReqres,
+                activityReqres: this.activityReqres,
+                pluginType: this._pluginTypes || ["OPC UA", "OPCUA"],
+                data: connData
+            };
 
-                if (typeof DeviceConnectorConnComponent === "function") {
-                    globalSelf.deviceConnComp = new DeviceConnectorConnComponent(compOptions);
-                    globalSelf.deviceConnComp.render();
-                    globalSelf._setupDeviceConnListeners();
-                } else if (typeof MIUIComponent !== "undefined" && typeof MIUIComponent.DeviceConnectorConnComponent === "function") {
-                    var promise = MIUIComponent.DeviceConnectorConnComponent(compOptions);
+            var ConnComp = (typeof DeviceConnectorConnComponent === "function" ? DeviceConnectorConnComponent : null) ||
+                           (typeof window !== "undefined" && window.DeviceConnectorConnComponent) ||
+                           (typeof MIUIComponent !== "undefined" && MIUIComponent.DeviceConnectorConnComponent);
+
+            if (typeof ConnComp === "function") {
+                if (ConnComp.prototype && ConnComp.prototype.render) {
+                    this.deviceConnComp = new ConnComp(compOptions);
+                    this.deviceConnComp.render();
+                    this._setupDeviceConnListeners();
+                } else {
+                    var promise = ConnComp(compOptions);
                     if (promise && promise.done) {
                         promise.done(function (comp) {
                             globalSelf.deviceConnComp = comp;
                             globalSelf._setupDeviceConnListeners();
                         });
                     }
+                }
+            } else if (typeof MIUIComponent !== "undefined" && typeof MIUIComponent.DeviceConnectorConnComponent === "function") {
+                var promise = MIUIComponent.DeviceConnectorConnComponent(compOptions);
+                if (promise && promise.done) {
+                    promise.done(function (comp) {
+                        globalSelf.deviceConnComp = comp;
+                        globalSelf._setupDeviceConnListeners();
+                    });
+                }
+            }
+
+            // In background, fetch plugin types from backend if available and update component
+            this._fetchPluginTypes().done(function (pluginTypes) {
+                if (globalSelf.deviceConnComp && pluginTypes) {
+                    globalSelf.deviceConnComp.pluginType = pluginTypes;
                 }
             });
         },

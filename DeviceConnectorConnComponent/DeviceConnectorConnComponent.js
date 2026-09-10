@@ -28,6 +28,9 @@ define(function (require) {
             this.allowedTypes = options.allowedTypes || null;
             this.pluginType = options.pluginType || null;
             this.processModel = this.designerReqres ? this.designerReqres.request("getCurrentActiveEntityModelFromDataStore") : null;
+            if (!this.model || typeof this.model.set !== "function") {
+                this.model = new model();
+            }
             if (options.data) {
                 for (var key in options.data) {
                     if (Object.prototype.hasOwnProperty.call(options.data, key)) {
@@ -106,20 +109,45 @@ define(function (require) {
             return "";
         },
 
-        _renderConnectionDropdown: function (id) {
+        _fetchAccessibleConnectionsList: function () {
+            var allConnections = [];
+
+            // 1. Fetch Transport Connections (Device Connector, OPC UA, MQTT, etc.)
+            var transportPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleTransportConnections", null, "json", null, true);
+            if (transportPromise && transportPromise.done) {
+                transportPromise.done(function (connectionsData) {
+                    if (connectionsData && Array.isArray(connectionsData)) {
+                        allConnections = allConnections.concat(connectionsData);
+                    }
+                });
+            }
+
+            // 2. Fetch Accessible General Connections
+            var connPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
+            if (connPromise && connPromise.done) {
+                connPromise.done(function (connectionsData) {
+                    if (connectionsData && Array.isArray(connectionsData)) {
+                        allConnections = allConnections.concat(connectionsData);
+                    }
+                });
+            }
+
+            // 3. Fetch NonPlugin Connections (if any)
+            var nonPluginPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
+            if (nonPluginPromise && nonPluginPromise.done) {
+                nonPluginPromise.done(function (connectionsData) {
+                    if (connectionsData && Array.isArray(connectionsData)) {
+                        allConnections = allConnections.concat(connectionsData);
+                    }
+                });
+            }
+
+            return allConnections;
+        },
+
+        _buildFinalConnectionArray: function () {
             var globalSelf = this;
-            var connectionsDetails = [];
-
-            var promise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
-            promise.done(function (connectionsData) {
-                connectionsDetails = connectionsData || [];
-            });
-            promise.fail(function (e) {
-                if (window.app?.reqres) {
-                    uilayer.notifier("error", window.app.reqres.request("getError", e).message);
-                }
-            });
-
+            var connectionsDetails = this._fetchAccessibleConnectionsList();
             var finalConnArr = [];
             var connectionVarDetails = [];
             if (globalSelf.processModel && ActivitiesUtility?.getConnectionAndRemainingVariableComponentDataSource) {
@@ -165,6 +193,13 @@ define(function (require) {
                     return globalSelf._isConnectionAllowed(cType, item);
                 });
             }
+
+            return finalConnArr;
+        },
+
+        _renderConnectionDropdown: function (id) {
+            var globalSelf = this;
+            var finalConnArr = this._buildFinalConnectionArray();
 
             this.connectionComboBox = uilayer.dropDownList({
                 elem: globalSelf.$el.find("#" + id),
@@ -297,63 +332,7 @@ define(function (require) {
 
         _refreshConnection: function () {
             var globalSelf = this;
-            var connectionsDetails = [];
-
-            var promise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
-            promise.done(function (connectionsData) {
-                connectionsDetails = connectionsData || [];
-            });
-            promise.fail(function (e) {
-                if (window.app?.reqres) {
-                    uilayer.notifier("error", window.app.reqres.request("getError", e).message);
-                }
-            });
-
-            var finalConnArr = [];
-            var connectionVarDetails = [];
-            if (globalSelf.processModel && ActivitiesUtility?.getConnectionAndRemainingVariableComponentDataSource) {
-                connectionVarDetails = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId).data();
-            }
-
-            _.each(connectionVarDetails, function (item) {
-                var flag = false;
-                connectionsDetails.forEach(function (connection) {
-                    if (String(connection.connectionId) === String(item.connectionId)) {
-                        item.connectionColor = connection.connectionColor;
-                        item.connectionType = connection.connectionType || connection.type;
-                        item.pluginType = connection.pluginType;
-                        finalConnArr.push(item);
-                        flag = true;
-                    }
-                });
-                if (!flag) {
-                    finalConnArr.push(item);
-                }
-            });
-
-            connectionsDetails.forEach(function (connection) {
-                var exists = finalConnArr.some(function (f) {
-                    return String(f.connectionId) === String(connection.connectionId !== undefined ? connection.connectionId : connection.id);
-                });
-                if (!exists) {
-                    finalConnArr.push({
-                        key: connection.connectionName || connection.name || connection.key,
-                        connectionId: connection.connectionId !== undefined ? connection.connectionId : connection.id,
-                        connectionName: connection.connectionName || connection.name || connection.key,
-                        connectionColor: connection.connectionColor || "",
-                        connectionType: connection.connectionType || connection.type || "",
-                        pluginType: connection.pluginDisplayName || connection.pluginType || "",
-                        rawConnection: connection
-                    });
-                }
-            });
-
-            if (globalSelf.pluginType || globalSelf.allowedTypes) {
-                finalConnArr = finalConnArr.filter(function (item) {
-                    var cType = globalSelf._resolveConnectionType(item);
-                    return globalSelf._isConnectionAllowed(cType, item);
-                });
-            }
+            var finalConnArr = this._buildFinalConnectionArray();
 
             if (this.connectionComboBox) {
                 this.connectionComboBox.setDataSource(finalConnArr);
@@ -412,6 +391,19 @@ define(function (require) {
             }
         }
     });
+
+    if (typeof window !== "undefined") {
+        window.DeviceConnectorConnComponent = DeviceConnectorConnComponent;
+    }
+    if (typeof MIUIComponent !== "undefined" && !MIUIComponent.DeviceConnectorConnComponent) {
+        MIUIComponent.DeviceConnectorConnComponent = function (options) {
+            var deferred = $.Deferred();
+            var comp = new DeviceConnectorConnComponent(options);
+            comp.render();
+            deferred.resolve(comp);
+            return deferred.promise();
+        };
+    }
 
     return DeviceConnectorConnComponent;
 });
