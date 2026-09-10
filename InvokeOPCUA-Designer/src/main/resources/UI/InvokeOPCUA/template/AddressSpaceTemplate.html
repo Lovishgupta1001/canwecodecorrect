@@ -3,22 +3,21 @@
         <span class="ul-header-xs-b"><%-nls.BrowseAddressSpace%></span>
     </div>
 
-    <div class="address-space-search-row ul-form-row ul-pad-1x-b">
-        <div class="ul-input-container" style="width: 100%;">
+    <div class="address-space-toolbar ul-form-row ul-pad-1x-b">
+        <div class="address-space-search-container ul-input-container">
             <input id="address-space-search-textbox" class="address-space-search-input ul-container" type="text"
                 placeholder="<%-nls.SearchAddressSpace%>" />
+        </div>
+        <div class="address-space-actions">
+            <div id="address-space-select-btn" role="button" class="k-button ul-tertiary-button ul-state-disabled"
+                disabled="disabled">
+                <%-nls.SelectNode%>
+            </div>
         </div>
     </div>
 
     <div class="address-space-treelist-wrapper">
         <div id="address-space-treelist" class="ul-mi-treelist ul-form-small"></div>
-    </div>
-
-    <div class="address-space-actions ul-pad-2x-t ul-flex-gap-2x">
-        <div id="address-space-select-btn" role="button" class="k-button ul-tertiary-button ul-state-disabled"
-            disabled="disabled">
-            <%-nls.SelectNode%>
-        </div>
     </div>
 
     <div class="address-space-loading-container"></div>
