@@ -1,0 +1,6 @@
+{
+    "ComponentName": "FileZip",
+    "Path": "Activities/FileZip/UI/FileZip/FileZip",
+    "nls": "Activities/FileZip/UI/FileZip/nls/FileZipNLS",
+    "componentModel": "Activities/FileZip/UI/FileZip/model/FileZipModel"
+}

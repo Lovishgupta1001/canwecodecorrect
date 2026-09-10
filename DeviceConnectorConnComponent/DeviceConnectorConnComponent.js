@@ -28,6 +28,13 @@ define(function (require) {
             this.allowedTypes = options.allowedTypes || null;
             this.pluginType = options.pluginType || null;
             this.processModel = this.designerReqres ? this.designerReqres.request("getCurrentActiveEntityModelFromDataStore") : null;
+            if (options.data) {
+                for (var key in options.data) {
+                    if (Object.prototype.hasOwnProperty.call(options.data, key)) {
+                        this.model.set(key, options.data[key]);
+                    }
+                }
+            }
         },
 
         onRender: function () {
@@ -103,7 +110,7 @@ define(function (require) {
             var globalSelf = this;
             var connectionsDetails = [];
 
-            var promise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
+            var promise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
             promise.done(function (connectionsData) {
                 connectionsDetails = connectionsData || [];
             });
@@ -134,6 +141,30 @@ define(function (require) {
                     finalConnArr.push(item);
                 }
             });
+
+            connectionsDetails.forEach(function (connection) {
+                var exists = finalConnArr.some(function (f) {
+                    return String(f.connectionId) === String(connection.connectionId !== undefined ? connection.connectionId : connection.id);
+                });
+                if (!exists) {
+                    finalConnArr.push({
+                        key: connection.connectionName || connection.name || connection.key,
+                        connectionId: connection.connectionId !== undefined ? connection.connectionId : connection.id,
+                        connectionName: connection.connectionName || connection.name || connection.key,
+                        connectionColor: connection.connectionColor || "",
+                        connectionType: connection.connectionType || connection.type || "",
+                        pluginType: connection.pluginDisplayName || connection.pluginType || "",
+                        rawConnection: connection
+                    });
+                }
+            });
+
+            if (globalSelf.pluginType || globalSelf.allowedTypes) {
+                finalConnArr = finalConnArr.filter(function (item) {
+                    var cType = globalSelf._resolveConnectionType(item);
+                    return globalSelf._isConnectionAllowed(cType, item);
+                });
+            }
 
             this.connectionComboBox = uilayer.dropDownList({
                 elem: globalSelf.$el.find("#" + id),
@@ -233,18 +264,26 @@ define(function (require) {
         },
 
         _isConnectionAllowed: function (connType, connItem) {
-            if (!this.allowedTypes || !this.allowedTypes.length) {
+            var allowed = this.pluginType || this.allowedTypes;
+            if (!allowed) {
                 return true;
             }
+            if (Array.isArray(allowed) && allowed.length === 0) {
+                return true;
+            }
+            var allowedList = Array.isArray(allowed) ? allowed : [allowed];
 
             var typeUpper = (connType || "").toUpperCase();
-            var pluginUpper = (connItem?.pluginType || "").toUpperCase();
+            var pluginUpper = (connItem?.pluginType || connItem?.pluginDisplayName || "").toUpperCase();
 
-            return this.allowedTypes.some(function (allowed) {
-                var allowedUpper = (allowed || "").toUpperCase();
-                return typeUpper === allowedUpper ||
-                    typeUpper.indexOf(allowedUpper) !== -1 ||
-                    pluginUpper.indexOf(allowedUpper) !== -1;
+            return allowedList.some(function (item) {
+                if (!item) return false;
+                var allowedName = (typeof item === "object" ? (item.pluginType || item.name || item.type || "") : String(item)).toUpperCase();
+                if (!allowedName) return false;
+                return typeUpper === allowedName ||
+                    pluginUpper === allowedName ||
+                    (typeUpper && typeUpper.indexOf(allowedName) !== -1) ||
+                    (pluginUpper && pluginUpper.indexOf(allowedName) !== -1);
             });
         },
 
@@ -253,14 +292,14 @@ define(function (require) {
                 return "";
             }
 
-            return connItem.connectionType || connItem.pluginType || connItem.type || connItem.pluginName || "";
+            return connItem.connectionType || connItem.type || connItem.pluginType || connItem.pluginDisplayName || connItem.pluginName || "";
         },
 
         _refreshConnection: function () {
             var globalSelf = this;
             var connectionsDetails = [];
 
-            var promise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
+            var promise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
             promise.done(function (connectionsData) {
                 connectionsDetails = connectionsData || [];
             });
@@ -291,6 +330,30 @@ define(function (require) {
                     finalConnArr.push(item);
                 }
             });
+
+            connectionsDetails.forEach(function (connection) {
+                var exists = finalConnArr.some(function (f) {
+                    return String(f.connectionId) === String(connection.connectionId !== undefined ? connection.connectionId : connection.id);
+                });
+                if (!exists) {
+                    finalConnArr.push({
+                        key: connection.connectionName || connection.name || connection.key,
+                        connectionId: connection.connectionId !== undefined ? connection.connectionId : connection.id,
+                        connectionName: connection.connectionName || connection.name || connection.key,
+                        connectionColor: connection.connectionColor || "",
+                        connectionType: connection.connectionType || connection.type || "",
+                        pluginType: connection.pluginDisplayName || connection.pluginType || "",
+                        rawConnection: connection
+                    });
+                }
+            });
+
+            if (globalSelf.pluginType || globalSelf.allowedTypes) {
+                finalConnArr = finalConnArr.filter(function (item) {
+                    var cType = globalSelf._resolveConnectionType(item);
+                    return globalSelf._isConnectionAllowed(cType, item);
+                });
+            }
 
             if (this.connectionComboBox) {
                 this.connectionComboBox.setDataSource(finalConnArr);

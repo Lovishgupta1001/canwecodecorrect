@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OUTPUTS>
+    <OUTPUT>
+        <ID>zipBaseFilePath</ID>
+        <LABEL>FileZip.zipBaseFilePath</LABEL>
+        <DATATYPE>STRING</DATATYPE>
+    </OUTPUT>
+    <OUTPUT>
+        <ID>zipRelativeFilePath</ID>
+        <LABEL>FileZip.zipRelativeFilePath</LABEL>
+        <DATATYPE>STRING</DATATYPE>
+    </OUTPUT>
+    <OUTPUT>
+        <ID>zippedFiles</ID>
+        <LABEL>FileZip.zippedFiles</LABEL>
+        <DATATYPE>LIST</DATATYPE>
+    </OUTPUT>
+    <OUTPUT>
+        <ID>failedFiles</ID>
+        <LABEL>FileZip.failedFiles</LABEL>
+        <DATATYPE>LIST</DATATYPE>
+    </OUTPUT>
+    <OUTPUT>
+        <ID>failedFilesToDelete</ID>
+        <LABEL>FileZip.failedFilesToDelete</LABEL>
+        <DATATYPE>LIST</DATATYPE>
+    </OUTPUT>
+</OUTPUTS>

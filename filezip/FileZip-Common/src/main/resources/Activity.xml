@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ACTIVITY>
+    <GROUP>File</GROUP>
+    <NAME>FileZip</NAME>
+    <FEATURENAME>BPMActivities</FEATURENAME>
+    <DESCRIPTION>filezip.description</DESCRIPTION>
+    <DISPLAYNAME>filezip.displayname</DISPLAYNAME>
+    <ACTIVITYTYPE>ACTIVITY</ACTIVITYTYPE>
+    <CONFIGURATIONCLASS>com.eqtechnologic.eqube.mi.activities.filezip.FileZipConfiguration</CONFIGURATIONCLASS>
+    <IMPLEMENTATIONCLASS>com.eqtechnologic.eqube.mi.activities.filezip.FileZipExecutor</IMPLEMENTATIONCLASS>
+    <RESOLVERCLASS></RESOLVERCLASS>
+    <LICENSECLASS>com.eqtechnologic.eqube.mi.activities.filezip.FileZipLicense</LICENSECLASS>
+    <VERSION>1.0</VERSION>
+    <ISVISIBLE>true</ISVISIBLE>
+    <CAPABILITIES>
+        <PRESCRIPT>true</PRESCRIPT>
+        <POSTSCRIPT>true</POSTSCRIPT>
+        <EXECUTE>true</EXECUTE>
+        <OUTPUT>true</OUTPUT>
+        <ADD>true</ADD>
+        <RETAIN>true</RETAIN>
+        <THROW>true</THROW>
+        <CONNECTION>true</CONNECTION>
+        <CONFIGURATION>true</CONFIGURATION>
+        <CANHAVEEVENTS>true</CANHAVEEVENTS>
+        <PRECEDENCE></PRECEDENCE>
+        <MAXIMUM_APPEARANCES_ON_STEP></MAXIMUM_APPEARANCES_ON_STEP>
+        <MAXIMUM_APPEARANCES_IN_PROCESS>MANY</MAXIMUM_APPEARANCES_IN_PROCESS>
+    </CAPABILITIES>
+    <CREATOR>eQ-Technologic</CREATOR>
+    <CREATIONDATE>2011-1-27 18:30:00</CREATIONDATE>
+</ACTIVITY>

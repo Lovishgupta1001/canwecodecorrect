@@ -1,0 +1,73 @@
+#file-zip-congifuration-container { 
+    height: 100%; 
+} 
+
+#file-zip-tabstrip { 
+    height: 100%; 
+
+    .tab-container { 
+        height: calc(100% - 3.5rem); 
+        overflow-x: hidden; 
+        overflow-y: auto; 
+    } 
+
+    #file-zip-src-section { 
+        height: 100%; 
+        overflow-y: auto; 
+        box-sizing: border-box; 
+    } 
+
+    #file-zip-src-explorer-section { 
+        height: 100%; 
+        overflow-y: auto; 
+        box-sizing: border-box; 
+
+        .ui-resizable-handle.ui-resizable-w { 
+            left: 0.0769rem; 
+        } 
+    } 
+
+    #file-zip-dest-section { 
+        height: 100%; 
+        overflow-y: auto; 
+        box-sizing: border-box; 
+    } 
+
+    #file-zip-dest-explorer-section { 
+        height: 100%; 
+        overflow-y: auto; 
+        box-sizing: border-box; 
+
+        .ui-resizable-handle.ui-resizable-w { 
+            left: 0.0769rem; 
+        } 
+    } 
+} 
+
+#file-zip-src-explorer-component { 
+    height: 100%; 
+
+    .file-explorer-div { 
+        .file-explorer-buttonOperation { 
+            display: none !important; 
+        } 
+    } 
+} 
+
+#file-zip-dest-explorer-component { 
+    height: 100%; 
+
+    .file-explorer-div { 
+        .file-explorer-buttonOperation { 
+            display: none !important; 
+        } 
+    } 
+} 
+
+#file-zip-file-selection-comp { 
+    .file-config-base-div { 
+        > .ul-form-row:nth-child(2) { 
+            display: none !important; 
+        } 
+    } 
+}

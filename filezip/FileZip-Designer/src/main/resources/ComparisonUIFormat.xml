@@ -1,0 +1,29 @@
+<activity xmlns="http://www.w3.org/activitycomparison/activitycapabilitiescomparison"> 
+<capability name="Configuration"> 
+<component name="i18n:FileZip.fileName" id="fileName"/> 
+<group name="i18n:FileZip.source"> 
+<group name="i18n:FileZip.folderFileSelection"> 
+<component name="i18n:FileZip.connectionLabel" id="selectSourceConnection"></component> 
+<component name="i18n:FileZip.RelativeFilePathLabel" id="relativePathSourceEbl"></component> 
+<component name="i18n:FileZip.fileNamePattern" id="fileNamePattern"></component> 
+<component name="i18n:FileZip.traverseFilePathRecusively" id="isRecursive"></component> 
+<component name="i18n:FileZip.preserveFolderStructure" id="preserveFolder"></component> 
+<component name="i18n:FileZip.preserveParentFolder" id="preserveParentFolder"></component> 
+<component name="i18n:Filezip.deleteInputFiles" id="deleteInputFiles"></component> 
+</group> 
+</group> 
+<group name="i18n:FileZip.destination"> 
+<component name="i18n:FileZip.connectionLabel" id="selectDestConnection"></component> 
+<component name="i18n:FileZip.RelativeFilePathLabel" id="relativePathDestEbl"></component> 
+<component name="i18n:FileZip.archiveName" id="archiveName"></component> 
+<component name="i18n:FileZip.archiveType" id="archiveType"></component> 
+</group> 
+</capability> 
+<capability name="Output"> 
+<component name="i18n:FileZip.zipBaseFilePath" id="zipBaseFilePath"/> 
+<component name="i18n:FileZip.zipRelativeFilePath" id="zipRelativeFilePath"/> 
+<component name="i18n:FileZip.zippedFiles" id="zippedFiles"/> 
+<component name="i18n:FileZip.failedFiles" id="failedFiles"/> 
+<component name="i18n:FileZip.failedFilesToDelete" id="failedFilesToDelete"/> 
+</capability> 
+</activity>

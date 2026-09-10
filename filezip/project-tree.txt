@@ -1,0 +1,101 @@
+Folder PATH listing
+Volume serial number is 00000092 C401:EE1D
+D:.
+|   pom.xml
+|   project-tree.txt
+|   
++---FileZip-Bundle
+|       pom.xml
+|       
++---FileZip-Common
+|   |   pom.xml
+|   |   proguard.conf
+|   |   
+|   \---src
+|       \---main
+|           +---java
+|           |   \---com
+|           |       \---eqtechnologic
+|           |           \---eqube
+|           |               \---mi
+|           |                   \---activities
+|           |                       \---filezip
+|           |                           |   FileZipComponentService.java
+|           |                           |   FileZipConfiguration.java
+|           |                           |   FileZipConstants.java
+|           |                           |   FileZipErrorCodes.java
+|           |                           |   FileZipLicense.java
+|           |                           |   FileZipValidator.java
+|           |                           |   
+|           |                           +---bean
+|           |                           |       DeleteFileErrorBean.java
+|           |                           |       FileZipConfigBean.java
+|           |                           |       FileZipInitialData.java
+|           |                           |       
+|           |                           +---exception
+|           |                           |       FileZipExceptionType.java
+|           |                           |       
+|           |                           \---helper
+|           |                                   FileZipActivityHelper.java
+|           |                                   FileZipPluginRegistry.java
+|           |                                   
+|           \---resources
+|                   Activity.xml
+|                   Output.xml
+|                   
++---FileZip-Designer
+|   |   pom.xml
+|   |   proguard.conf
+|   |   
+|   \---src
+|       \---main
+|           +---java
+|           |   \---com
+|           |       \---eqtechnologic
+|           |           \---eqube
+|           |               \---mi
+|           |                   \---activities
+|           |                       \---filezip
+|           |                               FileZipComponentRestController.java
+|           |                               
+|           \---resources
+|               |   ComparisonUIFormat.xml
+|               |   ImagePath.js
+|               |   
+|               \---UI
+|                   \---FileZip
+|                       |   build.js
+|                       |   FileZip.js
+|                       |   
+|                       +---config
+|                       |       component.json
+|                       |       
+|                       +---js
+|                       |       constants.js
+|                       |       
+|                       +---model
+|                       |       FileZipModel.js
+|                       |       
+|                       +---nls
+|                       |       FileZipNLS.js
+|                       |       
+|                       +---style
+|                       |       style.less
+|                       |       
+|                       \---template
+|                               FileZipTemplate.html
+|                               
+\---FileZip-Runtime
+    |   pom.xml
+    |   proguard.conf
+    |   
+    \---src
+        \---main
+            \---java
+                \---com
+                    \---eqtechnologic
+                        \---eqube
+                            \---mi
+                                \---activities
+                                    \---filezip
+                                            FileZipExecutor.java

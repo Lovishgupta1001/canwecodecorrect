@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.eqtechnologic.eqube.mi.activity</groupId>
+        <artifactId>filezip-activity</artifactId>
+        <version>8.1.0.0.13</version>
+    </parent>
+
+    <artifactId>filezip-bundle</artifactId>
+    <packaging>jar</packaging>
+
+    <name>FileZip-Bundle</name>
+    <description>Bundle module for FileZip Activity</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.eqtechnologic.eqube.mi.activity</groupId>
+            <artifactId>filezip-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.eqtechnologic.eqube.mi.activity</groupId>
+            <artifactId>filezip-designer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.eqtechnologic.eqube.mi.activity</groupId>
+            <artifactId>filezip-runtime</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>
