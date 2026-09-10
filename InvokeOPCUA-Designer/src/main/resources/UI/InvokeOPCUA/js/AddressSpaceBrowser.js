@@ -111,7 +111,9 @@ define([
                 {
                     field: "selection",
                     title: " ",
-                    width: "48px",
+                    width: "56px",
+                    attributes: { "class": "address-space-selection-cell" },
+                    headerAttributes: { "class": "address-space-selection-cell" },
                     template: function (item) {
                         if (!item) {
                             return "";
@@ -353,10 +355,16 @@ define([
         },
 
         openForBrowse: function (targetRow, targetMode, connectionData) {
+            var browser = this;
+            this._isProgrammaticBrowseOpen = true;
             this.openedFromBrowse = true;
             this.targetRow = targetRow;
             this.targetMode = targetMode || "DATA_CHANGE_WRITE";
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
+
+            setTimeout(function () {
+                browser._isProgrammaticBrowseOpen = false;
+            }, 1000);
 
             if (this.globalSelf && this.globalSelf.addressSpaceDrawer && this.globalSelf.addressSpaceDrawer.expand) {
                 this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
@@ -377,7 +385,6 @@ define([
             this._updateActionButtonState();
 
             // After drawer animation, resize TreeList so it properly paints in expanded container
-            var browser = this;
             setTimeout(function () {
                 var tree = browser._getTreeWidget();
                 if (tree && tree.resize) {
@@ -404,17 +411,22 @@ define([
         },
 
         openOnDrawerExpand: function () {
-            this.openedFromBrowse = false;
-            this.targetRow = null;
-            this.targetMode = null;
-
             if (this.globalSelf && this.globalSelf.$el) {
                 this.globalSelf.$el.find("#invokeopcua-address-space-drawer-section").removeClass("ul-state-collapsed");
             }
             this._ensureRendered();
 
-            this.containerElem.find("#address-space-select-btn").text(this.nls.SelectNode || "Select Node");
-            this._updateActionButtonState();
+            // If the drawer was NOT opened programmatically from a Browse button,
+            // ensure it operates in view-only mode with the select button disabled.
+            if (!this._isProgrammaticBrowseOpen && !this.openedFromBrowse) {
+                this.openedFromBrowse = false;
+                this.targetRow = null;
+                this.targetMode = null;
+                if (this.containerElem) {
+                    this.containerElem.find("#address-space-select-btn").text(this.nls.SelectNode || "Select Node");
+                }
+                this._updateActionButtonState();
+            }
 
             var browser = this;
             setTimeout(function () {
@@ -802,6 +814,7 @@ define([
         },
 
         _closeDrawer: function () {
+            this._isProgrammaticBrowseOpen = false;
             this.openedFromBrowse = false;
             this.targetRow = null;
             this.targetMode = null;
@@ -815,6 +828,7 @@ define([
         },
 
         onDrawerCollapse: function () {
+            this._isProgrammaticBrowseOpen = false;
             this.openedFromBrowse = false;
             this.targetRow = null;
             this.targetMode = null;
