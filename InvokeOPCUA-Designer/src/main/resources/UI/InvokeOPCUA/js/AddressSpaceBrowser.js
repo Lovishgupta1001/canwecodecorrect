@@ -61,13 +61,19 @@ define([
         },
 
         _getContainer: function () {
+            // Always prefer the saved containerElem — it's a direct DOM reference
+            // captured at init() time and is unaffected by drawer DOM movements.
+            if (this.containerElem && this.containerElem.length) {
+                return this.containerElem;
+            }
+            // Fallback: search the view's $el
             if (this.globalSelf && this.globalSelf.$el) {
                 var el = this.globalSelf.$el.find("#invokeopcua-address-space-component");
                 if (el.length) {
                     return el;
                 }
             }
-            return this.containerElem || $(document).find("#invokeopcua-address-space-component");
+            return $(document).find("#invokeopcua-address-space-component");
         },
 
         _getTreeWidget: function () {
@@ -78,8 +84,7 @@ define([
             if (container && container.length) {
                 var elem = container.find("#address-space-treelist");
                 if (elem && elem.length) {
-                var treeListWidget = elem.data("treeList") || elem.data("ulTreeList") || elem;
-                    return treeListWidget;
+                    return elem.data("kendoTreeList") || elem.data("treeList") || elem.data("ulTreeList") || null;
                 }
             }
             return null;
@@ -106,109 +111,194 @@ define([
                 }
             };
 
+            // Try uilayer DataSource first
             if (typeof uilayer !== "undefined" && uilayer.data && typeof uilayer.data.TreeListDataSource === "function") {
-                return new uilayer.data.TreeListDataSource(dsConfig);
+                try { return new uilayer.data.TreeListDataSource(dsConfig); } catch (e) {}
             }
-            // Fallback: uilayer.data.TreeListDataSource is the only supported path.
-            // Direct window.kendo access is intentionally removed.
+            // Fall back to kendo directly (required by Kendo TreeList widget)
+            if (window.kendo && window.kendo.data && typeof window.kendo.data.TreeListDataSource === "function") {
+                try { return new window.kendo.data.TreeListDataSource(dsConfig); } catch (e) {}
+            }
             return dsConfig;
         },
 
         _initTreeList: function (initialData) {
             var browser = this;
+
+            // Always use the captured containerElem — re-searching the DOM via
+            // _getContainer() can silently fail if the drawer moved the element.
             var container = this._getContainer();
             if (!container || !container.length) {
                 return;
             }
 
+            // Ensure the template HTML is present inside the container
             var elem = container.find("#address-space-treelist");
             if (!elem.length) {
-                this.render();
-                container = this._getContainer();
-                elem = container ? container.find("#address-space-treelist") : $();
+                var html = AddressSpaceTemplate({ nls: this.nls });
+                container.html(html);
+                // Re-bind UI widgets that render() normally sets up
+                this.waitWidget = uilayer.wait({ elem: container.find(".address-space-loading-container"), isTransparent: true });
+                elem = container.find("#address-space-treelist");
             }
             if (!elem.length) {
                 return;
             }
 
+            // Destroy any stale widget instance
             var existingTree = this._getTreeWidget();
             if (existingTree && typeof existingTree.destroy === "function") {
-                existingTree.destroy();
+                try { existingTree.destroy(); } catch (e) {}
                 this.treeListWidget = null;
-                elem.empty();
             }
+            elem.empty();
 
             var dataList = initialData || browser.rawAddressSpaceNodes || [];
-            var dataSource = browser._createTreeListDataSource(dataList);
 
-            // Use a concrete pixel height. "100%" fails when the drawer
-            // is transitioning or the parent has display:none.
+            // Measure wrapper height; fall back to 400px so Kendo always
+            // gets a non-zero dimension even if the drawer is still animating.
             var wrapperElem = container.find(".address-space-treelist-wrapper");
             var wrapperHeight = wrapperElem.length ? wrapperElem.height() : 0;
             var treeHeight = (wrapperHeight && wrapperHeight > 50) ? wrapperHeight : 400;
 
-            this.treeListWidget = uilayer.treeList({
-                elem: elem,
-                dataSource: dataSource,
-                height: treeHeight,
-                columns: [
-                    {
-                        field: "displayName",
-                        title: browser.nls.Node || "Node",
-                        template: function (item) {
-                            var selectable = browser.isNodeSelectable(item);
-                            var itemId = (item.get ? item.get("id") : item.id) || "";
-                            var itemNodeId = (item.get ? item.get("nodeId") : item.nodeId) || "";
-                            var itemDisplayName = (item.get ? item.get("displayName") : item.displayName) || itemNodeId || "";
-                            var itemNodeClass = ((item.get ? item.get("nodeClass") : item.nodeClass) || "").toUpperCase();
+            var columns = [
+                {
+                    field: "displayName",
+                    title: browser.nls.Node || "Node",
+                    template: function (item) {
+                        var selectable = browser.isNodeSelectable(item);
+                        var itemId = (item.get ? item.get("id") : item.id) || "";
+                        var itemNodeId = (item.get ? item.get("nodeId") : item.nodeId) || "";
+                        var itemDisplayName = (item.get ? item.get("displayName") : item.displayName) || itemNodeId || "";
+                        var itemNodeClass = ((item.get ? item.get("nodeClass") : item.nodeClass) || "").toUpperCase();
 
-                            var isChecked = browser.selectedNode && (
-                                String(browser.selectedNode.id) === String(itemId) ||
-                                String(browser.selectedNode.nodeId) === String(itemNodeId)
-                            );
+                        var isChecked = browser.selectedNode && (
+                            String(browser.selectedNode.id) === String(itemId) ||
+                            String(browser.selectedNode.nodeId) === String(itemNodeId)
+                        );
 
-                            var icon = "eQ-fonts-folder";
-                            if (itemNodeClass === "METHOD" || itemNodeClass.indexOf("METHOD") !== -1) {
-                                icon = "eQ-fonts-process";
-                            } else if (itemNodeClass === "VARIABLE" || itemNodeClass === "VARIABLETYPE" || itemNodeClass === "PROPERTY" || itemNodeClass === "DATAVARIABLE") {
-                                icon = "eQ-fonts-variable";
-                            }
-
-                            var radioHtml = selectable
-                                ? "<input type='radio' name='addressSpaceRadio' class='address-space-node-radio ul-pad-1x-r' value='" +
-                                  _.escape(itemId) + "'" +
-                                  (isChecked ? " checked='checked'" : "") + "/>"
-                                : "";
-
-                            return radioHtml +
-                                "<span class='eQ-icon " + icon + " ul-pad-1x-r'></span>" +
-                                "<span class='address-space-node-title' title='" + _.escape(itemDisplayName) + "'>" +
-                                _.escape(itemDisplayName) + "</span>";
+                        var icon = "eQ-fonts-folder";
+                        if (itemNodeClass === "METHOD" || itemNodeClass.indexOf("METHOD") !== -1) {
+                            icon = "eQ-fonts-process";
+                        } else if (itemNodeClass === "VARIABLE" || itemNodeClass === "VARIABLETYPE" || itemNodeClass === "PROPERTY" || itemNodeClass === "DATAVARIABLE") {
+                            icon = "eQ-fonts-variable";
                         }
-                    },
-                    {
-                        field: "nodeClass",
-                        title: browser.nls.NodeClass || "Node Class",
-                        width: "110px",
-                        template: function (item) {
-                            var nc = (item.get ? item.get("nodeClass") : item.nodeClass) || "";
-                            return "<span class='ul-body-s-b address-space-nodeclass-badge'>" + _.escape(nc) + "</span>";
-                        }
-                    },
-                    {
-                        field: "nodeId",
-                        title: browser.nls.NodeId || "Node ID",
-                        width: "140px",
-                        template: function (item) {
-                            var nid = (item.get ? item.get("nodeId") : item.nodeId) || "";
-                            return "<span class='eq-common-ellipsis' title='" + _.escape(nid) + "'>" +
-                                _.escape(nid) + "</span>";
-                        }
+
+                        var radioHtml = selectable
+                            ? "<input type='radio' name='addressSpaceRadio' class='address-space-node-radio ul-pad-1x-r' value='" +
+                              _.escape(itemId) + "'" +
+                              (isChecked ? " checked='checked'" : "") + "/>"
+                            : "";
+
+                        return radioHtml +
+                            "<span class='eQ-icon " + icon + " ul-pad-1x-r'></span>" +
+                            "<span class='address-space-node-title' title='" + _.escape(itemDisplayName) + "'>" +
+                            _.escape(itemDisplayName) + "</span>";
                     }
-                ]
-            });
+                },
+                {
+                    field: "nodeClass",
+                    title: browser.nls.NodeClass || "Node Class",
+                    width: "110px",
+                    template: function (item) {
+                        var nc = (item.get ? item.get("nodeClass") : item.nodeClass) || "";
+                        return "<span class='ul-body-s-b address-space-nodeclass-badge'>" + _.escape(nc) + "</span>";
+                    }
+                },
+                {
+                    field: "nodeId",
+                    title: browser.nls.NodeId || "Node ID",
+                    width: "140px",
+                    template: function (item) {
+                        var nid = (item.get ? item.get("nodeId") : item.nodeId) || "";
+                        return "<span class='eq-common-ellipsis' title='" + _.escape(nid) + "'>" +
+                            _.escape(nid) + "</span>";
+                    }
+                }
+            ];
+
+            var dataSource = browser._createTreeListDataSource(dataList);
+            var initialized = false;
+
+            // ── Attempt 1: uilayer.treeList ──────────────────────────────────
+            if (typeof uilayer.treeList === "function") {
+                try {
+                    browser.treeListWidget = uilayer.treeList({
+                        elem: elem,
+                        dataSource: dataSource,
+                        height: treeHeight,
+                        columns: columns
+                    });
+                    initialized = !!(browser.treeListWidget);
+                } catch (e) {
+                    initialized = false;
+                }
+            }
+
+            // ── Attempt 2: kendo.ui.TreeList directly ─────────────────────────
+            if (!initialized && window.kendo && window.kendo.ui && window.kendo.ui.TreeList) {
+                try {
+                    var kendoDs = new window.kendo.data.TreeListDataSource({
+                        data: dataList,
+                        schema: {
+                            model: {
+                                id: "id",
+                                parentId: "parentId",
+                                hasChildren: "hasChildren",
+                                expanded: true,
+                                fields: {
+                                    id: { type: "string" },
+                                    parentId: { type: "string", nullable: true },
+                                    displayName: { type: "string" },
+                                    nodeClass: { type: "string" },
+                                    nodeId: { type: "string" },
+                                    hasChildren: { type: "boolean" }
+                                }
+                            }
+                        }
+                    });
+                    elem.kendoTreeList({ dataSource: kendoDs, height: treeHeight, columns: columns });
+                    browser.treeListWidget = { widget: elem.data("kendoTreeList") };
+                    initialized = true;
+                } catch (e) {
+                    initialized = false;
+                }
+            }
+
+            // ── Attempt 3: plain HTML table — guaranteed to render ─────────────
+            if (!initialized) {
+                browser._renderFallbackTable(container, dataList);
+            }
 
             browser._bindTreeEvents();
+        },
+
+        _renderFallbackTable: function (container, dataList) {
+            // Plain HTML table — no Kendo, no uilayer dependency, always visible.
+            var browser = this;
+            var nls = browser.nls;
+            var rows = (dataList || []).map(function (node) {
+                var selectable = browser.isNodeSelectable(node);
+                var radioCell = selectable
+                    ? "<td><input type='radio' name='addressSpaceRadio' class='address-space-node-radio' value='" + _.escape(node.id || "") + "'/></td>"
+                    : "<td></td>";
+                return "<tr>" + radioCell +
+                    "<td style='padding:4px 8px'>" + _.escape(node.displayName || node.nodeId || "") + "</td>" +
+                    "<td style='padding:4px 8px;width:110px'><span class='ul-body-s-b address-space-nodeclass-badge'>" + _.escape(node.nodeClass || "") + "</span></td>" +
+                    "<td style='padding:4px 8px;width:140px;word-break:break-all'>" + _.escape(node.nodeId || "") + "</td>" +
+                    "</tr>";
+            }).join("");
+
+            var table = "<table style='width:100%;border-collapse:collapse;font-size:0.85rem'>" +
+                "<thead><tr style='background:#f5f5f5'>" +
+                "<th style='width:30px;padding:4px 8px'></th>" +
+                "<th style='padding:4px 8px;text-align:left'>" + (nls.Node || "Node") + "</th>" +
+                "<th style='padding:4px 8px;width:110px;text-align:left'>" + (nls.NodeClass || "Class") + "</th>" +
+                "<th style='padding:4px 8px;width:140px;text-align:left'>" + (nls.NodeId || "Node ID") + "</th>" +
+                "</tr></thead><tbody>" + rows + "</tbody></table>";
+
+            var wrapper = container.find(".address-space-treelist-wrapper");
+            (wrapper.length ? wrapper : container.find("#address-space-treelist")).html(table);
         },
 
         _bindTreeEvents: function () {
