@@ -112,33 +112,45 @@ define(function (require) {
         _fetchAccessibleConnectionsList: function () {
             var allConnections = [];
 
-            var transportPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleTransportConnections", null, "json", null, true);
-            if (transportPromise && transportPromise.done) {
-                transportPromise.done(function (connectionsData) {
-                    if (connectionsData && Array.isArray(connectionsData)) {
-                        allConnections = allConnections.concat(connectionsData);
-                    }
-                });
+            try {
+                var transportPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleTransportConnections", null, "json", null, true);
+                if (transportPromise && transportPromise.done) {
+                    transportPromise.done(function (connectionsData) {
+                        if (connectionsData && Array.isArray(connectionsData)) {
+                            allConnections = allConnections.concat(connectionsData);
+                        }
+                    });
+                }
+            } catch (e) {
+                // Ignore failure
             }
 
             // 2. Fetch Accessible General Connections
-            var connPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
-            if (connPromise && connPromise.done) {
-                connPromise.done(function (connectionsData) {
-                    if (connectionsData && Array.isArray(connectionsData)) {
-                        allConnections = allConnections.concat(connectionsData);
-                    }
-                });
+            try {
+                var connPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
+                if (connPromise && connPromise.done) {
+                    connPromise.done(function (connectionsData) {
+                        if (connectionsData && Array.isArray(connectionsData)) {
+                            allConnections = allConnections.concat(connectionsData);
+                        }
+                    });
+                }
+            } catch (e) {
+                // Ignore failure
             }
 
             // 3. Fetch NonPlugin Connections (if any)
-            var nonPluginPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
-            if (nonPluginPromise && nonPluginPromise.done) {
-                nonPluginPromise.done(function (connectionsData) {
-                    if (connectionsData && Array.isArray(connectionsData)) {
-                        allConnections = allConnections.concat(connectionsData);
-                    }
-                });
+            try {
+                var nonPluginPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
+                if (nonPluginPromise && nonPluginPromise.done) {
+                    nonPluginPromise.done(function (connectionsData) {
+                        if (connectionsData && Array.isArray(connectionsData)) {
+                            allConnections = allConnections.concat(connectionsData);
+                        }
+                    });
+                }
+            } catch (e) {
+                // Ignore failure
             }
 
             return allConnections;
@@ -150,7 +162,11 @@ define(function (require) {
             var finalConnArr = [];
             var connectionVarDetails = [];
             if (globalSelf.processModel && ActivitiesUtility?.getConnectionAndRemainingVariableComponentDataSource) {
-                connectionVarDetails = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId).data();
+                try {
+                    connectionVarDetails = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId).data();
+                } catch (e) {
+                    connectionVarDetails = [];
+                }
             }
 
             _.each(connectionVarDetails, function (item) {
