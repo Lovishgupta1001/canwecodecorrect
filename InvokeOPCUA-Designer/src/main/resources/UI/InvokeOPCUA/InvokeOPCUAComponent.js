@@ -140,9 +140,18 @@ define(function (require) {
 
             this.$el.on("click", ".k-drawer-toggle, .k-splitbar", function () {
                 setTimeout(function () {
-                    var tree = globalSelf.addressSpaceBrowser?._getTreeWidget ? globalSelf.addressSpaceBrowser._getTreeWidget() : null;
-                    if (tree && typeof tree.resize === "function") {
-                        tree.resize();
+                    if (globalSelf.addressSpaceBrowser) {
+                        var browser = globalSelf.addressSpaceBrowser;
+                        if (browser.rawAddressSpaceNodes && browser.rawAddressSpaceNodes.length > 0) {
+                            var tree = browser._getTreeWidget ? browser._getTreeWidget() : null;
+                            if (!tree || !tree.dataSource) {
+                                browser._initTreeList(browser.rawAddressSpaceNodes);
+                            }
+                        }
+                        var activeTree = browser._getTreeWidget ? browser._getTreeWidget() : null;
+                        if (activeTree && typeof activeTree.resize === "function") {
+                            activeTree.resize();
+                        }
                     }
                 }, 150);
             });

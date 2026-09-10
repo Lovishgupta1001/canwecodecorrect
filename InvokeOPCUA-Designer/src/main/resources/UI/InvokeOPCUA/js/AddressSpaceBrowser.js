@@ -57,12 +57,23 @@ define([
             this._bindTreeEvents();
         },
 
+        _getContainer: function () {
+            if (this.globalSelf && this.globalSelf.$el) {
+                var el = this.globalSelf.$el.find("#invokeopcua-address-space-component");
+                if (el.length) {
+                    return el;
+                }
+            }
+            return this.containerElem || $(document).find("#invokeopcua-address-space-component");
+        },
+
         _getTreeWidget: function () {
             if (this.treeListWidget) {
                 return this.treeListWidget.widget || this.treeListWidget;
             }
-            if (this.containerElem) {
-                var elem = this.containerElem.find("#address-space-treelist");
+            var container = this._getContainer();
+            if (container && container.length) {
+                var elem = container.find("#address-space-treelist");
                 if (elem && elem.length) {
                     return elem.data("treeList") || elem.data("kendoTreeList") || elem;
                 }
@@ -102,7 +113,16 @@ define([
 
         _initTreeList: function (initialData) {
             var browser = this;
-            var elem = this.containerElem.find("#address-space-treelist");
+            var container = this._getContainer();
+            if (!container || !container.length) {
+                return;
+            }
+
+            var elem = container.find("#address-space-treelist");
+            if (!elem.length) {
+                this.render();
+                elem = container.find("#address-space-treelist");
+            }
             if (!elem.length) {
                 return;
             }
@@ -114,7 +134,8 @@ define([
                 elem.empty();
             }
 
-            var dataSource = browser._createTreeListDataSource(initialData || []);
+            var dataList = initialData || browser.rawAddressSpaceNodes || [];
+            var dataSource = browser._createTreeListDataSource(dataList);
 
             this.treeListWidget = uilayer.treeList({
                 elem: elem,
@@ -126,25 +147,33 @@ define([
                         title: browser.nls.Node || "Node",
                         template: function (item) {
                             var selectable = browser.isNodeSelectable(item);
-                            var isChecked = browser.selectedNode && (String(browser.selectedNode.id) === String(item.id) || String(browser.selectedNode.nodeId) === String(item.nodeId));
-                            var nc = (item.nodeClass || "").toUpperCase();
+                            var itemId = (item.get ? item.get("id") : item.id) || "";
+                            var itemNodeId = (item.get ? item.get("nodeId") : item.nodeId) || "";
+                            var itemDisplayName = (item.get ? item.get("displayName") : item.displayName) || itemNodeId || "";
+                            var itemNodeClass = ((item.get ? item.get("nodeClass") : item.nodeClass) || "").toUpperCase();
+
+                            var isChecked = browser.selectedNode && (
+                                String(browser.selectedNode.id) === String(itemId) ||
+                                String(browser.selectedNode.nodeId) === String(itemNodeId)
+                            );
+
                             var icon = "eQ-fonts-folder";
-                            if (nc === "METHOD" || nc.indexOf("METHOD") !== -1) {
+                            if (itemNodeClass === "METHOD" || itemNodeClass.indexOf("METHOD") !== -1) {
                                 icon = "eQ-fonts-process";
-                            } else if (nc === "VARIABLE" || nc === "VARIABLETYPE" || nc === "PROPERTY" || nc === "DATAVARIABLE") {
+                            } else if (itemNodeClass === "VARIABLE" || itemNodeClass === "VARIABLETYPE" || itemNodeClass === "PROPERTY" || itemNodeClass === "DATAVARIABLE") {
                                 icon = "eQ-fonts-variable";
                             }
 
                             var radioHtml = selectable
                                 ? "<input type='radio' name='addressSpaceRadio' class='address-space-node-radio ul-pad-1x-r' value='" +
-                                  _.escape(item.id) + "'" +
+                                  _.escape(itemId) + "'" +
                                   (isChecked ? " checked='checked'" : "") + "/>"
                                 : "";
 
                             return radioHtml +
                                 "<span class='eQ-icon " + icon + " ul-pad-1x-r'></span>" +
-                                "<span class='address-space-node-title' title='" + _.escape(item.displayName || item.nodeId) + "'>" +
-                                _.escape(item.displayName || item.nodeId) + "</span>";
+                                "<span class='address-space-node-title' title='" + _.escape(itemDisplayName) + "'>" +
+                                _.escape(itemDisplayName) + "</span>";
                         }
                     },
                     {
@@ -152,7 +181,8 @@ define([
                         title: browser.nls.NodeClass || "Node Class",
                         width: "110px",
                         template: function (item) {
-                            return "<span class='ul-body-s-b address-space-nodeclass-badge'>" + _.escape(item.nodeClass || "") + "</span>";
+                            var nc = (item.get ? item.get("nodeClass") : item.nodeClass) || "";
+                            return "<span class='ul-body-s-b address-space-nodeclass-badge'>" + _.escape(nc) + "</span>";
                         }
                     },
                     {
@@ -160,12 +190,15 @@ define([
                         title: browser.nls.NodeId || "Node ID",
                         width: "140px",
                         template: function (item) {
-                            return "<span class='eq-common-ellipsis' title='" + _.escape(item.nodeId || "") + "'>" +
-                                _.escape(item.nodeId || "") + "</span>";
+                            var nid = (item.get ? item.get("nodeId") : item.nodeId) || "";
+                            return "<span class='eq-common-ellipsis' title='" + _.escape(nid) + "'>" +
+                                _.escape(nid) + "</span>";
                         }
                     }
                 ]
             });
+
+            browser._bindTreeEvents();
         },
 
         _bindTreeEvents: function () {
@@ -285,13 +318,33 @@ define([
                     ? (this.nls.SelectParentObject || "Select Parent Object")
                     : (this.nls.SelectVariableNode || this.nls.SelectNode || "Select Node");
 
-            this.containerElem.find("#address-space-select-btn").text(actionLabel);
+            var container = this._getContainer();
+            if (container && container.length) {
+                container.find("#address-space-select-btn").text(actionLabel);
+            }
 
             this.selectedNode = null;
             this._updateActionButtonState();
 
             if (this.globalSelf.addressSpaceDrawer) {
                 this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
+            }
+
+            if (!this.connectionData || !this.connectionData.connectionId) {
+                uilayer.notifier("warning", this.nls.SelectConnection || "Please select a connection.");
+                return;
+            }
+
+            var currentConnId = this.connectionData.connectionId;
+            var hasNodes = browser.rawAddressSpaceNodes && browser.rawAddressSpaceNodes.length > 0;
+
+            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId) || !hasNodes) {
+                this._fetchRootAddressSpace(function () {
+                    browser._preselectTargetNode();
+                });
+            } else {
+                browser._initTreeList(browser.rawAddressSpaceNodes);
+                browser._preselectTargetNode();
             }
 
             setTimeout(function () {
@@ -307,21 +360,6 @@ define([
                     tree.resize();
                 }
             }, 350);
-
-            if (!this.connectionData || !this.connectionData.connectionId) {
-                uilayer.notifier("warning", this.nls.SelectConnection || "Please select a connection.");
-                return;
-            }
-
-            var currentConnId = this.connectionData.connectionId;
-            var hasNodes = Object.keys(this.allNodesMap || {}).length > 0;
-            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId) || !hasNodes) {
-                this._fetchRootAddressSpace(function () {
-                    browser._preselectTargetNode();
-                });
-            } else {
-                this._preselectTargetNode();
-            }
         },
 
         _preselectTargetNode: function () {
@@ -338,7 +376,10 @@ define([
             for (var id in this.allNodesMap) {
                 if (this.allNodesMap[id].nodeId === targetNodeId) {
                     this._selectNode(this.allNodesMap[id]);
-                    this.containerElem.find(".address-space-node-radio[value='" + id + "']").prop("checked", true);
+                    var container = this._getContainer();
+                    if (container && container.length) {
+                        container.find(".address-space-node-radio[value='" + id + "']").prop("checked", true);
+                    }
                     break;
                 }
             }
@@ -367,9 +408,9 @@ define([
                 browser.waitWidget.hide();
                 var data = (response && Array.isArray(response.data)) ? response.data : (Array.isArray(response) ? response : (response && response.data ? response.data : (response && Array.isArray(response.result) ? response.result : (response && Array.isArray(response.response) ? response.response : []))));
                 var flatList = browser._processNodes(data, null);
+                browser.rawAddressSpaceNodes = flatList;
 
                 browser._initTreeList(flatList);
-                browser._bindTreeEvents();
 
                 var activeTree = browser._getTreeWidget();
                 if (activeTree && typeof activeTree.resize === "function") {
@@ -462,6 +503,9 @@ define([
                 browser.waitWidget.hide();
                 var children = (response && Array.isArray(response.data)) ? response.data : (Array.isArray(response) ? response : (response && response.data ? response.data : []));
                 var flatChildren = browser._processNodes(children, parentNode.id);
+                if (browser.rawAddressSpaceNodes) {
+                    browser.rawAddressSpaceNodes = browser.rawAddressSpaceNodes.concat(flatChildren);
+                }
 
                 var tree = browser._getTreeWidget();
                 if (tree && tree.dataSource) {
