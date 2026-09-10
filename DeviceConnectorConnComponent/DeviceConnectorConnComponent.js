@@ -10,25 +10,32 @@ define(function (require) {
         ActivitiesUtility = require("Components/Activities/ActivitiesUtility/ActivitiesUtility"),
         model = require("./model/DeviceConnectorConnComponentModel"),
         template = require("tpl!./template/DeviceConnectorConnComponentTemplate"),
+        nls = require("i18n!./nls/DeviceConnectorConnComponentNLS"),
         Constants = require("./constants/Constants");
 
     var DeviceConnectorConnComponent = MIUIComponentI.extend({
         model: model,
         template: template,
-        nls: {},
+        nls: nls,
 
         events: {
             "click #refresh-connection-button": "_refreshConnection"
         },
 
+        initialize: function (options) {
+            if (this.onInitialize && !this._initialized) {
+                this._initialized = true;
+                this.onInitialize(options || {});
+            }
+        },
+
         onInitialize: function (options) {
+            this._initialized = true;
             this.activityId = options.activityId;
             this.activityReqres = options.activityReqres;
             this.designerReqres = options.reqres;
-            this.allowedTypes = options.allowedTypes || null;
-            this.pluginType = options.pluginType || null;
             this.processModel = this.designerReqres ? this.designerReqres.request("getCurrentActiveEntityModelFromDataStore") : null;
-            if (!this.model || typeof this.model.set !== "function") {
+            if (!this.model || !this.model.set) {
                 this.model = new model();
             }
             if (options.data) {
@@ -40,8 +47,34 @@ define(function (require) {
             }
         },
 
+        render: function () {
+            if (this.template) {
+                var data = (this.model && this.model.toJSON) ? this.model.toJSON() : {};
+                var renderedHtml = this.template;
+                if (renderedHtml.call) {
+                    renderedHtml = renderedHtml(data);
+                }
+                this.$el.html(renderedHtml);
+            }
+            this.onRender();
+            return this;
+        },
+
         onRender: function () {
             this._renderConnectionDropdown(Constants.fields.connectionComboBox);
+        },
+
+        highlightErrors: function (errorObjectList) {
+            if (!errorObjectList?.length) return;
+            var element = this.$el.find("#connectionComboBox").parent().find(".k-input, .k-dropdown-wrap");
+            if (!element.length) {
+                element = this.$el.find("#connectionComboBox");
+            }
+            errorObjectList.forEach(function (errorObject) {
+                if (!errorObject) return;
+                var message = errorObject.message || nls.messages.selectValidConnection || "Select a valid connection.";
+                this._showConnErrorTooltip(element, message);
+            }, this);
         },
 
         setData: function (obj) {
@@ -54,12 +87,16 @@ define(function (require) {
                 }
             }
 
-            var selectedConn = obj.connectionComboBox || obj.selectConnection || obj.connectionName;
+            var selectedConn = obj.connectionComboBox || obj.selectConnection || obj.connectionName || obj.connectionId;
             if (selectedConn && this.connectionComboBox) {
                 this.connectionComboBox.text(selectedConn);
                 var currentVal = this.connectionComboBox.value();
-                if (currentVal) {
-                    this._validateAndHandleConnection(currentVal, true);
+                if (!currentVal) {
+                    this.connectionComboBox.value(selectedConn);
+                    currentVal = this.connectionComboBox.value();
+                }
+                if (currentVal && currentVal !== Constants.NO_CONN_ID && currentVal !== "Select Connection") {
+                    this._handleConnectionChange(currentVal);
                 }
             }
         },
@@ -68,7 +105,7 @@ define(function (require) {
             var connText = "";
             if (this.connectionComboBox) {
                 var rawText = this.connectionComboBox.text();
-                if (rawText && rawText !== "Select Connection") {
+                if (rawText && rawText !== nls.messages.selectConnection && rawText !== "Select Connection") {
                     connText = rawText;
                 }
             }
@@ -84,7 +121,7 @@ define(function (require) {
 
         getSelectedConnection: function () {
             var connId = this.connectionComboBox ? this.connectionComboBox.value() : null;
-            return (connId && connId !== Constants.NO_CONN_ID) ? connId : null;
+            return (connId && connId !== Constants.NO_CONN_ID && connId !== "Select Connection") ? connId : null;
         },
 
         getConnectionData: function () {
@@ -111,26 +148,24 @@ define(function (require) {
 
         _fetchAccessibleConnectionsList: function () {
             var allConnections = [];
-
             var nonPluginPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
             if (nonPluginPromise && nonPluginPromise.done) {
                 nonPluginPromise.done(function (connectionsData) {
                     if (connectionsData && Array.isArray(connectionsData)) {
-                        allConnections = connectionsData;
+                        allConnections = allConnections.concat(connectionsData);
                     }
                 });
             }
-
             return allConnections;
         },
 
         _buildFinalConnectionArray: function () {
-            var globalSelf = this;
             var connectionsDetails = this._fetchAccessibleConnectionsList();
             var finalConnArr = [];
             var connectionVarDetails = [];
-            if (globalSelf.processModel && ActivitiesUtility && typeof ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource === "function") {
-                connectionVarDetails = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId).data();
+            if (this.processModel && ActivitiesUtility && ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource) {
+                var ds = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(this.processModel, this.activityId);
+                connectionVarDetails = ds ? ds.data() : [];
             }
 
             _.each(connectionVarDetails, function (item) {
@@ -138,8 +173,8 @@ define(function (require) {
                 connectionsDetails.forEach(function (connection) {
                     if (String(connection.connectionId) === String(item.connectionId)) {
                         item.connectionColor = connection.connectionColor;
-                        item.connectionType = connection.connectionType || connection.type;
-                        item.pluginType = connection.pluginType;
+                        item.connectionType = connection.connectionType || connection.type || "";
+                        item.pluginType = connection.pluginDisplayName || connection.pluginType || "";
                         finalConnArr.push(item);
                         flag = true;
                     }
@@ -151,27 +186,20 @@ define(function (require) {
 
             connectionsDetails.forEach(function (connection) {
                 var exists = finalConnArr.some(function (f) {
-                    return String(f.connectionId) === String(connection.connectionId !== undefined ? connection.connectionId : connection.id);
+                    return String(f.connectionId) === String(connection.connectionId != null ? connection.connectionId : connection.id);
                 });
                 if (!exists) {
                     finalConnArr.push({
                         key: connection.connectionName || connection.name || connection.key,
-                        connectionId: connection.connectionId !== undefined ? connection.connectionId : connection.id,
+                        connectionId: connection.connectionId != null ? connection.connectionId : connection.id,
                         connectionName: connection.connectionName || connection.name || connection.key,
-                        connectionColor: connection.connectionColor || "",
+                        connectionColor: connection.connectionColor || "rgb(226, 0, 132)",
                         connectionType: connection.connectionType || connection.type || "",
                         pluginType: connection.pluginDisplayName || connection.pluginType || "",
                         rawConnection: connection
                     });
                 }
             });
-
-            if (globalSelf.pluginType || globalSelf.allowedTypes) {
-                finalConnArr = finalConnArr.filter(function (item) {
-                    var cType = globalSelf._resolveConnectionType(item);
-                    return globalSelf._isConnectionAllowed(cType, item);
-                });
-            }
 
             return finalConnArr;
         },
@@ -196,45 +224,53 @@ define(function (require) {
                         text: item.key
                     });
                 },
-                optionLabel: "Select Connection",
+                optionLabel: nls.messages.selectConnection || "Select Connection",
                 select: function (e) {
                     if (!(e.dataItem?.connectionId)) {
                         e.preventDefault();
                     }
                 },
                 change: function () {
-                    globalSelf._validateAndHandleConnection(this.value(), false);
+                    globalSelf._handleConnectionChange(this.value());
                 }
             });
 
             var selectedConn = globalSelf.model.get(Constants.fields.connectionComboBox) ||
                 globalSelf.model.get("connectionName") ||
-                globalSelf.model.get("selectConnection");
+                globalSelf.model.get("selectConnection") ||
+                globalSelf.model.get("connectionId");
 
             if (selectedConn) {
                 globalSelf.connectionComboBox.text(selectedConn);
                 var currentVal = globalSelf.connectionComboBox.value();
-                if (currentVal) {
-                    globalSelf._validateAndHandleConnection(currentVal, true);
+                if (!currentVal) {
+                    globalSelf.connectionComboBox.value(selectedConn);
+                    currentVal = globalSelf.connectionComboBox.value();
+                }
+                if (currentVal && currentVal !== Constants.NO_CONN_ID && currentVal !== "Select Connection") {
+                    globalSelf._handleConnectionChange(currentVal);
                 }
             }
         },
 
-        _validateAndHandleConnection: function (connId, isInitial) {
+        _handleConnectionChange: function (connId) {
             var globalSelf = this;
             var element = globalSelf.$el.find("#connectionComboBox").parent().find(".k-input, .k-dropdown-wrap");
+            if (!element.length) {
+                element = globalSelf.$el.find("#connectionComboBox");
+            }
 
-            if (!connId || ((typeof connId === "string") && !parseInt(connId, 10))) {
+            if (!connId || connId === Constants.NO_CONN_ID || connId === "Select Connection") {
                 globalSelf.model.set("connectionType", "");
                 globalSelf.trigger(Constants.EVENTS.INVALID_CONNECTION_SELECTED);
-                if (connId && !isInitial) {
-                    globalSelf._showConnErrorTooltip(element, "Select a valid connection.");
-                }
                 return;
             }
 
+            globalSelf._hideConnErrorTooltip(element);
+
+            var connText = globalSelf.connectionComboBox ? globalSelf.connectionComboBox.text() : "";
             var connItem = null;
-            if (globalSelf.connectionComboBox?.dataSource) {
+            if (globalSelf.connectionComboBox && globalSelf.connectionComboBox.dataSource) {
                 var allItems = globalSelf.connectionComboBox.dataSource.data();
                 for (var i = 0; i < allItems.length; i++) {
                     var item = allItems[i];
@@ -245,73 +281,23 @@ define(function (require) {
                 }
             }
 
-            var connType = globalSelf._resolveConnectionType(connItem);
-            var isAllowed = globalSelf._isConnectionAllowed(connType, connItem);
+            var connName = connItem?.connectionName || connItem?.key || connText;
+            var connType = connItem?.connectionType || connItem?.type || connItem?.pluginType || "";
 
-            if (isAllowed) {
-                globalSelf._hideConnErrorTooltip(element);
+            globalSelf.model.set(Constants.fields.connectionComboBox, connText);
+            globalSelf.model.set("connectionName", connName);
+            globalSelf.model.set("connectionId", connId);
+            globalSelf.model.set("connectionType", connType);
+            globalSelf.model.set("pluginType", connItem?.pluginType || "");
+            globalSelf.model.set("selectConnection", connText || connId);
 
-                var connText = globalSelf.connectionComboBox ? globalSelf.connectionComboBox.text() : "";
-                var connName = connItem?.connectionName || connItem?.key || connText;
-
-                globalSelf.model.set(Constants.fields.connectionComboBox, connText);
-                globalSelf.model.set("connectionName", connName);
-                globalSelf.model.set("connectionId", connId);
-                globalSelf.model.set("connectionType", connType);
-                globalSelf.model.set("pluginType", connItem?.pluginType || "");
-                globalSelf.model.set("selectConnection", connText || connId);
-
-                globalSelf.trigger(Constants.EVENTS.CHANGE_CONNECTION_VARIABLE, {
-                    connectionId: connId,
-                    connectionName: connName,
-                    connectionType: connType,
-                    pluginType: connItem?.pluginType,
-                    connectionItem: connItem,
-                    isInitial: isInitial
-                });
-            } else {
-                globalSelf.model.set("connectionType", "");
-                globalSelf._showConnErrorTooltip(element, "Select a valid connection.");
-                if (!isInitial) {
-                    uilayer.notifier("error", "Select a valid connection.");
-                }
-                if (globalSelf.connectionComboBox) {
-                    globalSelf.connectionComboBox.value("");
-                }
-                globalSelf.trigger(Constants.EVENTS.INVALID_CONNECTION_SELECTED);
-            }
-        },
-
-        _isConnectionAllowed: function (connType, connItem) {
-            var allowed = this.pluginType || this.allowedTypes;
-            if (!allowed) {
-                return true;
-            }
-            if (Array.isArray(allowed) && allowed.length === 0) {
-                return true;
-            }
-            var allowedList = Array.isArray(allowed) ? allowed : [allowed];
-
-            var typeUpper = (connType || "").toUpperCase();
-            var pluginUpper = (connItem?.pluginType || connItem?.pluginDisplayName || "").toUpperCase();
-
-            return allowedList.some(function (item) {
-                if (!item) return false;
-                var allowedName = (typeof item === "object" ? (item.pluginType || item.name || item.type || "") : String(item)).toUpperCase();
-                if (!allowedName) return false;
-                return typeUpper === allowedName ||
-                    pluginUpper === allowedName ||
-                    (typeUpper && typeUpper.indexOf(allowedName) !== -1) ||
-                    (pluginUpper && pluginUpper.indexOf(allowedName) !== -1);
+            globalSelf.trigger(Constants.EVENTS.CHANGE_CONNECTION_VARIABLE, {
+                connectionId: connId,
+                connectionName: connName,
+                connectionType: connType,
+                pluginType: connItem?.pluginType,
+                connectionItem: connItem
             });
-        },
-
-        _resolveConnectionType: function (connItem) {
-            if (!connItem) {
-                return "";
-            }
-
-            return connItem.connectionType || connItem.type || connItem.pluginType || connItem.pluginDisplayName || connItem.pluginName || "";
         },
 
         _refreshConnection: function () {
@@ -322,28 +308,34 @@ define(function (require) {
                 this.connectionComboBox.setDataSource(finalConnArr);
 
                 var connId = this.connectionComboBox.value();
-                if (parseInt(connId, 10) > 0) {
-                    this._validateAndHandleConnection(connId, false);
+                if (connId && connId !== Constants.NO_CONN_ID && connId !== "Select Connection") {
+                    this._handleConnectionChange(connId);
                     this.trigger(Constants.EVENTS.REFRESH_CONNECTION, {
                         connectionId: connId,
+                        connectionName: globalSelf.connectionComboBox.text(),
                         connectionData: globalSelf.getConnectionData()
                     });
-                    uilayer.notifier("success", "Connections refreshed successfully.");
+                    uilayer.notifier("success", nls.messages.connectionsRefreshed || "Connections refreshed successfully.");
                 } else {
-                    uilayer.notifier("warning", "Select a valid connection.");
+                    uilayer.notifier("warning", nls.messages.selectValidConnection || "Select a valid connection.");
                 }
             }
         },
 
         _showConnErrorTooltip: function (element, message) {
             element.addErrorHighlightClass("components-error-red-highlight");
+            if (this.connErrorTooltip && this.connErrorTooltip.destroy) {
+                this.connErrorTooltip.destroy();
+            }
             this.connErrorTooltip = uilayer.tooltip({
                 elem: element,
                 autoHide: true,
                 showOn: "mouseenter",
                 position: "bottom",
                 show: function () {
-                    this.popup.wrapper.addClass("component-error-tooltip-message");
+                    if (this.popup && this.popup.wrapper) {
+                        this.popup.wrapper.addClass("component-error-tooltip-message");
+                    }
                 },
                 content: function () {
                     return "<div>" + message + "</div>";
@@ -352,9 +344,13 @@ define(function (require) {
         },
 
         _hideConnErrorTooltip: function (element) {
-            element.removeClass("components-error-red-highlight");
+            if (element) {
+                element.removeClass("components-error-red-highlight");
+            }
             if (this.connErrorTooltip) {
-                this.connErrorTooltip.destroy();
+                if (this.connErrorTooltip.destroy) {
+                    this.connErrorTooltip.destroy();
+                }
                 this.connErrorTooltip = null;
             }
         },
@@ -367,20 +363,27 @@ define(function (require) {
             this.activityId = null;
             this.designerReqres = null;
             this.processModel = null;
-            this.allowedTypes = null;
-            this.pluginType = null;
             if (this.connectionComboBox) {
-                this.connectionComboBox.destroy();
+                if (this.connectionComboBox.destroy) {
+                    this.connectionComboBox.destroy();
+                }
                 this.connectionComboBox = null;
+            }
+        },
+
+        destroy: function () {
+            this.onBeforeDestroy();
+            if (MIUIComponentI.prototype.destroy) {
+                MIUIComponentI.prototype.destroy.call(this);
+            } else if (Backbone.View.prototype.remove) {
+                this.remove();
             }
         }
     });
 
-    if (typeof window !== "undefined") {
-        window.DeviceConnectorConnComponent = DeviceConnectorConnComponent;
-    }
-    if (typeof MIUIComponent !== "undefined" && !MIUIComponent.DeviceConnectorConnComponent) {
-        MIUIComponent.DeviceConnectorConnComponent = function (options) {
+    window.DeviceConnectorConnComponent = DeviceConnectorConnComponent;
+    if (window.MIUIComponent && !window.MIUIComponent.DeviceConnectorConnComponent) {
+        window.MIUIComponent.DeviceConnectorConnComponent = function (options) {
             var deferred = $.Deferred();
             var comp = new DeviceConnectorConnComponent(options);
             comp.render();

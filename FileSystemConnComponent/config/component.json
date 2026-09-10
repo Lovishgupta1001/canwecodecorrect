@@ -1,0 +1,5 @@
+{ 
+  "ComponentName":"FileSystemConnComponent", 
+  "Path":"Components/Activities/FileSystemConnComponent/FileSystemConnComponent", 
+  "nls":"Components/Activities/FileSystemConnComponent/nls/FileSystemConnComponentNLS" 
+}
