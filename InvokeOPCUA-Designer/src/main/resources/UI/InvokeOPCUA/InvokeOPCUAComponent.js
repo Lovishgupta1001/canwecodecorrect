@@ -245,14 +245,12 @@ define(function (require) {
             var globalSelf = this;
             var container = this.$el.find("#invokeopcua-connection-component-container");
 
-            var connData = null;
+            var connData = {};
             var savedConn = this.model.getKey("connectionComboBox") || this.model.getKey("selectConnection") || this.model.getKey("connectionName");
             if (savedConn) {
-                connData = {
-                    connectionComboBox: savedConn,
-                    connectionName: savedConn,
-                    connectionId: this.model.getKey("connectionId") || ""
-                };
+                connData.connectionComboBox = savedConn;
+                connData.connectionName = savedConn;
+                connData.connectionId = this.model.getKey("connectionId") || "";
             }
 
             var connOptions = {

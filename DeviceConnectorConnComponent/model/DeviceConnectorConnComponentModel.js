@@ -4,9 +4,9 @@
 define(function (require) {
     "use strict";
 
-    var Backbone = require("backbone");
+    var BackboneRef = (window && window.Backbone) ? window.Backbone : require("backbone");
 
-    var DeviceConnectorConnModel = Backbone.Model.extend({
+    var DeviceConnectorConnModel = BackboneRef.Model.extend({
         defaults: {
             connectionComboBox: "",
             connectionName: "",

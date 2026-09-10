@@ -49,12 +49,25 @@ define(function (require) {
 
         render: function () {
             if (this.template) {
-                var data = (this.model && this.model.toJSON) ? this.model.toJSON() : {};
+                var data = {};
+                if (this.model) {
+                    if (this.model.toJSON) {
+                        data = this.model.toJSON();
+                    } else {
+                        data = this.model;
+                    }
+                }
+                if (!data) {
+                    data = {};
+                }
+                data.nls = this.nls || {};
                 var renderedHtml = this.template;
                 if (renderedHtml.call) {
                     renderedHtml = renderedHtml(data);
                 }
-                this.$el.html(renderedHtml);
+                if (renderedHtml) {
+                    this.$el.html(renderedHtml);
+                }
             }
             this.onRender();
             return this;
@@ -382,7 +395,8 @@ define(function (require) {
     });
 
     window.DeviceConnectorConnComponent = DeviceConnectorConnComponent;
-    if (window.MIUIComponent && !window.MIUIComponent.DeviceConnectorConnComponent) {
+    window.MIUIComponent = window.MIUIComponent || {};
+    if (!window.MIUIComponent.DeviceConnectorConnComponent) {
         window.MIUIComponent.DeviceConnectorConnComponent = function (options) {
             var deferred = $.Deferred();
             var comp = new DeviceConnectorConnComponent(options);
