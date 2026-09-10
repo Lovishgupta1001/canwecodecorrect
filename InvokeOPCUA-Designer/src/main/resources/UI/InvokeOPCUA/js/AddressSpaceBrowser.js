@@ -288,24 +288,29 @@ define([
             };
         },
 
+        isDrawerOpen: function () {
+            if (!this.globalSelf || !this.globalSelf.$el) {
+                return false;
+            }
+            var sec = this.globalSelf.$el.find("#invokeopcua-address-space-drawer-section");
+            return Boolean(sec.length && sec.is(":visible") && sec.width() > 50 && !sec.hasClass("ul-state-collapsed"));
+        },
+
         onConnectionChange: function (connectionData) {
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
             this.allNodesMap = {};
             this.loadedNodeIds = {};
             this.selectedNode = null;
+            this.lastFetchedConnId = null;
             this._updateActionButtonState();
 
-            if (this.connectionData && this.connectionData.connectionId) {
-                var currentConnId = this.connectionData.connectionId;
-                if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
-                    this._fetchRootAddressSpace();
-                }
-            } else {
-                this.lastFetchedConnId = null;
-                var tree = this._getTreeWidget();
-                if (tree && tree.setDataSource) {
-                    tree.setDataSource(this._createTreeDataSource([]));
-                }
+            var tree = this._getTreeWidget();
+            if (tree && tree.setDataSource) {
+                tree.setDataSource(this._createTreeDataSource([]));
+            }
+
+            if (this.isDrawerOpen() && this.connectionData && this.connectionData.connectionId) {
+                this._fetchRootAddressSpace();
             }
         },
 
@@ -314,8 +319,11 @@ define([
             this.targetMode = targetMode || "DATA_CHANGE_WRITE";
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
 
-            if (this.globalSelf.addressSpaceDrawer) {
+            if (this.globalSelf && this.globalSelf.addressSpaceDrawer && this.globalSelf.addressSpaceDrawer.expand) {
                 this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
+            }
+            if (this.globalSelf && this.globalSelf.$el) {
+                this.globalSelf.$el.find("#invokeopcua-address-space-drawer-section").removeClass("ul-state-collapsed");
             }
 
             this._ensureRendered();
@@ -333,12 +341,12 @@ define([
             var browser = this;
             setTimeout(function () {
                 var tree = browser._getTreeWidget();
-                if (tree && typeof tree.resize === "function") {
+                if (tree && tree.resize) {
                     tree.resize(true);
                 }
                 var wrapper = browser.containerElem.find(".address-space-treelist-wrapper");
                 var wh = wrapper.length ? wrapper.height() : 0;
-                if (wh > 50 && tree && typeof tree.setOptions === "function") {
+                if (wh > 50 && tree && tree.setOptions) {
                     tree.setOptions({ height: wh });
                 }
             }, 250);
@@ -357,17 +365,20 @@ define([
         },
 
         openOnDrawerExpand: function () {
+            if (this.globalSelf && this.globalSelf.$el) {
+                this.globalSelf.$el.find("#invokeopcua-address-space-drawer-section").removeClass("ul-state-collapsed");
+            }
             this._ensureRendered();
 
             var browser = this;
             setTimeout(function () {
                 var tree = browser._getTreeWidget();
-                if (tree && typeof tree.resize === "function") {
+                if (tree && tree.resize) {
                     tree.resize(true);
                 }
                 var wrapper = browser.containerElem.find(".address-space-treelist-wrapper");
                 var wh = wrapper.length ? wrapper.height() : 0;
-                if (wh > 50 && tree && typeof tree.setOptions === "function") {
+                if (wh > 50 && tree && tree.setOptions) {
                     tree.setOptions({ height: wh });
                 }
             }, 250);
@@ -698,8 +709,11 @@ define([
         },
 
         _closeDrawer: function () {
-            if (this.globalSelf.addressSpaceDrawer) {
+            if (this.globalSelf && this.globalSelf.addressSpaceDrawer && this.globalSelf.addressSpaceDrawer.collapse) {
                 this.globalSelf.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
+            }
+            if (this.globalSelf && this.globalSelf.$el) {
+                this.globalSelf.$el.find("#invokeopcua-address-space-drawer-section").addClass("ul-state-collapsed");
             }
         },
 

@@ -107,6 +107,18 @@ define(function (require) {
                 }
             });
 
+            if (this.addressSpaceDrawer && this.addressSpaceDrawer.collapse) {
+                this.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
+            }
+            containerElem.find("#invokeopcua-address-space-drawer-section").addClass("ul-state-collapsed");
+
+            setTimeout(function () {
+                if (globalSelf.addressSpaceDrawer && globalSelf.addressSpaceDrawer.collapse) {
+                    globalSelf.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
+                }
+                containerElem.find("#invokeopcua-address-space-drawer-section").addClass("ul-state-collapsed");
+            }, 100);
+
             this.$el.off("click.invokeopcuaDrawer").on("click.invokeopcuaDrawer",
                 ".ul-drawer-toggle, [class*='drawer-toggle'], [class*='toggle-handle'], [class*='toggleHandle'], [class*='splitbar']",
                 function () {
