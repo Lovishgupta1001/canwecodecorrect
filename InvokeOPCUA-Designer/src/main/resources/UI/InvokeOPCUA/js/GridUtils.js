@@ -231,8 +231,8 @@ define(function (require) {
                         "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
                         "</div>"
                         : "") +
-                    "<button type='button' class='ul-tertiary-button browse-data-change-btn' data-row-uid='" +
-                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>" +
+                    "<div role='button' class='ul-tertiary-button browse-data-change-btn' data-row-uid='" +
+                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</div>" +
                     "</div>" +
                     "</div>";
             };
@@ -271,8 +271,8 @@ define(function (require) {
                         "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
                         "</div>"
                         : "") +
-                    "<button type='button' class='ul-tertiary-button browse-call-method-btn' data-row-uid='" +
-                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>" +
+                    "<div role='button' class='ul-tertiary-button browse-call-method-btn' data-row-uid='" +
+                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</div>" +
                     "</div>" +
                     "</div>";
             };
@@ -317,8 +317,8 @@ define(function (require) {
                         "<input class='node-id-help-tooltip' data-help='" + _.escape(parentHelpText) + "'/>" +
                         "</div>"
                         : "") +
-                    "<button type='button' class='ul-tertiary-button browse-parent-object-btn' data-row-uid='" +
-                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>" +
+                    "<div role='button' class='ul-tertiary-button browse-parent-object-btn' data-row-uid='" +
+                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</div>" +
                     "</div>" +
                     "</div>";
             };
