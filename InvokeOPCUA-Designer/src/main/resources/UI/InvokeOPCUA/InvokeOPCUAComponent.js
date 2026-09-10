@@ -349,8 +349,8 @@ define(function (require) {
                 this._pluginTypes = pluginType;
                 deferred.resolve(pluginType);
             }.bind(this)).fail(function () {
-                deferred.resolve(["OPC UA", "OPCUA"]);
-            }.bind(this));
+                deferred.reject();
+            });
 
             return deferred.promise();
         },
@@ -368,47 +368,42 @@ define(function (require) {
             connData.connectionName = this.model.getKey("connectionName") || initialConn;
             connData.connectionId = this.model.getKey("connectionId") || (this.initialData && this.initialData.connectionId);
 
-            var compOptions = {
-                el: container,
-                activityId: this.activityId,
-                reqres: this.designerReqres,
-                activityReqres: this.activityReqres,
-                pluginType: this._pluginTypes || ["OPC UA", "OPCUA"],
-                data: connData
-            };
+            this._fetchPluginTypes().done(function (pluginType) {
+                var compOptions = {
+                    el: container,
+                    activityId: globalSelf.activityId,
+                    reqres: globalSelf.designerReqres,
+                    activityReqres: globalSelf.activityReqres,
+                    pluginType: pluginType,
+                    data: connData
+                };
 
-            var ConnComp = (typeof DeviceConnectorConnComponent === "function" ? DeviceConnectorConnComponent : null) ||
-                           (typeof window !== "undefined" && window.DeviceConnectorConnComponent) ||
-                           (typeof MIUIComponent !== "undefined" && MIUIComponent.DeviceConnectorConnComponent);
+                var ConnComp = (typeof DeviceConnectorConnComponent === "function" ? DeviceConnectorConnComponent : null) ||
+                               (typeof window !== "undefined" && window.DeviceConnectorConnComponent) ||
+                               (typeof MIUIComponent !== "undefined" && MIUIComponent.DeviceConnectorConnComponent);
 
-            if (typeof ConnComp === "function") {
-                if (ConnComp.prototype && ConnComp.prototype.render) {
-                    this.deviceConnComp = new ConnComp(compOptions);
-                    this.deviceConnComp.render();
-                    this._setupDeviceConnListeners();
-                } else {
-                    var promise = ConnComp(compOptions);
+                if (typeof ConnComp === "function") {
+                    if (ConnComp.prototype && ConnComp.prototype.render) {
+                        globalSelf.deviceConnComp = new ConnComp(compOptions);
+                        globalSelf.deviceConnComp.render();
+                        globalSelf._setupDeviceConnListeners();
+                    } else {
+                        var promise = ConnComp(compOptions);
+                        if (promise && promise.done) {
+                            promise.done(function (comp) {
+                                globalSelf.deviceConnComp = comp;
+                                globalSelf._setupDeviceConnListeners();
+                            });
+                        }
+                    }
+                } else if (typeof MIUIComponent !== "undefined" && typeof MIUIComponent.DeviceConnectorConnComponent === "function") {
+                    var promise = MIUIComponent.DeviceConnectorConnComponent(compOptions);
                     if (promise && promise.done) {
                         promise.done(function (comp) {
                             globalSelf.deviceConnComp = comp;
                             globalSelf._setupDeviceConnListeners();
                         });
                     }
-                }
-            } else if (typeof MIUIComponent !== "undefined" && typeof MIUIComponent.DeviceConnectorConnComponent === "function") {
-                var promise = MIUIComponent.DeviceConnectorConnComponent(compOptions);
-                if (promise && promise.done) {
-                    promise.done(function (comp) {
-                        globalSelf.deviceConnComp = comp;
-                        globalSelf._setupDeviceConnListeners();
-                    });
-                }
-            }
-
-            // In background, fetch plugin types from backend if available and update component
-            this._fetchPluginTypes().done(function (pluginTypes) {
-                if (globalSelf.deviceConnComp && pluginTypes) {
-                    globalSelf.deviceConnComp.pluginType = pluginTypes;
                 }
             });
         },

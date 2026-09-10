@@ -112,7 +112,6 @@ define(function (require) {
         _fetchAccessibleConnectionsList: function () {
             var allConnections = [];
 
-            // 1. Fetch Transport Connections (Device Connector, OPC UA, MQTT, etc.)
             var transportPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleTransportConnections", null, "json", null, true);
             if (transportPromise && transportPromise.done) {
                 transportPromise.done(function (connectionsData) {
