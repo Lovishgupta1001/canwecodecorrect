@@ -78,7 +78,8 @@ define([
             if (container && container.length) {
                 var elem = container.find("#address-space-treelist");
                 if (elem && elem.length) {
-                    return elem.data("treeList") || elem.data("kendoTreeList") || elem;
+                var treeListWidget = elem.data("treeList") || elem.data("ulTreeList") || elem;
+                    return treeListWidget;
                 }
             }
             return null;
@@ -108,9 +109,8 @@ define([
             if (typeof uilayer !== "undefined" && uilayer.data && typeof uilayer.data.TreeListDataSource === "function") {
                 return new uilayer.data.TreeListDataSource(dsConfig);
             }
-            if (typeof window !== "undefined" && window.kendo && window.kendo.data && typeof window.kendo.data.TreeListDataSource === "function") {
-                return new window.kendo.data.TreeListDataSource(dsConfig);
-            }
+            // Fallback: uilayer.data.TreeListDataSource is the only supported path.
+            // Direct window.kendo access is intentionally removed.
             return dsConfig;
         },
 
@@ -235,7 +235,12 @@ define([
             });
 
             this.containerElem.off("click", "#address-space-treelist tbody tr").on("click", "#address-space-treelist tbody tr", function (e) {
-                if ($(e.target).is(".k-icon, .k-i-expand, .k-i-collapse, input[type='radio']")) {
+                // Skip click events on tree expand/collapse toggles and radio inputs.
+                // Use a data-attribute guard that works regardless of Kendo's internal CSS classes.
+                var target = $(e.target);
+                if (target.is("input[type='radio']") ||
+                    target.closest(".k-i-expand, .k-i-collapse, .k-icon, [data-role='treelistexpand']").length ||
+                    target.hasClass("k-icon")) {
                     return;
                 }
                 var row = $(this);
@@ -280,11 +285,21 @@ define([
         },
 
         _updateActionButtonState: function () {
-            var btn = this.containerElem.find("#address-space-select-btn");
-            if (this.selectedNode && this.isNodeSelectable(this.selectedNode)) {
-                btn.removeAttr("disabled").removeClass("k-state-disabled");
+            // Use uilayer button's enable/disable API if the button widget is available,
+            // otherwise fall back to the HTML disabled attribute only (no kendo classes).
+            if (this.selectButton && typeof this.selectButton.enable === "function") {
+                if (this.selectedNode && this.isNodeSelectable(this.selectedNode)) {
+                    this.selectButton.enable();
+                } else {
+                    this.selectButton.enable(false);
+                }
             } else {
-                btn.attr("disabled", "disabled").addClass("k-state-disabled");
+                var btn = this.containerElem.find("#address-space-select-btn");
+                if (this.selectedNode && this.isNodeSelectable(this.selectedNode)) {
+                    btn.removeAttr("disabled");
+                } else {
+                    btn.attr("disabled", "disabled");
+                }
             }
         },
 

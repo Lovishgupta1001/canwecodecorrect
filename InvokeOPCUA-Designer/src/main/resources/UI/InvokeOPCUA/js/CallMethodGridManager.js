@@ -398,8 +398,8 @@ define([
             var contentHtml = "<div class='input-parameters-modal-wrapper ul-pad-2x'>" +
                 "<div class='input-parameters-modal-grid cvt-grid-div'></div>" +
                 "<div class='ul-pad-2x-t ul-flex-container ul-space-between'>" +
-                "<button type='button' class='k-button ul-primary-button input-params-save-btn'>" + globalSelf.nls.Save + "</button>" +
-                "<button type='button' class='k-button ul-secondary-button input-params-cancel-btn'>" + globalSelf.nls.Cancel + "</button>" +
+                "<button type='button' class='ul-primary-button input-params-save-btn'>" + globalSelf.nls.Save + "</button>" +
+                "<button type='button' class='ul-secondary-button input-params-cancel-btn'>" + globalSelf.nls.Cancel + "</button>" +
                 "</div>" +
                 "</div>";
 

@@ -151,7 +151,14 @@ define(function (require) {
 
         _validateAndHandleConnection: function (connId, globalSelf, isInitial) {
             var manager = this;
-            var element = globalSelf.$el.find("#connectionComboBox").parent().find(".k-input, .k-dropdown-wrap");
+            // Target the uilayer dropdownlist's wrapper element instead of Kendo-specific DOM classes.
+            var ddlElem = globalSelf.connectionComboBox
+                ? (globalSelf.connectionComboBox.element || globalSelf.$el.find("#connectionComboBox"))
+                : globalSelf.$el.find("#connectionComboBox");
+            var element = ddlElem.closest(".ul-input-container, .ul-dropdown-wrapper");
+            if (!element.length) {
+                element = ddlElem.parent();
+            }
 
             if (!connId || ((typeof connId === "string") && !parseInt(connId, 10))) {
                 manager.hideAllConfiguration(globalSelf);

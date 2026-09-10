@@ -231,7 +231,7 @@ define(function (require) {
                         "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
                         "</div>"
                         : "") +
-                    "<button type='button' class='k-button ul-tertiary-button browse-data-change-btn' data-row-uid='" +
+                    "<button type='button' class='ul-tertiary-button browse-data-change-btn' data-row-uid='" +
                     uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>" +
                     "</div>" +
                     "</div>";
@@ -271,7 +271,7 @@ define(function (require) {
                         "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
                         "</div>"
                         : "") +
-                    "<button type='button' class='k-button ul-tertiary-button browse-call-method-btn' data-row-uid='" +
+                    "<button type='button' class='ul-tertiary-button browse-call-method-btn' data-row-uid='" +
                     uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>" +
                     "</div>" +
                     "</div>";
@@ -317,7 +317,7 @@ define(function (require) {
                         "<input class='node-id-help-tooltip' data-help='" + _.escape(parentHelpText) + "'/>" +
                         "</div>"
                         : "") +
-                    "<button type='button' class='k-button ul-tertiary-button browse-parent-object-btn' data-row-uid='" +
+                    "<button type='button' class='ul-tertiary-button browse-parent-object-btn' data-row-uid='" +
                     uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>" +
                     "</div>" +
                     "</div>";
