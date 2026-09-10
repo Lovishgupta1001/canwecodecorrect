@@ -26,7 +26,8 @@ define([
             this._rendered = false;
             this.lastFetchedConnId = null;
 
-            // Defer all rendering and widget creation until the drawer is explicitly opened
+            // Render drawer contents immediately with empty treelist
+            this.render();
         },
 
         _ensureRendered: function () {
@@ -248,16 +249,22 @@ define([
 
         onConnectionChange: function (connectionData) {
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
-            this.lastFetchedConnId = null;
             this.allNodesMap = {};
             this.loadedNodeIds = {};
             this.selectedNode = null;
-            if (this._rendered) {
+            this._updateActionButtonState();
+
+            if (this.connectionData && this.connectionData.connectionId) {
+                var currentConnId = this.connectionData.connectionId;
+                if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
+                    this._fetchRootAddressSpace();
+                }
+            } else {
+                this.lastFetchedConnId = null;
                 var tree = this._getTreeWidget();
                 if (tree && tree.setDataSource) {
                     tree.setDataSource(this._createTreeDataSource([]));
                 }
-                this._updateActionButtonState();
             }
         },
 

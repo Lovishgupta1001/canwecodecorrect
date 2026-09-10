@@ -117,7 +117,6 @@ define(function (require) {
                         position: "right",
                         toggleHandle: true,
                         resizable: true,
-                        collapsed: true,
                         dimensionValue: "50%",
                         min: "30%",
                         max: "70%"
@@ -125,8 +124,6 @@ define(function (require) {
                 }
             });
 
-            // Ensure the drawer starts collapsed regardless of uilayer's default behaviour.
-            this.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
             this._bindDrawerEvents();
         },
 

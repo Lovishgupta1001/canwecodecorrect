@@ -259,6 +259,10 @@ define(function (require) {
             if (globalSelf.callMethodGrid?.widget?.dataSource) {
                 globalSelf.callMethodGrid.widget.dataSource.data([]);
             }
+
+            if (globalSelf.addressSpaceBrowser?.onConnectionChange) {
+                globalSelf.addressSpaceBrowser.onConnectionChange(null);
+            }
         },
 
         _showConnErrorTooltip: function (globalSelf, element, message) {
