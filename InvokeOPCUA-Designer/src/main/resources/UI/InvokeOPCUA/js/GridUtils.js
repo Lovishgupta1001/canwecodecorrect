@@ -198,6 +198,132 @@ define(function (require) {
             });
         },
 
+        getVariableNodeTemplate: function (globalSelf) {
+            return function (dataItem) {
+                var getVal = function (key) {
+                    return dataItem.get ? dataItem.get(key) : dataItem[key];
+                };
+
+                var name = (getVal("name") || "").trim();
+                var nodeId = (getVal("nodeId") || "").trim();
+
+                var displayText = "";
+                if (name && nodeId) {
+                    displayText = name + " (" + nodeId + ")";
+                } else if (nodeId) {
+                    displayText = "(" + nodeId + ")";
+                } else if (name) {
+                    displayText = name;
+                }
+
+                var rawHelpText = getVal("nodeIdHelpText") || getVal("nodeIdDetails") || getVal("nodeDetails");
+                var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId, false);
+                var hasSelection = !!(name || nodeId);
+                var uid = dataItem.uid || "";
+
+                return "<div class='invokeopcua-node-cell'>" +
+                    "<span class='invokeopcua-node-cell-text eq-common-ellipsis' title='" + _.escape(displayText) + "'>" +
+                    _.escape(displayText) +
+                    "</span>" +
+                    "<div class='invokeopcua-node-cell-actions'>" +
+                    (hasSelection
+                        ? "<div class='grid-help-container invokeopcua-info-icon'>" +
+                        "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
+                        "</div>"
+                        : "") +
+                    "<button type='button' class='k-button ul-tertiary-button browse-data-change-btn' data-row-uid='" +
+                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>" +
+                    "</div>" +
+                    "</div>";
+            };
+        },
+
+        getMethodNodeTemplate: function (globalSelf) {
+            return function (dataItem) {
+                var getVal = function (key) {
+                    return dataItem.get ? dataItem.get(key) : dataItem[key];
+                };
+
+                var name = (getVal("name") || "").trim();
+                var nodeId = (getVal("nodeId") || "").trim();
+
+                var displayText = "";
+                if (name && nodeId) {
+                    displayText = name + " (" + nodeId + ")";
+                } else if (nodeId) {
+                    displayText = "(" + nodeId + ")";
+                } else if (name) {
+                    displayText = name;
+                }
+
+                var rawHelpText = getVal("nodeIdHelpText") || getVal("nodeIdDetails") || getVal("nodeDetails");
+                var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId, true);
+                var hasSelection = !!(name || nodeId);
+                var uid = dataItem.uid || "";
+
+                return "<div class='invokeopcua-node-cell'>" +
+                    "<span class='invokeopcua-node-cell-text eq-common-ellipsis' title='" + _.escape(displayText) + "'>" +
+                    _.escape(displayText) +
+                    "</span>" +
+                    "<div class='invokeopcua-node-cell-actions'>" +
+                    (hasSelection
+                        ? "<div class='grid-help-container invokeopcua-info-icon'>" +
+                        "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
+                        "</div>"
+                        : "") +
+                    "<button type='button' class='k-button ul-tertiary-button browse-call-method-btn' data-row-uid='" +
+                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>" +
+                    "</div>" +
+                    "</div>";
+            };
+        },
+
+        getParentObjectNodeTemplate: function (globalSelf) {
+            return function (dataItem) {
+                var getVal = function (key) {
+                    return dataItem.get ? dataItem.get(key) : dataItem[key];
+                };
+
+                var objectName = (getVal("objectName") || "").trim();
+                var objectNodeId = (getVal("objectNodeId") || "").trim();
+
+                var displayText = "";
+                if (objectName && objectNodeId) {
+                    displayText = objectName + " (" + objectNodeId + ")";
+                } else if (objectNodeId) {
+                    displayText = "(" + objectNodeId + ")";
+                } else if (objectName) {
+                    displayText = objectName;
+                }
+
+                var parentHelpText = "<div class='ul-header-xxxs-b ul-pad-1x'>" + (globalSelf.nls.ParentObjectNode || "Parent Object Node") + "</div>";
+                if (objectName) {
+                    parentHelpText += "<div><span class='ul-body-m-b ul-pad-1x-r invokeopcua-label'>" + (globalSelf.nls.NodeName || "Node Name") + ":</span><span>" + _.escape(objectName) + "</span></div>";
+                }
+                if (objectNodeId) {
+                    parentHelpText += "<div><span class='ul-body-m-b ul-pad-1x-r invokeopcua-label'>" + (globalSelf.nls.ObjectNodeId || "Object Node ID") + ":</span><span>" + _.escape(objectNodeId) + "</span></div>";
+                }
+
+                var hasSelection = !!(objectName || objectNodeId);
+                var uid = dataItem.uid || "";
+
+                return "<div class='invokeopcua-node-cell'>" +
+                    "<span class='invokeopcua-node-cell-text eq-common-ellipsis' title='" + _.escape(displayText) + "'>" +
+                    _.escape(displayText) +
+                    "</span>" +
+                    "<div class='invokeopcua-node-cell-actions'>" +
+                    (hasSelection
+                        ? "<div class='grid-help-container invokeopcua-info-icon'>" +
+                        "<input class='node-id-help-tooltip' data-help='" + _.escape(parentHelpText) + "'/>" +
+                        "</div>"
+                        : "") +
+                    "<button type='button' class='k-button ul-tertiary-button browse-parent-object-btn' data-row-uid='" +
+                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</button>" +
+                    "</div>" +
+                    "</div>";
+            };
+        },
+
         getNodeIdTemplate: function (isMethodOrField) {
             var isMethod = isMethodOrField === true || isMethodOrField === "method" || isMethodOrField === "methodName";
             return function (dataItem) {

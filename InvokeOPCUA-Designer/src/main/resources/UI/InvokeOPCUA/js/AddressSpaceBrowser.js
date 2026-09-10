@@ -57,30 +57,67 @@ define([
             this._bindTreeEvents();
         },
 
-        _initTreeList: function () {
+        _getTreeWidget: function () {
+            if (this.treeListWidget) {
+                return this.treeListWidget.widget || this.treeListWidget;
+            }
+            if (this.containerElem) {
+                var elem = this.containerElem.find("#address-space-treelist");
+                if (elem && elem.length) {
+                    return elem.data("treeList") || elem.data("kendoTreeList") || elem;
+                }
+            }
+            return null;
+        },
+
+        _createTreeListDataSource: function (data) {
+            var dsConfig = {
+                data: data || [],
+                schema: {
+                    model: {
+                        id: "id",
+                        parentId: "parentId",
+                        hasChildren: "hasChildren",
+                        expanded: true,
+                        fields: {
+                            id: { type: "string" },
+                            parentId: { type: "string", nullable: true },
+                            displayName: { type: "string" },
+                            nodeClass: { type: "string" },
+                            nodeId: { type: "string" },
+                            hasChildren: { type: "boolean" }
+                        }
+                    }
+                }
+            };
+
+            if (typeof uilayer !== "undefined" && uilayer.data && typeof uilayer.data.TreeListDataSource === "function") {
+                return new uilayer.data.TreeListDataSource(dsConfig);
+            }
+            if (typeof uilayer !== "undefined" && uilayer.data && typeof uilayer.data.DataSource === "function") {
+                return new uilayer.data.DataSource(dsConfig);
+            }
+            return dsConfig;
+        },
+
+        _initTreeList: function (initialData) {
             var browser = this;
             var elem = this.containerElem.find("#address-space-treelist");
+            if (!elem.length) {
+                return;
+            }
+
+            var existingTree = this._getTreeWidget();
+            if (existingTree && typeof existingTree.destroy === "function") {
+                existingTree.destroy();
+                this.treeListWidget = null;
+                elem.empty();
+            }
 
             this.treeListWidget = uilayer.treeList({
                 elem: elem,
-                dataSource: new uilayer.data.TreeListDataSource({
-                    data: [],
-                    schema: {
-                        model: {
-                            id: "id",
-                            parentId: "parentId",
-                            fields: {
-                                id: { type: "string" },
-                                parentId: { type: "string", nullable: true },
-                                displayName: { type: "string" },
-                                nodeClass: { type: "string" },
-                                nodeId: { type: "string" },
-                                hasChildren: { type: "boolean" }
-                            }
-                        }
-                    }
-                }),
-                height: "calc(100% - 7rem)",
+                dataSource: browser._createTreeListDataSource(initialData || []),
+                height: "100%",
                 columns: [
                     {
                         field: "selection",
@@ -88,7 +125,7 @@ define([
                         width: "48px",
                         template: function (item) {
                             var selectable = browser.isNodeSelectable(item);
-                            var isChecked = browser.selectedNode && String(browser.selectedNode.id) === String(item.id);
+                            var isChecked = browser.selectedNode && (String(browser.selectedNode.id) === String(item.id) || String(browser.selectedNode.nodeId) === String(item.nodeId));
                             if (!selectable) {
                                 return "";
                             }
@@ -102,10 +139,11 @@ define([
                         title: browser.nls.Node || "Node",
                         expandable: true,
                         template: function (item) {
+                            var nc = (item.nodeClass || "").toUpperCase();
                             var icon = "eQ-fonts-folder";
-                            if (item.nodeClass === "Method") {
+                            if (nc === "METHOD" || nc.indexOf("METHOD") !== -1) {
                                 icon = "eQ-fonts-process";
-                            } else if (item.nodeClass === "Variable") {
+                            } else if (nc === "VARIABLE" || nc === "VARIABLETYPE" || nc === "PROPERTY" || nc === "DATAVARIABLE") {
                                 icon = "eQ-fonts-variable";
                             }
                             return "<span class='eQ-icon " + icon + " ul-pad-1x-r'></span>" +
@@ -136,9 +174,10 @@ define([
 
         _bindTreeEvents: function () {
             var browser = this;
-            var treeWidget = this.treeListWidget ? (this.treeListWidget.widget || this.treeListWidget) : null;
+            var treeWidget = this._getTreeWidget();
 
-            if (treeWidget?.bind) {
+            if (treeWidget && typeof treeWidget.bind === "function") {
+                treeWidget.unbind("expand");
                 treeWidget.bind("expand", function (e) {
                     var node = e.model;
                     if (node && node.needToFetchChildren && !browser.loadedNodeIds[node.nodeId]) {
@@ -147,9 +186,10 @@ define([
                 });
             }
 
-            this.containerElem.off("click", ".address-space-node-radio").on("click", ".address-space-node-radio", function () {
-                var nodeId = $(this).val();
-                var node = browser.allNodesMap[nodeId];
+            this.containerElem.off("click", ".address-space-node-radio").on("click", ".address-space-node-radio", function (e) {
+                e.stopPropagation();
+                var id = $(this).val();
+                var node = browser.allNodesMap[id];
                 if (node) {
                     browser._selectNode(node);
                 }
@@ -160,8 +200,8 @@ define([
                     return;
                 }
                 var row = $(this);
-                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
-                if (!tree?.dataItem) {
+                var tree = browser._getTreeWidget();
+                if (!tree || typeof tree.dataItem !== "function") {
                     return;
                 }
                 var node = tree.dataItem(row);
@@ -176,11 +216,21 @@ define([
             if (!node) {
                 return false;
             }
+            var nodeClass = (node.nodeClass || "").toUpperCase();
             if (this.targetMode === "DATA_CHANGE_WRITE") {
-                return node.nodeClass === "Variable";
+                if (nodeClass === "VARIABLE" || nodeClass === "VARIABLETYPE" || nodeClass === "PROPERTY" || nodeClass === "DATAVARIABLE") {
+                    return true;
+                }
+                if (nodeClass !== "OBJECT" && nodeClass !== "OBJECTTYPE" && nodeClass !== "FOLDER" && nodeClass !== "VIEW" && nodeClass !== "METHOD") {
+                    return !!node.nodeId && !node.hasChildren;
+                }
+                return false;
             }
             if (this.targetMode === "CALL_METHOD") {
-                return node.nodeClass === "Method";
+                return nodeClass === "METHOD" || nodeClass.indexOf("METHOD") !== -1;
+            }
+            if (this.targetMode === "PARENT_OBJECT") {
+                return nodeClass !== "METHOD";
             }
             return false;
         },
@@ -221,19 +271,23 @@ define([
                 return;
             }
             var currentConnId = this.connectionData.connectionId;
-            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
+            var hasNodes = Object.keys(this.allNodesMap || {}).length > 0;
+            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId) || !hasNodes) {
                 this._fetchRootAddressSpace();
             }
         },
 
         openForBrowse: function (targetRow, targetMode, connectionData) {
+            var browser = this;
             this.targetRow = targetRow;
             this.targetMode = targetMode || "DATA_CHANGE_WRITE";
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
 
             var actionLabel = (this.targetMode === "CALL_METHOD")
                 ? (this.nls.SelectMethod || "Select Method")
-                : (this.nls.SelectNode || "Select Node");
+                : (this.targetMode === "PARENT_OBJECT")
+                    ? (this.nls.SelectParentObject || "Select Parent Object")
+                    : (this.nls.SelectVariableNode || this.nls.SelectNode || "Select Node");
 
             this.containerElem.find("#address-space-select-btn").text(actionLabel);
 
@@ -244,14 +298,31 @@ define([
                 this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
             }
 
+            setTimeout(function () {
+                var tree = browser._getTreeWidget();
+                if (tree && typeof tree.resize === "function") {
+                    tree.resize();
+                }
+            }, 150);
+
+            setTimeout(function () {
+                var tree = browser._getTreeWidget();
+                if (tree && typeof tree.resize === "function") {
+                    tree.resize();
+                }
+            }, 350);
+
             if (!this.connectionData || !this.connectionData.connectionId) {
                 uilayer.notifier("warning", this.nls.SelectConnection || "Please select a connection.");
                 return;
             }
 
             var currentConnId = this.connectionData.connectionId;
-            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
-                this._fetchRootAddressSpace();
+            var hasNodes = Object.keys(this.allNodesMap || {}).length > 0;
+            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId) || !hasNodes) {
+                this._fetchRootAddressSpace(function () {
+                    browser._preselectTargetNode();
+                });
             } else {
                 this._preselectTargetNode();
             }
@@ -261,7 +332,9 @@ define([
             if (!this.targetRow) {
                 return;
             }
-            var targetNodeId = this.targetRow.get ? this.targetRow.get("nodeId") : this.targetRow.nodeId;
+            var targetNodeId = this.targetMode === "PARENT_OBJECT"
+                ? (this.targetRow.get ? this.targetRow.get("objectNodeId") : this.targetRow.objectNodeId)
+                : (this.targetRow.get ? this.targetRow.get("nodeId") : this.targetRow.nodeId);
             if (!targetNodeId) {
                 return;
             }
@@ -275,7 +348,7 @@ define([
             }
         },
 
-        _fetchRootAddressSpace: function () {
+        _fetchRootAddressSpace: function (onSuccess) {
             var browser = this;
             var payload = this._getEffectiveConnectionPayload();
             if (!payload || !payload.connectionId) {
@@ -296,29 +369,52 @@ define([
 
             promise.done(function (response) {
                 browser.waitWidget.hide();
-                var data = response?.data || response || [];
+                var data = (response && Array.isArray(response.data)) ? response.data : (Array.isArray(response) ? response : (response && response.data ? response.data : (response && Array.isArray(response.result) ? response.result : [])));
                 var flatList = browser._processNodes(data, null);
 
-                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
-                if (tree?.setDataSource) {
-                    var ds = new uilayer.data.TreeListDataSource({
-                        data: flatList,
-                        schema: {
-                            model: {
-                                id: "id",
-                                parentId: "parentId",
-                                fields: {
-                                    id: { type: "string" },
-                                    parentId: { type: "string", nullable: true },
-                                    displayName: { type: "string" },
-                                    nodeClass: { type: "string" },
-                                    nodeId: { type: "string" },
-                                    hasChildren: { type: "boolean" }
-                                }
-                            }
-                        }
-                    });
+                var tree = browser._getTreeWidget();
+                var updated = false;
+
+                if (tree && typeof tree.setDataSource === "function") {
+                    var ds = browser._createTreeListDataSource(flatList);
                     tree.setDataSource(ds);
+                    updated = true;
+                } else if (tree && tree.dataSource && typeof tree.dataSource.data === "function") {
+                    tree.dataSource.data(flatList);
+                    updated = true;
+                }
+
+                if (!updated) {
+                    browser._initTreeList(flatList);
+                }
+
+                browser._bindTreeEvents();
+
+                var activeTree = browser._getTreeWidget();
+                if (activeTree && typeof activeTree.resize === "function") {
+                    activeTree.resize();
+                }
+
+                setTimeout(function () {
+                    var t = browser._getTreeWidget();
+                    if (t && typeof t.resize === "function") {
+                        t.resize();
+                    }
+                }, 150);
+
+                // Automatically fetch children for root nodes so that top-level items are open and loaded
+                var rootNodesToFetch = flatList.filter(function (n) {
+                    return !n.parentId && n.needToFetchChildren && !browser.loadedNodeIds[n.nodeId];
+                });
+
+                if (rootNodesToFetch.length > 0) {
+                    rootNodesToFetch.forEach(function (rootNode) {
+                        browser._fetchChildren(rootNode);
+                    });
+                }
+
+                if (typeof onSuccess === "function") {
+                    onSuccess();
                 }
 
                 browser._preselectTargetNode();
@@ -326,6 +422,7 @@ define([
 
             promise.fail(function (e) {
                 browser.waitWidget.hide();
+                browser.lastFetchedConnId = null;
                 uilayer.notifier("error", browser.nls.ErrorFetchingAddressSpace || "Error while fetching address space.");
             });
         },
@@ -382,17 +479,22 @@ define([
 
             promise.done(function (response) {
                 browser.waitWidget.hide();
-                var children = response?.data || response || [];
+                var children = (response && Array.isArray(response.data)) ? response.data : (Array.isArray(response) ? response : (response && response.data ? response.data : []));
                 var flatChildren = browser._processNodes(children, parentNode.id);
 
-                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
-                if (tree?.dataSource) {
+                var tree = browser._getTreeWidget();
+                if (tree && tree.dataSource) {
                     flatChildren.forEach(function (childItem) {
                         if (!tree.dataSource.get(childItem.id)) {
                             tree.dataSource.add(childItem);
                         }
                     });
-                    parentNode.set("needToFetchChildren", false);
+                    if (typeof parentNode.set === "function") {
+                        parentNode.set("needToFetchChildren", false);
+                    }
+                    if (typeof tree.resize === "function") {
+                        tree.resize();
+                    }
                 }
             });
 
@@ -416,28 +518,44 @@ define([
                 this._closeDrawer();
             } else if (this.targetMode === "CALL_METHOD") {
                 this._populateCallMethodRow(row, node);
+            } else if (this.targetMode === "PARENT_OBJECT") {
+                this._populateParentObjectRow(row, node);
+                this._closeDrawer();
             }
         },
 
         _populateDataChangeRow: function (row, node) {
-            var displayName = node.displayName || "";
-            var name = displayName.replace(/\s/g, "");
+            var displayName = node.displayName || node.nodeId || "";
+            var name = displayName.replace(/\s+/g, "");
             var nodeId = node.nodeId || "";
             var sampleVal = node.value !== undefined ? String(node.value) : "";
+            var rawNode = node.rawNode || {};
 
             if (row.set) {
                 row.set("name", name);
                 row.set("nodeId", nodeId);
                 row.set("sampleValue", sampleVal);
+                if (rawNode.dataTypeName) {
+                    row.set("dataTypeName", rawNode.dataTypeName);
+                }
+                if (rawNode.dataTypeNodeId) {
+                    row.set("dataTypeNodeId", rawNode.dataTypeNodeId);
+                }
                 var curNewVal = row.get("newValue");
-                if (!curNewVal && node.value !== undefined) {
+                if (!curNewVal && node.value !== undefined && node.value !== "") {
                     row.set("newValue", GridUtils.getDefaultExpression(node.value));
                 }
             } else {
                 row.name = name;
                 row.nodeId = nodeId;
                 row.sampleValue = sampleVal;
-                if (!row.newValue && node.value !== undefined) {
+                if (rawNode.dataTypeName) {
+                    row.dataTypeName = rawNode.dataTypeName;
+                }
+                if (rawNode.dataTypeNodeId) {
+                    row.dataTypeNodeId = rawNode.dataTypeNodeId;
+                }
+                if (!row.newValue && node.value !== undefined && node.value !== "") {
                     row.newValue = GridUtils.getDefaultExpression(node.value);
                 }
             }
@@ -450,19 +568,26 @@ define([
 
         _populateCallMethodRow: function (row, node) {
             var browser = this;
-            var displayName = node.displayName || "";
-            var name = displayName.replace(/\s/g, "");
+            var displayName = node.displayName || node.nodeId || "";
+            var name = displayName.replace(/\s+/g, "");
             var nodeId = node.nodeId || "";
             var parentObjectNodeId = this._resolveParentNodeId(node);
+            var parentObjectName = this._resolveParentNodeName(node);
 
             if (row.set) {
                 row.set("name", name);
                 row.set("nodeId", nodeId);
                 row.set("objectNodeId", parentObjectNodeId);
+                row.set("objectName", parentObjectName);
             } else {
                 row.name = name;
                 row.nodeId = nodeId;
                 row.objectNodeId = parentObjectNodeId;
+                row.objectName = parentObjectName;
+            }
+
+            if (browser.globalSelf.callMethodGrid?.widget) {
+                browser.globalSelf.callMethodGrid.widget.refresh();
             }
 
             this.waitWidget.show();
@@ -509,6 +634,24 @@ define([
             });
         },
 
+        _populateParentObjectRow: function (row, node) {
+            var objectName = node.displayName || node.nodeId || "";
+            var objectNodeId = node.nodeId || "";
+
+            if (row.set) {
+                row.set("objectName", objectName);
+                row.set("objectNodeId", objectNodeId);
+            } else {
+                row.objectName = objectName;
+                row.objectNodeId = objectNodeId;
+            }
+
+            if (this.globalSelf.callMethodGrid?.widget) {
+                this.globalSelf.callMethodGrid.widget.refresh();
+                GridUtils.initializeGridHelpTooltips(this.globalSelf.$(".cvt-grid-div-call-method"));
+            }
+        },
+
         _resolveParentNodeId: function (node) {
             if (!node || !node.parentId) {
                 return "";
@@ -517,9 +660,17 @@ define([
             return parentNode ? (parentNode.nodeId || "") : "";
         },
 
+        _resolveParentNodeName: function (node) {
+            if (!node || !node.parentId) {
+                return "";
+            }
+            var parentNode = this.allNodesMap[node.parentId];
+            return parentNode ? (parentNode.displayName || parentNode.nodeId || "") : "";
+        },
+
         _onSearch: function (query) {
-            var tree = this.treeListWidget ? (this.treeListWidget.widget || this.treeListWidget) : null;
-            if (!tree?.dataSource) {
+            var tree = this._getTreeWidget();
+            if (!tree || !tree.dataSource) {
                 return;
             }
 

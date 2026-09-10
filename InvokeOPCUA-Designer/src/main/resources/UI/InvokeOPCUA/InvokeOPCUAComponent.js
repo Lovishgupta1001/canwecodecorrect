@@ -84,7 +84,15 @@ define(function (require) {
                 if (globalSelf.callMethodGrid?.widget) {
                     globalSelf.callMethodGrid.widget.resize();
                 }
-                globalSelf.addressSpaceDrawer?.resizeDrawer("invokeopcua-address-space-drawer-section", "50%");
+                var drawerElem = globalSelf.$el.find("#invokeopcua-address-space-drawer-section");
+                var isDrawerOpen = drawerElem.length && drawerElem.is(":visible") && drawerElem.width() > 50;
+                if (isDrawerOpen) {
+                    globalSelf.addressSpaceDrawer?.resizeDrawer("invokeopcua-address-space-drawer-section", "50%");
+                    var tree = globalSelf.addressSpaceBrowser?._getTreeWidget ? globalSelf.addressSpaceBrowser._getTreeWidget() : null;
+                    if (tree && typeof tree.resize === "function") {
+                        tree.resize();
+                    }
+                }
             });
 
             deferred.resolve();
@@ -93,8 +101,17 @@ define(function (require) {
         },
 
         _renderDrawer: function () {
+            var globalSelf = this;
+            var containerElem = this.$el.find("#invokeopcua-main-container");
+            if (!containerElem.length) {
+                containerElem = this.$("#invokeopcua-main-container");
+            }
+            if (!containerElem.length) {
+                containerElem = this.$el;
+            }
+
             this.addressSpaceDrawer = uilayer.drawer({
-                elem: this.$el.find("#invokeopcua-main-container"),
+                elem: containerElem,
                 section: {
                     "invokeopcua-address-space-drawer-section": {
                         position: "right",
@@ -105,6 +122,29 @@ define(function (require) {
                         max: "70%"
                     }
                 }
+            });
+
+            this.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
+
+            setTimeout(function () {
+                if (globalSelf.addressSpaceDrawer) {
+                    globalSelf.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
+                }
+            }, 50);
+
+            setTimeout(function () {
+                if (globalSelf.addressSpaceDrawer) {
+                    globalSelf.addressSpaceDrawer.collapse("invokeopcua-address-space-drawer-section");
+                }
+            }, 200);
+
+            this.$el.on("click", ".k-drawer-toggle, .k-splitbar", function () {
+                setTimeout(function () {
+                    var tree = globalSelf.addressSpaceBrowser?._getTreeWidget ? globalSelf.addressSpaceBrowser._getTreeWidget() : null;
+                    if (tree && typeof tree.resize === "function") {
+                        tree.resize();
+                    }
+                }, 150);
             });
         },
 
@@ -258,6 +298,7 @@ define(function (require) {
                 this.callMethodGrid.widget.dataSource.add({
                     name: "",
                     nodeId: "",
+                    objectName: "",
                     objectNodeId: "",
                     inputParameters: [],
                     outputValue: "",

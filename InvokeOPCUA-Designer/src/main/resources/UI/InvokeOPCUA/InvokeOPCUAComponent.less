@@ -334,6 +334,7 @@
         flex-direction: column;
 
         .k-treelist,
+        .k-grid,
         .ul-mi-treelist {
             height: 100% !important;
             width: 100% !important;
@@ -341,21 +342,26 @@
             display: flex;
             flex-direction: column;
             flex: 1 1 auto;
+            min-height: 0;
         }
 
-        .k-treelist-header {
+        .k-treelist-header,
+        .k-grid-header {
             flex: 0 0 auto;
         }
 
-        .k-treelist-content {
+        .k-treelist-content,
+        .k-grid-content,
+        .k-treelist-content-locked {
             flex: 1 1 auto !important;
-            height: 100% !important;
+            height: auto !important;
             min-height: 250px !important;
             overflow-y: auto !important;
             overflow-x: auto !important;
         }
 
-        .k-treelist-table {
+        .k-treelist-table,
+        table {
             table-layout: fixed !important;
             width: 100% !important;
         }
