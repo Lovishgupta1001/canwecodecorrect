@@ -132,7 +132,7 @@ define(function (require) {
             var drawerSection = this.$el.find("#invokeopcua-address-space-drawer-section");
 
             this.$el.off("click.invokeopcuaDrawer").on("click.invokeopcuaDrawer",
-                ".ul-drawer-toggle, .k-drawer-toggle, [class*='drawer-toggle'], [class*='toggle-handle'], [class*='toggleHandle'], .k-splitbar",
+                ".ul-drawer-toggle, [class*='drawer-toggle'], [class*='toggle-handle'], [class*='toggleHandle'], [class*='splitbar']",
                 function () {
                     setTimeout(function () {
                         var $sec = globalSelf.$el.find("#invokeopcua-address-space-drawer-section");
@@ -225,7 +225,7 @@ define(function (require) {
 
             var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
             if (tbody?.length) {
-                var checked = tbody.find("input:checked, .k-checkbox:checked");
+                var checked = tbody.find("input:checked");
                 if (checked.length) {
                     return checked.closest("tr");
                 }
@@ -580,7 +580,7 @@ define(function (require) {
 
             this.focusErrorComponent(element);
 
-            var dropdownWrapper = element.parent().find(".k-input, .k-dropdown-wrap, .k-widget");
+            var dropdownWrapper = element.parent().find(".ul-container, [class*='dropdown'], [class*='input']");
             var target = dropdownWrapper.length ? dropdownWrapper : element;
             target.addErrorHighlightClass("components-error-red-highlight");
             this.showErrorTooltip(errorObject, target);

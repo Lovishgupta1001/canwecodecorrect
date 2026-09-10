@@ -31,14 +31,13 @@ define([
         },
 
         _ensureRendered: function () {
-            if (this._rendered) {
-                return;
+            if (!this._rendered) {
+                this.render();
             }
-            this._rendered = true;
-            this.render();
         },
 
         render: function () {
+            this._rendered = true;
             var browser = this;
             var html = AddressSpaceTemplate({ nls: this.nls });
             this.containerElem.html(html);
@@ -69,7 +68,7 @@ define([
         },
 
         _createTreeDataSource: function (data) {
-            var config = {
+            return {
                 data: data || [],
                 schema: {
                     model: {
@@ -87,21 +86,6 @@ define([
                     }
                 }
             };
-
-            // 1. Try uilayer TreeListDataSource wrapper if available
-            if (typeof uilayer !== "undefined" && uilayer.data && typeof uilayer.data.TreeListDataSource === "function") {
-                try {
-                    return new uilayer.data.TreeListDataSource(config);
-                } catch (e) {}
-            }
-            // 2. Try window.kendo TreeListDataSource if available
-            if (typeof window !== "undefined" && window.kendo && window.kendo.data && typeof window.kendo.data.TreeListDataSource === "function") {
-                try {
-                    return new window.kendo.data.TreeListDataSource(config);
-                } catch (e) {}
-            }
-            // 3. Fallback: plain config object (Kendo and uilayer widgets accept plain dataSource config)
-            return config;
         },
 
         _getTreeWidget: function () {
@@ -111,7 +95,7 @@ define([
             if (this.containerElem) {
                 var elem = this.containerElem.find("#address-space-treelist");
                 if (elem.length) {
-                    return elem.data("kendoTreeList") || elem.data("ulTreeList") || null;
+                    return elem.data("ulTreeList") || null;
                 }
             }
             return null;
@@ -186,18 +170,15 @@ define([
         },
 
         _initTreeList: function (initialData) {
-            var browser = this;
             var elem = this.containerElem.find("#address-space-treelist");
             if (!elem.length) {
                 return;
             }
 
             if (this.treeListWidget) {
-                try {
-                    if (typeof this.treeListWidget.destroy === "function") {
-                        this.treeListWidget.destroy();
-                    }
-                } catch (e) {}
+                if (typeof this.treeListWidget.destroy === "function") {
+                    this.treeListWidget.destroy();
+                }
                 this.treeListWidget = null;
             }
             elem.empty();
@@ -205,33 +186,13 @@ define([
             var ds = this._createTreeDataSource(initialData || []);
             var columns = this._getTreeColumns();
 
-            // Attempt 1: uilayer.treeList (org's wrapper)
             if (typeof uilayer !== "undefined" && typeof uilayer.treeList === "function") {
-                try {
-                    this.treeListWidget = uilayer.treeList({
-                        elem: elem,
-                        dataSource: ds,
-                        height: 400,
-                        columns: columns
-                    });
-                } catch (e) {
-                    console.error("uilayer.treeList error:", e);
-                    this.treeListWidget = null;
-                }
-            }
-
-            // Attempt 2: elem.kendoTreeList (fallback if uilayer.treeList is unavailable or failed)
-            if (!this.treeListWidget && typeof elem.kendoTreeList === "function") {
-                try {
-                    elem.kendoTreeList({
-                        dataSource: ds,
-                        height: 400,
-                        columns: columns
-                    });
-                    this.treeListWidget = elem.data("kendoTreeList");
-                } catch (e) {
-                    console.error("elem.kendoTreeList error:", e);
-                }
+                this.treeListWidget = uilayer.treeList({
+                    elem: elem,
+                    dataSource: ds,
+                    height: 400,
+                    columns: columns
+                });
             }
         },
 
@@ -259,7 +220,7 @@ define([
             this.containerElem.off("click", "#address-space-treelist tbody tr").on("click", "#address-space-treelist tbody tr", function (e) {
                 var target = $(e.target);
                 if (target.is("input[type='radio']") ||
-                    target.closest(".k-i-expand, .k-i-collapse, .k-icon").length) {
+                    target.closest("[class*='expand'], [class*='collapse'], .eQ-icon").length) {
                     return;
                 }
                 var row = $(this);
@@ -346,11 +307,6 @@ define([
                     tree.setDataSource(this._createTreeDataSource([]));
                 }
             }
-        },
-
-        prefetchAddressSpace: function (connectionData) {
-            // Connection changed: update connection state without fetching while drawer is closed.
-            this.onConnectionChange(connectionData);
         },
 
         openForBrowse: function (targetRow, targetMode, connectionData) {

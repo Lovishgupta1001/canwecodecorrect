@@ -36,11 +36,6 @@ define(function (require) {
             ];
         },
 
-        getDeleteActionTemplate: function (nls) {
-            return "<span class='eQ-icon eQ-fonts-delete eq-cursor-pointer invokeopcua-delete-row' " +
-                "title='" + nls.Delete + "'></span>";
-        },
-
         renderGridSearchBar: function (searchClass, grid, fields, globalSelf, nls) {
             var searchElement = globalSelf.$("." + searchClass);
 
@@ -148,7 +143,7 @@ define(function (require) {
 
         _copyToClipboard: function (text) {
             if (navigator.clipboard?.writeText) {
-                navigator.clipboard.writeText(text).catch(function () {
+                navigator.clipboard.writeText(text).then(null, function () {
                     GridUtils._fallbackCopyText(text);
                 });
             } else {
@@ -320,33 +315,6 @@ define(function (require) {
                     "<div role='button' class='ul-tertiary-button browse-parent-object-btn' data-row-uid='" +
                     uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</div>" +
                     "</div>" +
-                    "</div>";
-            };
-        },
-
-        getNodeIdTemplate: function (isMethodOrField) {
-            var isMethod = isMethodOrField === true || isMethodOrField === "method" || isMethodOrField === "methodName";
-            return function (dataItem) {
-                var getVal = function (key) {
-                    return dataItem.get ? dataItem.get(key) : dataItem[key];
-                };
-
-                var nodeId = getVal("nodeId") || "";
-                var rawHelpText = getVal("nodeIdHelpText") || getVal("nodeIdDetails") || getVal("nodeDetails");
-                var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId, isMethod);
-                var selVal = getVal("name");
-                var hasSelection = !!(selVal || nodeId);
-
-                return "<div class='invokeopcua-info-cell'>" +
-                    "<span class='invokeopcua-info-cell-value' " +
-                    "title='" + _.escape(nodeId) + "'>" +
-                    _.escape(nodeId) +
-                    "</span>" +
-                    (hasSelection
-                        ? "<div class='grid-help-container invokeopcua-info-icon'>" +
-                        "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
-                        "</div>"
-                        : "") +
                     "</div>";
             };
         },
@@ -533,28 +501,6 @@ define(function (require) {
                     "title='" + _.escape(nls.ViewInputParameters) + "'>" +
                     count +
                     "</button>" +
-                    "</div>";
-            };
-        },
-
-        getEditableValueTemplate: function (field, iconClass) {
-            return function (dataItem) {
-                var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
-                var value = "";
-                if (typeof rawVal === "string") {
-                    value = rawVal;
-                } else if (rawVal && typeof rawVal === "object") {
-                    value = rawVal.value || rawVal.expression || "";
-                }
-                var isEmpty = !value;
-
-                return "<div class='invokeopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
-                    "<span class='invokeopcua-editable-cell-value' " +
-                    "title='" + _.escape(value) + "'>" +
-                    _.escape(value) +
-                    "</span>" +
-                    "<span class='eQ-icon eQ-fonts-edit eq-cursor-pointer invokeopcua-editable-cell-icon " +
-                    iconClass + "'></span>" +
                     "</div>";
             };
         }

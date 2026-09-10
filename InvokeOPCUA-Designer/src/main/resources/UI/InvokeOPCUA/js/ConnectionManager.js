@@ -151,7 +151,7 @@ define(function (require) {
 
         _validateAndHandleConnection: function (connId, globalSelf, isInitial) {
             var manager = this;
-            // Target the uilayer dropdownlist's wrapper element instead of Kendo-specific DOM classes.
+            // Target the uilayer dropdownlist's wrapper element.
             var ddlElem = globalSelf.connectionComboBox
                 ? (globalSelf.connectionComboBox.element || globalSelf.$el.find("#connectionComboBox"))
                 : globalSelf.$el.find("#connectionComboBox");
@@ -182,10 +182,6 @@ define(function (require) {
 
             manager._hideConnErrorTooltip(globalSelf, element);
             manager.showOpcUaConfiguration(globalSelf, connItem, connId, isInitial);
-        },
-
-        _getConnectionType: function (connItem) {
-            return "OPCUA";
         },
 
         showOpcUaConfiguration: function (globalSelf, connItem, connId, isInitial) {
