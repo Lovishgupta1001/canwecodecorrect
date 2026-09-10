@@ -53,183 +53,92 @@ define([
                 browser._onSearch($(this).val());
             });
 
-            // NOTE: Do NOT call _initTreeList() here.
-            // The drawer is collapsed at render time (display:none), so Kendo
-            // would compute 0x0 dimensions and render a blank widget.
-            // TreeList is initialized lazily on first openForBrowse().
+            this._initTreeList();
             this._bindTreeEvents();
         },
 
-        _getContainer: function () {
-            // Always prefer the saved containerElem — it's a direct DOM reference
-            // captured at init() time and is unaffected by drawer DOM movements.
-            if (this.containerElem && this.containerElem.length) {
-                return this.containerElem;
-            }
-            // Fallback: search the view's $el
-            if (this.globalSelf && this.globalSelf.$el) {
-                var el = this.globalSelf.$el.find("#invokeopcua-address-space-component");
-                if (el.length) {
-                    return el;
-                }
-            }
-            return $(document).find("#invokeopcua-address-space-component");
-        },
-
-        _getTreeWidget: function () {
-            if (this.treeListWidget) {
-                return this.treeListWidget.widget || this.treeListWidget;
-            }
-            var container = this._getContainer();
-            if (container && container.length) {
-                var elem = container.find("#address-space-treelist");
-                if (elem && elem.length) {
-                    return elem.data("kendoTreeList") || elem.data("treeList") || elem.data("ulTreeList") || null;
-                }
-            }
-            return null;
-        },
-
-        _createTreeListDataSource: function (data) {
-            var dsConfig = {
-                data: data || [],
-                schema: {
-                    model: {
-                        id: "id",
-                        parentId: "parentId",
-                        hasChildren: "hasChildren",
-                        expanded: true,
-                        fields: {
-                            id: { type: "string" },
-                            parentId: { type: "string", nullable: true },
-                            displayName: { type: "string" },
-                            nodeClass: { type: "string" },
-                            nodeId: { type: "string" },
-                            hasChildren: { type: "boolean" }
-                        }
-                    }
-                }
-            };
-
-            if (typeof uilayer !== "undefined" && uilayer.data && typeof uilayer.data.TreeListDataSource === "function") {
-                return new uilayer.data.TreeListDataSource(dsConfig);
-            }
-            return dsConfig;
-        },
-
-        _initTreeList: function (initialData) {
+        _initTreeList: function () {
             var browser = this;
+            var elem = this.containerElem.find("#address-space-treelist");
 
-            // Always use the captured containerElem — re-searching the DOM via
-            // _getContainer() can silently fail if the drawer moved the element.
-            var container = this._getContainer();
-            if (!container || !container.length) {
-                return;
-            }
-
-            // Ensure the template HTML is present inside the container
-            var elem = container.find("#address-space-treelist");
-            if (!elem.length) {
-                var html = AddressSpaceTemplate({ nls: this.nls });
-                container.html(html);
-                // Re-bind UI widgets that render() normally sets up
-                this.waitWidget = uilayer.wait({ elem: container.find(".address-space-loading-container"), isTransparent: true });
-                elem = container.find("#address-space-treelist");
-            }
-            if (!elem.length) {
-                return;
-            }
-
-            // Destroy any stale widget instance
-            var existingTree = this._getTreeWidget();
-            if (existingTree && typeof existingTree.destroy === "function") {
-                try { existingTree.destroy(); } catch (e) {}
-                this.treeListWidget = null;
-            }
-            elem.empty();
-
-            var dataList = initialData || browser.rawAddressSpaceNodes || [];
-
-            // Measure wrapper height; fall back to 400px so Kendo always
-            // gets a non-zero dimension even if the drawer is still animating.
-            var wrapperElem = container.find(".address-space-treelist-wrapper");
-            var wrapperHeight = wrapperElem.length ? wrapperElem.height() : 0;
-            var treeHeight = (wrapperHeight && wrapperHeight > 50) ? wrapperHeight : 400;
-
-            var columns = [
-                {
-                    field: "displayName",
-                    title: browser.nls.Node || "Node",
-                    template: function (item) {
-                        var selectable = browser.isNodeSelectable(item);
-                        var itemId = (item.get ? item.get("id") : item.id) || "";
-                        var itemNodeId = (item.get ? item.get("nodeId") : item.nodeId) || "";
-                        var itemDisplayName = (item.get ? item.get("displayName") : item.displayName) || itemNodeId || "";
-                        var itemNodeClass = ((item.get ? item.get("nodeClass") : item.nodeClass) || "").toUpperCase();
-
-                        var isChecked = browser.selectedNode && (
-                            String(browser.selectedNode.id) === String(itemId) ||
-                            String(browser.selectedNode.nodeId) === String(itemNodeId)
-                        );
-
-                        var icon = "eQ-fonts-folder";
-                        if (itemNodeClass === "METHOD" || itemNodeClass.indexOf("METHOD") !== -1) {
-                            icon = "eQ-fonts-process";
-                        } else if (itemNodeClass === "VARIABLE" || itemNodeClass === "VARIABLETYPE" || itemNodeClass === "PROPERTY" || itemNodeClass === "DATAVARIABLE") {
-                            icon = "eQ-fonts-variable";
-                        }
-
-                        var radioHtml = selectable
-                            ? "<input type='radio' name='addressSpaceRadio' class='address-space-node-radio ul-pad-1x-r' value='" +
-                              _.escape(itemId) + "'" +
-                              (isChecked ? " checked='checked'" : "") + "/>"
-                            : "";
-
-                        return radioHtml +
-                            "<span class='eQ-icon " + icon + " ul-pad-1x-r'></span>" +
-                            "<span class='address-space-node-title' title='" + _.escape(itemDisplayName) + "'>" +
-                            _.escape(itemDisplayName) + "</span>";
-                    }
-                },
-                {
-                    field: "nodeClass",
-                    title: browser.nls.NodeClass || "Node Class",
-                    width: "110px",
-                    template: function (item) {
-                        var nc = (item.get ? item.get("nodeClass") : item.nodeClass) || "";
-                        return "<span class='ul-body-s-b address-space-nodeclass-badge'>" + _.escape(nc) + "</span>";
-                    }
-                },
-                {
-                    field: "nodeId",
-                    title: browser.nls.NodeId || "Node ID",
-                    width: "140px",
-                    template: function (item) {
-                        var nid = (item.get ? item.get("nodeId") : item.nodeId) || "";
-                        return "<span class='eq-common-ellipsis' title='" + _.escape(nid) + "'>" +
-                            _.escape(nid) + "</span>";
-                    }
-                }
-            ];
-
-            var dataSource = browser._createTreeListDataSource(dataList);
-
-            browser.treeListWidget = uilayer.treeList({
+            this.treeListWidget = uilayer.treeList({
                 elem: elem,
-                dataSource: dataSource,
-                height: treeHeight,
-                columns: columns
+                dataSource: new uilayer.data.TreeListDataSource({
+                    data: [],
+                    schema: {
+                        model: {
+                            id: "id",
+                            parentId: "parentId",
+                            fields: {
+                                id: { type: "string" },
+                                parentId: { type: "string", nullable: true },
+                                displayName: { type: "string" },
+                                nodeClass: { type: "string" },
+                                nodeId: { type: "string" },
+                                hasChildren: { type: "boolean" }
+                            }
+                        }
+                    }
+                }),
+                height: "calc(100% - 7rem)",
+                columns: [
+                    {
+                        field: "selection",
+                        title: " ",
+                        width: "48px",
+                        template: function (item) {
+                            var selectable = browser.isNodeSelectable(item);
+                            var isChecked = browser.selectedNode && String(browser.selectedNode.id) === String(item.id);
+                            if (!selectable) {
+                                return "";
+                            }
+                            return "<input type='radio' name='addressSpaceRadio' class='address-space-node-radio' value='" +
+                                _.escape(item.id) + "'" +
+                                (isChecked ? " checked='checked'" : "") + "/>";
+                        }
+                    },
+                    {
+                        field: "displayName",
+                        title: browser.nls.Node || "Node",
+                        expandable: true,
+                        template: function (item) {
+                            var icon = "eQ-fonts-folder";
+                            if (item.nodeClass === "Method") {
+                                icon = "eQ-fonts-process";
+                            } else if (item.nodeClass === "Variable") {
+                                icon = "eQ-fonts-variable";
+                            }
+                            return "<span class='eQ-icon " + icon + " ul-pad-1x-r'></span>" +
+                                "<span class='address-space-node-title' title='" + _.escape(item.displayName || item.nodeId) + "'>" +
+                                _.escape(item.displayName || item.nodeId) + "</span>";
+                        }
+                    },
+                    {
+                        field: "nodeClass",
+                        title: browser.nls.NodeClass || "Node Class",
+                        width: "110px",
+                        template: function (item) {
+                            return "<span class='ul-body-s-b address-space-nodeclass-badge'>" + _.escape(item.nodeClass || "") + "</span>";
+                        }
+                    },
+                    {
+                        field: "nodeId",
+                        title: browser.nls.NodeId || "Node ID",
+                        width: "140px",
+                        template: function (item) {
+                            return "<span class='eq-common-ellipsis' title='" + _.escape(item.nodeId || "") + "'>" +
+                                _.escape(item.nodeId || "") + "</span>";
+                        }
+                    }
+                ]
             });
-
-            browser._bindTreeEvents();
         },
 
         _bindTreeEvents: function () {
             var browser = this;
-            var treeWidget = this._getTreeWidget();
+            var treeWidget = this.treeListWidget ? (this.treeListWidget.widget || this.treeListWidget) : null;
 
-            if (treeWidget && typeof treeWidget.bind === "function") {
-                treeWidget.unbind("expand");
+            if (treeWidget && treeWidget.bind) {
                 treeWidget.bind("expand", function (e) {
                     var node = e.model;
                     if (node && node.needToFetchChildren && !browser.loadedNodeIds[node.nodeId]) {
@@ -238,27 +147,23 @@ define([
                 });
             }
 
-            this.containerElem.off("click", ".address-space-node-radio").on("click", ".address-space-node-radio", function (e) {
-                e.stopPropagation();
-                var id = $(this).val();
-                var node = browser.allNodesMap[id];
+            this.containerElem.off("click", ".address-space-node-radio").on("click", ".address-space-node-radio", function () {
+                var nodeId = $(this).val();
+                var node = browser.allNodesMap[nodeId];
                 if (node) {
                     browser._selectNode(node);
                 }
             });
 
             this.containerElem.off("click", "#address-space-treelist tbody tr").on("click", "#address-space-treelist tbody tr", function (e) {
-                // Skip click events on tree expand/collapse toggles and radio inputs.
-                // Use a data-attribute guard that works regardless of Kendo's internal CSS classes.
                 var target = $(e.target);
                 if (target.is("input[type='radio']") ||
-                    target.closest(".k-i-expand, .k-i-collapse, .k-icon, [data-role='treelistexpand']").length ||
-                    target.hasClass("k-icon")) {
+                    target.closest(".k-i-expand, .k-i-collapse, .k-icon").length) {
                     return;
                 }
                 var row = $(this);
-                var tree = browser._getTreeWidget();
-                if (!tree || typeof tree.dataItem !== "function") {
+                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
+                if (!tree || !tree.dataItem) {
                     return;
                 }
                 var node = tree.dataItem(row);
@@ -273,21 +178,14 @@ define([
             if (!node) {
                 return false;
             }
-            var nodeClass = (node.nodeClass || "").toUpperCase();
             if (this.targetMode === "DATA_CHANGE_WRITE") {
-                if (nodeClass === "VARIABLE" || nodeClass === "VARIABLETYPE" || nodeClass === "PROPERTY" || nodeClass === "DATAVARIABLE") {
-                    return true;
-                }
-                if (nodeClass !== "OBJECT" && nodeClass !== "OBJECTTYPE" && nodeClass !== "FOLDER" && nodeClass !== "VIEW" && nodeClass !== "METHOD") {
-                    return !!node.nodeId && !node.hasChildren;
-                }
-                return false;
+                return node.nodeClass === "Variable";
             }
             if (this.targetMode === "CALL_METHOD") {
-                return nodeClass === "METHOD" || nodeClass.indexOf("METHOD") !== -1;
+                return node.nodeClass === "Method";
             }
             if (this.targetMode === "PARENT_OBJECT") {
-                return nodeClass !== "METHOD";
+                return node.nodeClass === "Object";
             }
             return false;
         },
@@ -298,17 +196,12 @@ define([
         },
 
         _updateActionButtonState: function () {
-            // Use uilayer button's enable/disable API if the button widget is available,
-            // otherwise fall back to the HTML disabled attribute only (no kendo classes).
+            var canSelect = !!(this.selectedNode && this.isNodeSelectable(this.selectedNode));
             if (this.selectButton && typeof this.selectButton.enable === "function") {
-                if (this.selectedNode && this.isNodeSelectable(this.selectedNode)) {
-                    this.selectButton.enable();
-                } else {
-                    this.selectButton.enable(false);
-                }
+                this.selectButton.enable(canSelect);
             } else {
                 var btn = this.containerElem.find("#address-space-select-btn");
-                if (this.selectedNode && this.isNodeSelectable(this.selectedNode)) {
+                if (canSelect) {
                     btn.removeAttr("disabled");
                 } else {
                     btn.attr("disabled", "disabled");
@@ -317,7 +210,8 @@ define([
         },
 
         _getEffectiveConnectionPayload: function () {
-            var connData = this.connectionData || (this.globalSelf?.getConnectionPayload ? this.globalSelf.getConnectionPayload() : null) || {};
+            var connData = this.connectionData ||
+                (this.globalSelf && this.globalSelf.getConnectionPayload ? this.globalSelf.getConnectionPayload() : null) || {};
             var connId = connData.connectionId;
             var connName = connData.connectionName || connData.name;
             if (!connId) {
@@ -338,34 +232,25 @@ define([
                 return;
             }
             var currentConnId = this.connectionData.connectionId;
-            var hasNodes = Object.keys(this.allNodesMap || {}).length > 0;
-            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId) || !hasNodes) {
+            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
                 this._fetchRootAddressSpace();
             }
         },
 
         openForBrowse: function (targetRow, targetMode, connectionData) {
-            var browser = this;
             this.targetRow = targetRow;
             this.targetMode = targetMode || "DATA_CHANGE_WRITE";
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
 
             var actionLabel = (this.targetMode === "CALL_METHOD")
                 ? (this.nls.SelectMethod || "Select Method")
-                : (this.targetMode === "PARENT_OBJECT")
-                    ? (this.nls.SelectParentObject || "Select Parent Object")
-                    : (this.nls.SelectVariableNode || this.nls.SelectNode || "Select Node");
+                : (this.nls.SelectNode || "Select Node");
 
-            var container = this._getContainer();
-            if (container && container.length) {
-                container.find("#address-space-select-btn").text(actionLabel);
-            }
+            this.containerElem.find("#address-space-select-btn").text(actionLabel);
 
             this.selectedNode = null;
             this._updateActionButtonState();
 
-            // Expand the drawer first, then init/refresh the TreeList after
-            // the drawer animation completes so Kendo can compute real dimensions.
             if (this.globalSelf.addressSpaceDrawer) {
                 this.globalSelf.addressSpaceDrawer.expand("invokeopcua-address-space-drawer-section");
             }
@@ -376,43 +261,18 @@ define([
             }
 
             var currentConnId = this.connectionData.connectionId;
-            var hasNodes = browser.rawAddressSpaceNodes && browser.rawAddressSpaceNodes.length > 0;
-
-            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId) || !hasNodes) {
-                // Fetch fresh data; TreeList will be (re)initialized inside _fetchRootAddressSpace.
-                this._fetchRootAddressSpace(function () {
-                    browser._preselectTargetNode();
-                });
+            if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
+                this._fetchRootAddressSpace();
             } else {
-                // Data already cached — re-init the TreeList once the drawer is open.
-                setTimeout(function () {
-                    browser._initTreeList(browser.rawAddressSpaceNodes);
-                    browser._preselectTargetNode();
-                    browser._forceTreeResize();
-                }, 150);
+                this._preselectTargetNode();
             }
-        },
-
-        _forceTreeResize: function () {
-            var browser = this;
-            var attempts = [100, 300, 600];
-            attempts.forEach(function (delay) {
-                setTimeout(function () {
-                    var tree = browser._getTreeWidget();
-                    if (tree && typeof tree.resize === "function") {
-                        tree.resize();
-                    }
-                }, delay);
-            });
         },
 
         _preselectTargetNode: function () {
             if (!this.targetRow) {
                 return;
             }
-            var targetNodeId = this.targetMode === "PARENT_OBJECT"
-                ? (this.targetRow.get ? this.targetRow.get("objectNodeId") : this.targetRow.objectNodeId)
-                : (this.targetRow.get ? this.targetRow.get("nodeId") : this.targetRow.nodeId);
+            var targetNodeId = this.targetRow.get ? this.targetRow.get("nodeId") : this.targetRow.nodeId;
             if (!targetNodeId) {
                 return;
             }
@@ -420,16 +280,13 @@ define([
             for (var id in this.allNodesMap) {
                 if (this.allNodesMap[id].nodeId === targetNodeId) {
                     this._selectNode(this.allNodesMap[id]);
-                    var container = this._getContainer();
-                    if (container && container.length) {
-                        container.find(".address-space-node-radio[value='" + id + "']").prop("checked", true);
-                    }
+                    this.containerElem.find(".address-space-node-radio[value='" + id + "']").prop("checked", true);
                     break;
                 }
             }
         },
 
-        _fetchRootAddressSpace: function (onSuccess) {
+        _fetchRootAddressSpace: function () {
             var browser = this;
             var payload = this._getEffectiveConnectionPayload();
             if (!payload || !payload.connectionId) {
@@ -450,40 +307,36 @@ define([
 
             promise.done(function (response) {
                 browser.waitWidget.hide();
-                var data = (response && Array.isArray(response.data)) ? response.data : (Array.isArray(response) ? response : (response && response.data ? response.data : (response && Array.isArray(response.result) ? response.result : (response && Array.isArray(response.response) ? response.response : []))));
+                var data = (response && response.data) ? response.data : (response || []);
                 var flatList = browser._processNodes(data, null);
-                browser.rawAddressSpaceNodes = flatList;
 
-                // Wait for the drawer to be fully visible before initializing
-                // the TreeList — otherwise Kendo computes 0px height.
-                setTimeout(function () {
-                    browser._initTreeList(flatList);
-                    browser._forceTreeResize();
-                }, 100);
-
-                // Prefetch children for root nodes
-                var rootNodesToFetch = flatList.filter(function (n) {
-                    return !n.parentId && n.needToFetchChildren && !browser.loadedNodeIds[n.nodeId];
-                });
-
-                if (rootNodesToFetch.length > 0) {
-                    setTimeout(function () {
-                        rootNodesToFetch.forEach(function (rootNode) {
-                            browser._fetchChildren(rootNode);
-                        });
-                    }, 250);
-                }
-
-                if (typeof onSuccess === "function") {
-                    onSuccess();
+                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
+                if (tree && tree.setDataSource) {
+                    var ds = new uilayer.data.TreeListDataSource({
+                        data: flatList,
+                        schema: {
+                            model: {
+                                id: "id",
+                                parentId: "parentId",
+                                fields: {
+                                    id: { type: "string" },
+                                    parentId: { type: "string", nullable: true },
+                                    displayName: { type: "string" },
+                                    nodeClass: { type: "string" },
+                                    nodeId: { type: "string" },
+                                    hasChildren: { type: "boolean" }
+                                }
+                            }
+                        }
+                    });
+                    tree.setDataSource(ds);
                 }
 
                 browser._preselectTargetNode();
             });
 
-            promise.fail(function (e) {
+            promise.fail(function () {
                 browser.waitWidget.hide();
-                browser.lastFetchedConnId = null;
                 uilayer.notifier("error", browser.nls.ErrorFetchingAddressSpace || "Error while fetching address space.");
             });
         },
@@ -540,29 +393,21 @@ define([
 
             promise.done(function (response) {
                 browser.waitWidget.hide();
-                var children = (response && Array.isArray(response.data)) ? response.data : (Array.isArray(response) ? response : (response && response.data ? response.data : []));
+                var children = (response && response.data) ? response.data : (response || []);
                 var flatChildren = browser._processNodes(children, parentNode.id);
-                if (browser.rawAddressSpaceNodes) {
-                    browser.rawAddressSpaceNodes = browser.rawAddressSpaceNodes.concat(flatChildren);
-                }
 
-                var tree = browser._getTreeWidget();
+                var tree = browser.treeListWidget ? (browser.treeListWidget.widget || browser.treeListWidget) : null;
                 if (tree && tree.dataSource) {
                     flatChildren.forEach(function (childItem) {
                         if (!tree.dataSource.get(childItem.id)) {
                             tree.dataSource.add(childItem);
                         }
                     });
-                    if (typeof parentNode.set === "function") {
-                        parentNode.set("needToFetchChildren", false);
-                    }
-                    if (typeof tree.resize === "function") {
-                        tree.resize();
-                    }
+                    parentNode.set("needToFetchChildren", false);
                 }
             });
 
-            promise.fail(function (e) {
+            promise.fail(function () {
                 browser.waitWidget.hide();
                 uilayer.notifier("error", browser.nls.ErrorFetchingChildren || "Error while fetching child nodes.");
             });
@@ -573,7 +418,6 @@ define([
                 return;
             }
 
-            var browser = this;
             var node = this.selectedNode;
             var row = this.targetRow;
 
@@ -589,42 +433,29 @@ define([
         },
 
         _populateDataChangeRow: function (row, node) {
-            var displayName = node.displayName || node.nodeId || "";
-            var name = displayName.replace(/\s+/g, "");
+            var displayName = node.displayName || "";
+            var name = displayName.replace(/\s/g, "");
             var nodeId = node.nodeId || "";
             var sampleVal = node.value !== undefined ? String(node.value) : "";
-            var rawNode = node.rawNode || {};
 
             if (row.set) {
                 row.set("name", name);
                 row.set("nodeId", nodeId);
                 row.set("sampleValue", sampleVal);
-                if (rawNode.dataTypeName) {
-                    row.set("dataTypeName", rawNode.dataTypeName);
-                }
-                if (rawNode.dataTypeNodeId) {
-                    row.set("dataTypeNodeId", rawNode.dataTypeNodeId);
-                }
                 var curNewVal = row.get("newValue");
-                if (!curNewVal && node.value !== undefined && node.value !== "") {
+                if (!curNewVal && node.value !== undefined) {
                     row.set("newValue", GridUtils.getDefaultExpression(node.value));
                 }
             } else {
                 row.name = name;
                 row.nodeId = nodeId;
                 row.sampleValue = sampleVal;
-                if (rawNode.dataTypeName) {
-                    row.dataTypeName = rawNode.dataTypeName;
-                }
-                if (rawNode.dataTypeNodeId) {
-                    row.dataTypeNodeId = rawNode.dataTypeNodeId;
-                }
-                if (!row.newValue && node.value !== undefined && node.value !== "") {
+                if (!row.newValue && node.value !== undefined) {
                     row.newValue = GridUtils.getDefaultExpression(node.value);
                 }
             }
 
-            if (this.globalSelf.dataChangeWriteGrid?.widget) {
+            if (this.globalSelf.dataChangeWriteGrid && this.globalSelf.dataChangeWriteGrid.widget) {
                 this.globalSelf.dataChangeWriteGrid.widget.refresh();
                 GridUtils.initializeGridHelpTooltips(this.globalSelf.$(".cvt-grid-div-data-change-write"));
             }
@@ -632,8 +463,8 @@ define([
 
         _populateCallMethodRow: function (row, node) {
             var browser = this;
-            var displayName = node.displayName || node.nodeId || "";
-            var name = displayName.replace(/\s+/g, "");
+            var displayName = node.displayName || "";
+            var name = displayName.replace(/\s/g, "");
             var nodeId = node.nodeId || "";
             var parentObjectNodeId = this._resolveParentNodeId(node);
             var parentObjectName = this._resolveParentNodeName(node);
@@ -650,8 +481,8 @@ define([
                 row.objectName = parentObjectName;
             }
 
-            if (browser.globalSelf.callMethodGrid?.widget) {
-                browser.globalSelf.callMethodGrid.widget.refresh();
+            if (this.globalSelf.callMethodGrid && this.globalSelf.callMethodGrid.widget) {
+                this.globalSelf.callMethodGrid.widget.refresh();
             }
 
             this.waitWidget.show();
@@ -662,7 +493,7 @@ define([
 
             promise.done(function (response) {
                 browser.waitWidget.hide();
-                var data = response?.data || response || {};
+                var data = (response && response.data) ? response.data : (response || {});
                 var inputArgs = data.inputArguments || data.inputParameters || [];
 
                 var params = inputArgs.map(function (arg) {
@@ -680,7 +511,7 @@ define([
                     row.inputParameters = params;
                 }
 
-                if (browser.globalSelf.callMethodGrid?.widget) {
+                if (browser.globalSelf.callMethodGrid && browser.globalSelf.callMethodGrid.widget) {
                     browser.globalSelf.callMethodGrid.widget.refresh();
                     GridUtils.initializeGridHelpTooltips(browser.globalSelf.$(".cvt-grid-div-call-method"));
                 }
@@ -690,7 +521,7 @@ define([
 
             promise.fail(function () {
                 browser.waitWidget.hide();
-                if (browser.globalSelf.callMethodGrid?.widget) {
+                if (browser.globalSelf.callMethodGrid && browser.globalSelf.callMethodGrid.widget) {
                     browser.globalSelf.callMethodGrid.widget.refresh();
                     GridUtils.initializeGridHelpTooltips(browser.globalSelf.$(".cvt-grid-div-call-method"));
                 }
@@ -699,7 +530,7 @@ define([
         },
 
         _populateParentObjectRow: function (row, node) {
-            var objectName = node.displayName || node.nodeId || "";
+            var objectName = node.displayName || "";
             var objectNodeId = node.nodeId || "";
 
             if (row.set) {
@@ -710,7 +541,7 @@ define([
                 row.objectNodeId = objectNodeId;
             }
 
-            if (this.globalSelf.callMethodGrid?.widget) {
+            if (this.globalSelf.callMethodGrid && this.globalSelf.callMethodGrid.widget) {
                 this.globalSelf.callMethodGrid.widget.refresh();
                 GridUtils.initializeGridHelpTooltips(this.globalSelf.$(".cvt-grid-div-call-method"));
             }
@@ -733,7 +564,7 @@ define([
         },
 
         _onSearch: function (query) {
-            var tree = this._getTreeWidget();
+            var tree = this.treeListWidget ? (this.treeListWidget.widget || this.treeListWidget) : null;
             if (!tree || !tree.dataSource) {
                 return;
             }
@@ -760,13 +591,21 @@ define([
         },
 
         onDestroy: function () {
-            this.containerElem?.off();
-            this.waitWidget?.destroy();
-            this.waitWidget = null;
-            this.selectButton?.destroy();
-            this.selectButton = null;
-            this.searchInput?.destroy();
-            this.searchInput = null;
+            if (this.containerElem) {
+                this.containerElem.off();
+            }
+            if (this.waitWidget) {
+                this.waitWidget.destroy();
+                this.waitWidget = null;
+            }
+            if (this.selectButton) {
+                this.selectButton.destroy();
+                this.selectButton = null;
+            }
+            if (this.searchInput) {
+                this.searchInput.destroy();
+                this.searchInput = null;
+            }
             if (this.treeListWidget) {
                 this.treeListWidget.destroy();
                 this.treeListWidget = null;
