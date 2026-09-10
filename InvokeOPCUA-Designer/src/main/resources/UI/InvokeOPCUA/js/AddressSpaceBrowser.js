@@ -176,7 +176,7 @@ define([
             }
 
             if (this.treeListWidget) {
-                if (typeof this.treeListWidget.destroy === "function") {
+                if (this.treeListWidget.destroy) {
                     this.treeListWidget.destroy();
                 }
                 this.treeListWidget = null;
@@ -186,7 +186,7 @@ define([
             var ds = this._createTreeDataSource(initialData || []);
             var columns = this._getTreeColumns();
 
-            if (typeof uilayer !== "undefined" && typeof uilayer.treeList === "function") {
+            if (uilayer && uilayer.treeList) {
                 this.treeListWidget = uilayer.treeList({
                     elem: elem,
                     dataSource: ds,
@@ -209,38 +209,45 @@ define([
                 });
             }
 
-            this.containerElem.off("click", ".address-space-node-radio").on("click", ".address-space-node-radio", function () {
-                var nodeId = $(this).val();
-                var node = browser.allNodesMap[nodeId];
-                if (node) {
+            this.containerElem.off("click.addressSpaceRadio change.addressSpaceRadio", ".address-space-node-radio")
+                .on("click.addressSpaceRadio change.addressSpaceRadio", ".address-space-node-radio", function () {
+                    var nodeId = $(this).val();
+                    var node = (browser.allNodesMap && browser.allNodesMap[nodeId]) ? browser.allNodesMap[nodeId] : { id: nodeId, nodeId: nodeId };
                     browser._selectNode(node);
-                }
-            });
+                });
 
-            this.containerElem.off("click", "#address-space-treelist tbody tr").on("click", "#address-space-treelist tbody tr", function (e) {
-                var target = $(e.target);
-                if (target.is("input[type='radio']") ||
-                    target.closest("[class*='expand'], [class*='collapse'], .eQ-icon").length) {
-                    return;
-                }
-                var row = $(this);
-                var tree = browser._getTreeWidget();
-                if (!tree || !tree.dataItem) {
-                    return;
-                }
-                var node = tree.dataItem(row);
-                if (node && browser.isNodeSelectable(node)) {
-                    browser._selectNode(node);
-                    row.find(".address-space-node-radio").prop("checked", true);
-                }
-            });
+            this.containerElem.off("click.addressSpaceRow", "#address-space-treelist tbody tr")
+                .on("click.addressSpaceRow", "#address-space-treelist tbody tr", function (e) {
+                    var target = $(e.target);
+                    if (target.closest("[class*='expand'], [class*='collapse'], .eQ-icon").length) {
+                        return;
+                    }
+                    var row = $(this);
+                    var tree = browser._getTreeWidget();
+                    if (!tree || !tree.dataItem) {
+                        return;
+                    }
+                    var node = tree.dataItem(row);
+                    if (node && browser.isNodeSelectable(node)) {
+                        browser._selectNode(node);
+                    }
+                });
+
+            this.containerElem.off("click.addressSpaceSelect", "#address-space-select-btn")
+                .on("click.addressSpaceSelect", "#address-space-select-btn", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!$(this).hasClass("ul-state-disabled") && !$(this).attr("disabled")) {
+                        browser._onSelectNodeClick();
+                    }
+                });
         },
 
         isNodeSelectable: function (node) {
             if (!node) {
                 return false;
             }
-            var nodeClass = (node.nodeClass || "").toUpperCase();
+            var nodeClass = (node.nodeClass || (node.get ? node.get("nodeClass") : "") || "").toUpperCase();
             if (this.targetMode === "DATA_CHANGE_WRITE") {
                 return nodeClass === "VARIABLE" || nodeClass === "VARIABLETYPE" || nodeClass === "PROPERTY";
             }
@@ -254,20 +261,45 @@ define([
         },
 
         _selectNode: function (node) {
-            this.selectedNode = node;
+            if (!node) {
+                return;
+            }
+            var id = node.id || (node.get ? node.get("id") : null);
+            var nodeId = node.nodeId || (node.get ? node.get("nodeId") : null);
+            var actualNode = null;
+            if (this.allNodesMap) {
+                actualNode = (id && this.allNodesMap[id]) || (nodeId && this.allNodesMap[nodeId]) || null;
+            }
+            if (!actualNode) {
+                actualNode = node;
+            }
+            this.selectedNode = actualNode;
+
+            var lookupId = actualNode.id || (actualNode.get ? actualNode.get("id") : null) || id;
+            if (lookupId) {
+                this.containerElem.find(".address-space-node-radio").prop("checked", false);
+                this.containerElem.find(".address-space-node-radio").filter(function () {
+                    return $(this).val() === String(lookupId);
+                }).prop("checked", true);
+            }
+
             this._updateActionButtonState();
         },
 
         _updateActionButtonState: function () {
-            var canSelect = !!(this.selectedNode && this.isNodeSelectable(this.selectedNode));
-            if (this.selectButton && typeof this.selectButton.enable === "function") {
+            var canSelect = Boolean(this.selectedNode && this.isNodeSelectable(this.selectedNode));
+            if (this.selectButton && this.selectButton.enable) {
                 this.selectButton.enable(canSelect);
             }
             var btn = this.containerElem.find("#address-space-select-btn");
+            var kendoBtn = btn.data ? btn.data("kendoButton") : null;
+            if (kendoBtn && kendoBtn.enable) {
+                kendoBtn.enable(canSelect);
+            }
             if (canSelect) {
-                btn.removeAttr("disabled").removeClass("ul-state-disabled");
+                btn.removeAttr("disabled").removeClass("ul-state-disabled k-state-disabled");
             } else {
-                btn.attr("disabled", "disabled").addClass("ul-state-disabled");
+                btn.attr("disabled", "disabled").addClass("ul-state-disabled k-state-disabled");
             }
         },
 
@@ -404,9 +436,8 @@ define([
             }
 
             for (var id in this.allNodesMap) {
-                if (this.allNodesMap[id].nodeId === targetNodeId) {
+                if (this.allNodesMap[id] && this.allNodesMap[id].nodeId === targetNodeId) {
                     this._selectNode(this.allNodesMap[id]);
-                    this.containerElem.find(".address-space-node-radio[value='" + id + "']").prop("checked", true);
                     break;
                 }
             }
@@ -419,7 +450,7 @@ define([
                 return;
             }
 
-            if (this.waitWidget && typeof this.waitWidget.show === "function") {
+            if (this.waitWidget && this.waitWidget.show) {
                 this.waitWidget.show();
             }
             this.allNodesMap = {};
@@ -434,7 +465,7 @@ define([
             );
 
             promise.done(function (response) {
-                if (browser.waitWidget && typeof browser.waitWidget.hide === "function") {
+                if (browser.waitWidget && browser.waitWidget.hide) {
                     browser.waitWidget.hide();
                 }
                 var data = (response && response.data) ? response.data : (response || []);
@@ -450,7 +481,7 @@ define([
                     tree.setDataSource(ds);
                 }
 
-                if (tree && typeof tree.resize === "function") {
+                if (tree && tree.resize) {
                     tree.resize(true);
                 }
 
@@ -458,7 +489,7 @@ define([
             });
 
             promise.fail(function () {
-                if (browser.waitWidget && typeof browser.waitWidget.hide === "function") {
+                if (browser.waitWidget && browser.waitWidget.hide) {
                     browser.waitWidget.hide();
                 }
                 uilayer.notifier("error", browser.nls.ErrorFetchingAddressSpace || "Error while fetching address space.");
@@ -475,7 +506,7 @@ define([
 
             nodes.forEach(function (node, index) {
                 var uniqueId = node.id || (parentId ? parentId + "_" + (node.nodeId || index) : (node.nodeId || "node_" + index));
-                var hasChildren = !!(node.needToFetchChildren || (node.children && node.children.length > 0));
+                var hasChildren = Boolean(node.needToFetchChildren || (node.children && node.children.length > 0));
 
                 var nodeItem = {
                     id: String(uniqueId),
@@ -483,14 +514,17 @@ define([
                     nodeId: node.nodeId || "",
                     displayName: node.displayName || node.nodeId || "",
                     nodeClass: node.nodeClass || "",
-                    needToFetchChildren: node.needToFetchChildren !== undefined ? node.needToFetchChildren : false,
+                    needToFetchChildren: (node.needToFetchChildren !== null && node.needToFetchChildren !== void 0) ? node.needToFetchChildren : false,
                     hasChildren: hasChildren,
-                    value: node.value !== undefined ? node.value : "",
+                    value: (node.value !== null && node.value !== void 0) ? node.value : "",
                     valueType: node.valueType || "",
                     rawNode: node
                 };
 
                 browser.allNodesMap[nodeItem.id] = nodeItem;
+                if (nodeItem.nodeId) {
+                    browser.allNodesMap[nodeItem.nodeId] = nodeItem;
+                }
                 flat.push(nodeItem);
 
                 if (node.children && node.children.length > 0) {
@@ -537,8 +571,41 @@ define([
             });
         },
 
+        _resolveCurrentTargetRow: function () {
+            var isDC = Boolean(this.globalSelf && this.globalSelf.$ && this.globalSelf.$(".data-change-write-radio").is(":checked"));
+            var gridObj = isDC ? this.globalSelf.dataChangeWriteGrid : this.globalSelf.callMethodGrid;
+            var grid = gridObj ? (gridObj.widget || gridObj) : null;
+            if (!grid) {
+                return null;
+            }
+            if (grid.select) {
+                var sel = grid.select();
+                if (sel && sel.length && grid.dataItem) {
+                    var item = grid.dataItem(sel);
+                    if (item) {
+                        return item;
+                    }
+                }
+            }
+            if (grid.dataSource && grid.dataSource.data) {
+                var data = grid.dataSource.data();
+                if (data && data.length) {
+                    return data[0];
+                }
+            }
+            return null;
+        },
+
         _onSelectNodeClick: function () {
-            if (!this.selectedNode || !this.targetRow) {
+            if (!this.selectedNode) {
+                return;
+            }
+
+            if (!this.targetRow) {
+                this.targetRow = this._resolveCurrentTargetRow();
+            }
+
+            if (!this.targetRow) {
                 return;
             }
 
@@ -557,39 +624,47 @@ define([
         },
 
         _populateDataChangeRow: function (row, node) {
-            var displayName = node.displayName || "";
+            if (!row || !node) {
+                return;
+            }
+            var displayName = (node.get ? node.get("displayName") : node.displayName) || "";
             var name = displayName.replace(/\s/g, "");
-            var nodeId = node.nodeId || "";
-            var sampleVal = node.value !== undefined ? String(node.value) : "";
+            var nodeId = (node.get ? node.get("nodeId") : node.nodeId) || "";
+            var val = (node.get ? node.get("value") : node.value);
+            var sampleVal = (val !== null && val !== void 0) ? String(val) : "";
 
             if (row.set) {
                 row.set("name", name);
                 row.set("nodeId", nodeId);
                 row.set("sampleValue", sampleVal);
-                var curNewVal = row.get("newValue");
-                if (!curNewVal && node.value !== undefined) {
-                    row.set("newValue", GridUtils.getDefaultExpression(node.value));
+                var curNewVal = row.get ? row.get("newValue") : row.newValue;
+                if (!curNewVal && val !== null && val !== void 0) {
+                    row.set("newValue", GridUtils.getDefaultExpression(val));
                 }
             } else {
                 row.name = name;
                 row.nodeId = nodeId;
                 row.sampleValue = sampleVal;
-                if (!row.newValue && node.value !== undefined) {
-                    row.newValue = GridUtils.getDefaultExpression(node.value);
+                if (!row.newValue && val !== null && val !== void 0) {
+                    row.newValue = GridUtils.getDefaultExpression(val);
                 }
             }
 
-            if (this.globalSelf.dataChangeWriteGrid && this.globalSelf.dataChangeWriteGrid.widget) {
-                this.globalSelf.dataChangeWriteGrid.widget.refresh();
+            var grid = this.globalSelf.dataChangeWriteGrid ? (this.globalSelf.dataChangeWriteGrid.widget || this.globalSelf.dataChangeWriteGrid) : null;
+            if (grid && grid.refresh) {
+                grid.refresh();
                 GridUtils.initializeGridHelpTooltips(this.globalSelf.$(".cvt-grid-div-data-change-write"));
             }
         },
 
         _populateCallMethodRow: function (row, node) {
+            if (!row || !node) {
+                return;
+            }
             var browser = this;
-            var displayName = node.displayName || "";
+            var displayName = (node.get ? node.get("displayName") : node.displayName) || "";
             var name = displayName.replace(/\s/g, "");
-            var nodeId = node.nodeId || "";
+            var nodeId = (node.get ? node.get("nodeId") : node.nodeId) || "";
             var parentObjectNodeId = this._resolveParentNodeId(node);
             var parentObjectName = this._resolveParentNodeName(node);
 
@@ -605,18 +680,23 @@ define([
                 row.objectName = parentObjectName;
             }
 
-            if (this.globalSelf.callMethodGrid && this.globalSelf.callMethodGrid.widget) {
-                this.globalSelf.callMethodGrid.widget.refresh();
+            var grid = this.globalSelf.callMethodGrid ? (this.globalSelf.callMethodGrid.widget || this.globalSelf.callMethodGrid) : null;
+            if (grid && grid.refresh) {
+                grid.refresh();
             }
 
-            this.waitWidget.show();
+            if (this.waitWidget && this.waitWidget.show) {
+                this.waitWidget.show();
+            }
 
             var payload = this._getEffectiveConnectionPayload();
             var url = "activities/invokeopcua/fetchMethodParamsByID?nodeId=" + encodeURIComponent(nodeId);
             var promise = AjaxUtility.commonAjaxRequest("POST", url, JSON.stringify(payload), "json");
 
             promise.done(function (response) {
-                browser.waitWidget.hide();
+                if (browser.waitWidget && browser.waitWidget.hide) {
+                    browser.waitWidget.hide();
+                }
                 var data = (response && response.data) ? response.data : (response || {});
                 var inputArgs = data.inputArguments || data.inputParameters || [];
 
@@ -635,27 +715,33 @@ define([
                     row.inputParameters = params;
                 }
 
-                if (browser.globalSelf.callMethodGrid && browser.globalSelf.callMethodGrid.widget) {
-                    browser.globalSelf.callMethodGrid.widget.refresh();
+                var g = browser.globalSelf.callMethodGrid ? (browser.globalSelf.callMethodGrid.widget || browser.globalSelf.callMethodGrid) : null;
+                if (g && g.refresh) {
+                    g.refresh();
                     GridUtils.initializeGridHelpTooltips(browser.globalSelf.$(".cvt-grid-div-call-method"));
                 }
-
                 browser._closeDrawer();
             });
 
             promise.fail(function () {
-                browser.waitWidget.hide();
+                if (browser.waitWidget && browser.waitWidget.hide) {
+                    browser.waitWidget.hide();
+                }
                 if (browser.globalSelf.callMethodGrid && browser.globalSelf.callMethodGrid.widget) {
                     browser.globalSelf.callMethodGrid.widget.refresh();
                     GridUtils.initializeGridHelpTooltips(browser.globalSelf.$(".cvt-grid-div-call-method"));
                 }
+                uilayer.notifier("error", browser.nls.ErrorFetchingMethodParams || "Error while fetching method parameters.");
                 browser._closeDrawer();
             });
         },
 
         _populateParentObjectRow: function (row, node) {
-            var objectName = node.displayName || "";
-            var objectNodeId = node.nodeId || "";
+            if (!row || !node) {
+                return;
+            }
+            var objectName = (node.get ? node.get("displayName") : node.displayName) || "";
+            var objectNodeId = (node.get ? node.get("nodeId") : node.nodeId) || "";
 
             if (row.set) {
                 row.set("objectName", objectName);
@@ -665,8 +751,9 @@ define([
                 row.objectNodeId = objectNodeId;
             }
 
-            if (this.globalSelf.callMethodGrid && this.globalSelf.callMethodGrid.widget) {
-                this.globalSelf.callMethodGrid.widget.refresh();
+            var grid = this.globalSelf.callMethodGrid ? (this.globalSelf.callMethodGrid.widget || this.globalSelf.callMethodGrid) : null;
+            if (grid && grid.refresh) {
+                grid.refresh();
                 GridUtils.initializeGridHelpTooltips(this.globalSelf.$(".cvt-grid-div-call-method"));
             }
         },
