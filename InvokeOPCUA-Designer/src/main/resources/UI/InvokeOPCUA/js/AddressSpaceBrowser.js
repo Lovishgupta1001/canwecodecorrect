@@ -94,8 +94,8 @@ define([
             if (typeof uilayer !== "undefined" && uilayer.data && typeof uilayer.data.TreeListDataSource === "function") {
                 return new uilayer.data.TreeListDataSource(dsConfig);
             }
-            if (typeof uilayer !== "undefined" && uilayer.data && typeof uilayer.data.DataSource === "function") {
-                return new uilayer.data.DataSource(dsConfig);
+            if (typeof window !== "undefined" && window.kendo && window.kendo.data && typeof window.kendo.data.TreeListDataSource === "function") {
+                return new window.kendo.data.TreeListDataSource(dsConfig);
             }
             return dsConfig;
         },
@@ -114,31 +114,19 @@ define([
                 elem.empty();
             }
 
+            var dataSource = browser._createTreeListDataSource(initialData || []);
+
             this.treeListWidget = uilayer.treeList({
                 elem: elem,
-                dataSource: browser._createTreeListDataSource(initialData || []),
+                dataSource: dataSource,
                 height: "100%",
                 columns: [
                     {
-                        field: "selection",
-                        title: " ",
-                        width: "48px",
+                        field: "displayName",
+                        title: browser.nls.Node || "Node",
                         template: function (item) {
                             var selectable = browser.isNodeSelectable(item);
                             var isChecked = browser.selectedNode && (String(browser.selectedNode.id) === String(item.id) || String(browser.selectedNode.nodeId) === String(item.nodeId));
-                            if (!selectable) {
-                                return "";
-                            }
-                            return "<input type='radio' name='addressSpaceRadio' class='address-space-node-radio' value='" +
-                                _.escape(item.id) + "'" +
-                                (isChecked ? " checked='checked'" : "") + "/>";
-                        }
-                    },
-                    {
-                        field: "displayName",
-                        title: browser.nls.Node || "Node",
-                        expandable: true,
-                        template: function (item) {
                             var nc = (item.nodeClass || "").toUpperCase();
                             var icon = "eQ-fonts-folder";
                             if (nc === "METHOD" || nc.indexOf("METHOD") !== -1) {
@@ -146,7 +134,15 @@ define([
                             } else if (nc === "VARIABLE" || nc === "VARIABLETYPE" || nc === "PROPERTY" || nc === "DATAVARIABLE") {
                                 icon = "eQ-fonts-variable";
                             }
-                            return "<span class='eQ-icon " + icon + " ul-pad-1x-r'></span>" +
+
+                            var radioHtml = selectable
+                                ? "<input type='radio' name='addressSpaceRadio' class='address-space-node-radio ul-pad-1x-r' value='" +
+                                  _.escape(item.id) + "'" +
+                                  (isChecked ? " checked='checked'" : "") + "/>"
+                                : "";
+
+                            return radioHtml +
+                                "<span class='eQ-icon " + icon + " ul-pad-1x-r'></span>" +
                                 "<span class='address-space-node-title' title='" + _.escape(item.displayName || item.nodeId) + "'>" +
                                 _.escape(item.displayName || item.nodeId) + "</span>";
                         }
@@ -369,25 +365,10 @@ define([
 
             promise.done(function (response) {
                 browser.waitWidget.hide();
-                var data = (response && Array.isArray(response.data)) ? response.data : (Array.isArray(response) ? response : (response && response.data ? response.data : (response && Array.isArray(response.result) ? response.result : [])));
+                var data = (response && Array.isArray(response.data)) ? response.data : (Array.isArray(response) ? response : (response && response.data ? response.data : (response && Array.isArray(response.result) ? response.result : (response && Array.isArray(response.response) ? response.response : []))));
                 var flatList = browser._processNodes(data, null);
 
-                var tree = browser._getTreeWidget();
-                var updated = false;
-
-                if (tree && typeof tree.setDataSource === "function") {
-                    var ds = browser._createTreeListDataSource(flatList);
-                    tree.setDataSource(ds);
-                    updated = true;
-                } else if (tree && tree.dataSource && typeof tree.dataSource.data === "function") {
-                    tree.dataSource.data(flatList);
-                    updated = true;
-                }
-
-                if (!updated) {
-                    browser._initTreeList(flatList);
-                }
-
+                browser._initTreeList(flatList);
                 browser._bindTreeEvents();
 
                 var activeTree = browser._getTreeWidget();

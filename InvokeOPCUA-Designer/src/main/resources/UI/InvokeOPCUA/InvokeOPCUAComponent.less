@@ -325,43 +325,30 @@
     .address-space-treelist-wrapper {
         flex: 1 1 auto;
         height: calc(100% - 130px);
-        min-height: 380px;
+        min-height: 350px;
         overflow: hidden;
         border: 1px solid #d9d9d9;
         border-radius: 4px;
         position: relative;
-        display: flex;
-        flex-direction: column;
 
+        .ul-mi-treelist,
         .k-treelist,
-        .k-grid,
-        .ul-mi-treelist {
+        .k-grid {
             height: 100% !important;
             width: 100% !important;
             border: none;
-            display: flex;
-            flex-direction: column;
-            flex: 1 1 auto;
-            min-height: 0;
-        }
-
-        .k-treelist-header,
-        .k-grid-header {
-            flex: 0 0 auto;
         }
 
         .k-treelist-content,
-        .k-grid-content,
-        .k-treelist-content-locked {
-            flex: 1 1 auto !important;
-            height: auto !important;
-            min-height: 250px !important;
+        .k-grid-content {
             overflow-y: auto !important;
             overflow-x: auto !important;
         }
 
+        table,
         .k-treelist-table,
-        table {
+        .k-grid-header table,
+        .k-grid-content table {
             table-layout: fixed !important;
             width: 100% !important;
         }
