@@ -112,45 +112,13 @@ define(function (require) {
         _fetchAccessibleConnectionsList: function () {
             var allConnections = [];
 
-            try {
-                var transportPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleTransportConnections", null, "json", null, true);
-                if (transportPromise && transportPromise.done) {
-                    transportPromise.done(function (connectionsData) {
-                        if (connectionsData && Array.isArray(connectionsData)) {
-                            allConnections = allConnections.concat(connectionsData);
-                        }
-                    });
-                }
-            } catch (e) {
-                // Ignore failure
-            }
-
-            // 2. Fetch Accessible General Connections
-            try {
-                var connPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleConnections", null, "json", null, true);
-                if (connPromise && connPromise.done) {
-                    connPromise.done(function (connectionsData) {
-                        if (connectionsData && Array.isArray(connectionsData)) {
-                            allConnections = allConnections.concat(connectionsData);
-                        }
-                    });
-                }
-            } catch (e) {
-                // Ignore failure
-            }
-
-            // 3. Fetch NonPlugin Connections (if any)
-            try {
-                var nonPluginPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
-                if (nonPluginPromise && nonPluginPromise.done) {
-                    nonPluginPromise.done(function (connectionsData) {
-                        if (connectionsData && Array.isArray(connectionsData)) {
-                            allConnections = allConnections.concat(connectionsData);
-                        }
-                    });
-                }
-            } catch (e) {
-                // Ignore failure
+            var nonPluginPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
+            if (nonPluginPromise && nonPluginPromise.done) {
+                nonPluginPromise.done(function (connectionsData) {
+                    if (connectionsData && Array.isArray(connectionsData)) {
+                        allConnections = connectionsData;
+                    }
+                });
             }
 
             return allConnections;
@@ -161,12 +129,8 @@ define(function (require) {
             var connectionsDetails = this._fetchAccessibleConnectionsList();
             var finalConnArr = [];
             var connectionVarDetails = [];
-            if (globalSelf.processModel && ActivitiesUtility?.getConnectionAndRemainingVariableComponentDataSource) {
-                try {
-                    connectionVarDetails = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId).data();
-                } catch (e) {
-                    connectionVarDetails = [];
-                }
+            if (globalSelf.processModel && ActivitiesUtility && typeof ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource === "function") {
+                connectionVarDetails = ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(globalSelf.processModel, globalSelf.activityId).data();
             }
 
             _.each(connectionVarDetails, function (item) {
@@ -216,8 +180,13 @@ define(function (require) {
             var globalSelf = this;
             var finalConnArr = this._buildFinalConnectionArray();
 
+            var inputElem = globalSelf.$el.find("#" + id);
+            if (!inputElem.length) {
+                inputElem = $("#" + id);
+            }
+
             this.connectionComboBox = uilayer.dropDownList({
-                elem: globalSelf.$el.find("#" + id),
+                elem: inputElem,
                 dataSource: finalConnArr,
                 dataTextField: "key",
                 dataValueField: "connectionId",

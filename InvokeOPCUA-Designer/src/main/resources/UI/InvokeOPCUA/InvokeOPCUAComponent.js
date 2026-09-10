@@ -239,37 +239,27 @@ define(function (require) {
                 return deferred.promise();
             }
 
-            var defaultTypes = ["OPC UA", "OPCUA"];
-
             AjaxUtility.commonAjaxRequest(
                 "GET",
                 "activities/invokeopcua/getSupportedPluginType",
                 null,
                 "JSON"
             ).done(function (pluginType) {
-                this._pluginTypes = (pluginType && pluginType.length) ? pluginType : defaultTypes;
-                deferred.resolve(this._pluginTypes);
+                this._pluginTypes = pluginType;
+                deferred.resolve(pluginType);
             }.bind(this)).fail(function () {
-                AjaxUtility.commonAjaxRequest(
-                    "GET",
-                    "activities/InvokeOPCUA/getSupportedPluginType",
-                    null,
-                    "JSON"
-                ).done(function (pluginType) {
-                    this._pluginTypes = (pluginType && pluginType.length) ? pluginType : defaultTypes;
-                    deferred.resolve(this._pluginTypes);
-                }.bind(this)).fail(function () {
-                    this._pluginTypes = defaultTypes;
-                    deferred.resolve(defaultTypes);
-                }.bind(this));
-            }.bind(this));
+                deferred.reject();
+            });
 
             return deferred.promise();
         },
 
         _initConnectionUI: function () {
             var globalSelf = this;
-            var container = this.$el.find("#invokeopcua-connection-component-container");
+            var container = this.$el.find("#invokeopcua-connection-component-container, .invokeopcua-connection-component-container");
+            if (!container.length) {
+                container = $("#invokeopcua-connection-component-container, .invokeopcua-connection-component-container");
+            }
             if (!container.length) {
                 return;
             }
@@ -281,69 +271,43 @@ define(function (require) {
             connData.connectionName = this.model.getKey("connectionName") || initialConn;
             connData.connectionId = this.model.getKey("connectionId") || (this.initialData && this.initialData.connectionId);
 
-            var defaultTypes = ["OPC UA", "OPCUA"];
-            var pluginTypeToUse = this._pluginTypes || defaultTypes;
-
             var compOptions = {
                 el: container,
                 activityId: globalSelf.activityId,
                 reqres: globalSelf.designerReqres,
                 activityReqres: globalSelf.activityReqres,
-                pluginType: pluginTypeToUse,
+                pluginType: globalSelf._pluginTypes || null,
                 data: connData
             };
 
-            var mounted = false;
+            var ConnComp = (typeof DeviceConnectorConnComponent === "function" ? DeviceConnectorConnComponent : null) ||
+                           (typeof window !== "undefined" && window.DeviceConnectorConnComponent) ||
+                           (typeof MIUIComponent !== "undefined" && MIUIComponent.DeviceConnectorConnComponent);
 
-            if (typeof DeviceConnectorConnComponent === "function") {
-                try {
-                    if (DeviceConnectorConnComponent.prototype && DeviceConnectorConnComponent.prototype.render) {
-                        globalSelf.deviceConnComp = new DeviceConnectorConnComponent(compOptions);
-                        globalSelf.deviceConnComp.render();
-                        globalSelf._setupDeviceConnListeners();
-                        mounted = true;
-                    } else {
-                        var promise = DeviceConnectorConnComponent(compOptions);
-                        if (promise && promise.done) {
-                            promise.done(function (comp) {
-                                globalSelf.deviceConnComp = comp;
-                                globalSelf._setupDeviceConnListeners();
-                            });
-                            mounted = true;
-                        }
-                    }
-                } catch (e) {
-                    // Fall back to alternative instantiation
-                }
-            }
-
-            if (!mounted && typeof window !== "undefined" && typeof window.DeviceConnectorConnComponent === "function") {
-                try {
-                    globalSelf.deviceConnComp = new window.DeviceConnectorConnComponent(compOptions);
+            if (typeof ConnComp === "function") {
+                if (ConnComp.prototype && ConnComp.prototype.render) {
+                    globalSelf.deviceConnComp = new ConnComp(compOptions);
                     globalSelf.deviceConnComp.render();
                     globalSelf._setupDeviceConnListeners();
-                    mounted = true;
-                } catch (e) {
-                    // Fall back
-                }
-            }
-
-            if (!mounted && typeof MIUIComponent !== "undefined" && typeof MIUIComponent.DeviceConnectorConnComponent === "function") {
-                try {
-                    var miuiPromise = MIUIComponent.DeviceConnectorConnComponent(compOptions);
-                    if (miuiPromise && miuiPromise.done) {
-                        miuiPromise.done(function (comp) {
+                } else {
+                    var promise = ConnComp(compOptions);
+                    if (promise && promise.done) {
+                        promise.done(function (comp) {
                             globalSelf.deviceConnComp = comp;
                             globalSelf._setupDeviceConnListeners();
                         });
-                        mounted = true;
                     }
-                } catch (e) {
-                    // Fall back
+                }
+            } else if (typeof MIUIComponent !== "undefined" && typeof MIUIComponent.DeviceConnectorConnComponent === "function") {
+                var promise = MIUIComponent.DeviceConnectorConnComponent(compOptions);
+                if (promise && promise.done) {
+                    promise.done(function (comp) {
+                        globalSelf.deviceConnComp = comp;
+                        globalSelf._setupDeviceConnListeners();
+                    });
                 }
             }
 
-            // Fetch plugin types asynchronously in the background without blocking UI rendering
             this._fetchPluginTypes().done(function (pluginType) {
                 if (pluginType && globalSelf.deviceConnComp) {
                     globalSelf.deviceConnComp.pluginType = pluginType;
