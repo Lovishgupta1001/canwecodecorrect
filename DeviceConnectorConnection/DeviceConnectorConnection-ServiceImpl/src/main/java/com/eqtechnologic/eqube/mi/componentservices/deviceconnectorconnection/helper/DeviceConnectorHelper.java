@@ -21,6 +21,7 @@ import com.eqtechnologic.eqube.logging.LogTemplate;
 import com.eqtechnologic.eqube.logging.Logger; 
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorValidationResult; 
 import com.eqtechnologic.eqube.connectionconfiguration.client.service.beans.ConnectionPropertiesView; 
+import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.constants.DeviceConnectorConstants; 
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry; 
 
 import java.util.ArrayList; 
@@ -45,7 +46,9 @@ public class DeviceConnectorHelper {
         List<ConnectionConfigurationView> connectionConfigurationViewList = getCommonConnectionService().fetchAllAccessibleConn(); 
         if (connectionConfigurationViewList != null) { 
             for (ConnectionConfigurationView configurationView : connectionConfigurationViewList) { 
-                if (!configurationView.isPluginBased()) { 
+                if (configurationView != null 
+                        && !configurationView.isPluginBased() 
+                        && DeviceConnectorConstants.DEVICE_CONNECTOR.equalsIgnoreCase(configurationView.getPluginDisplayName())) { 
                     connectionIds.add(configurationView.getConnectionId()); 
                 } 
             } 
