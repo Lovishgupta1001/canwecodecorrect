@@ -18,8 +18,15 @@ define([
         },
 
         refreshGridMode: function (globalSelf) {
-            if (!globalSelf?.callMethodGrid) {
+            if (!globalSelf || !globalSelf.callMethodGrid) {
                 return;
+            }
+
+            if (globalSelf.callMethodGrid.widget && globalSelf.callMethodGrid.widget.dataSource) {
+                var currentData = globalSelf.callMethodGrid.widget.dataSource.data().toJSON();
+                if (currentData && currentData.length) {
+                    globalSelf.model.setKey("callMethod", currentData);
+                }
             }
 
             globalSelf._destroyComponent(globalSelf.callMethodGrid);

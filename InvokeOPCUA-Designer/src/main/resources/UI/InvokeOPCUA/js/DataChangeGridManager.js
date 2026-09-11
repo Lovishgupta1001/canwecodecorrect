@@ -7,8 +7,15 @@ define([
 
     var DataChangeGridManager = {
         refreshGridMode: function (globalSelf) {
-            if (!globalSelf?.dataChangeWriteGrid) {
+            if (!globalSelf || !globalSelf.dataChangeWriteGrid) {
                 return;
+            }
+
+            if (globalSelf.dataChangeWriteGrid.widget && globalSelf.dataChangeWriteGrid.widget.dataSource) {
+                var currentData = globalSelf.dataChangeWriteGrid.widget.dataSource.data().toJSON();
+                if (currentData && currentData.length) {
+                    globalSelf.model.setKey("dataChangeWrite", currentData);
+                }
             }
 
             globalSelf._destroyComponent(globalSelf.dataChangeWriteGrid);
@@ -98,7 +105,7 @@ define([
         },
 
         _resizeGridIfExists: function (grid) {
-            if (grid?.widget) {
+            if (grid && grid.widget) {
                 grid.widget.resize();
                 return true;
             }

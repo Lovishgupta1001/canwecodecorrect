@@ -189,7 +189,7 @@ define(function (require) {
         },
 
         _initializeControls: function () {
-            this.$(".data-change-write-container, .call-method-container, .invokeopcua-config-controls, .invokeopcua-grids-section").hide();
+            this.$(".data-change-write-container, .call-method-container").hide();
         },
 
         _getGridInstance: function () {
@@ -363,23 +363,11 @@ define(function (require) {
         },
 
         _onConnectionInvalid: function () {
-            this.$(".invokeopcua-config-controls, .invokeopcua-grids-section").hide();
-
             this.model.setKey("connectionComboBox", "");
             this.model.setKey("connectionName", "");
             this.model.setKey("connectionId", "");
             this.model.setKey("selectConnection", "");
             this.model.setKey("connectionType", "");
-
-            this.model.setKey("dataChangeWrite", []);
-            this.model.setKey("callMethod", []);
-
-            if (this.dataChangeWriteGrid && this.dataChangeWriteGrid.widget && this.dataChangeWriteGrid.widget.dataSource) {
-                this.dataChangeWriteGrid.widget.dataSource.data([]);
-            }
-            if (this.callMethodGrid && this.callMethodGrid.widget && this.callMethodGrid.widget.dataSource) {
-                this.callMethodGrid.widget.dataSource.data([]);
-            }
 
             if (this.addressSpaceBrowser && this.addressSpaceBrowser.onConnectionChange) {
                 this.addressSpaceBrowser.onConnectionChange(null);
