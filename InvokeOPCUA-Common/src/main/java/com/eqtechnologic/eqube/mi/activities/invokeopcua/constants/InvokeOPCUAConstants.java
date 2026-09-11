@@ -27,7 +27,7 @@ public final class InvokeOPCUAConstants {
     public static final String SELECT_CONNECTION = "selectConnection";
     public static final String OPERATION = "operation";
     public static final String EXECUTION_MODE = "executionMode";
-    public static final String OPCUA_TYPE = "OPCUA";
+    public static final String OPCUA_TYPE = "OPC_UA";
 
     public static final String DYNAMIC_TRANSPORT = "dynamicTransport";
     public static final String TRANSPORT_NAME = "transportName";

@@ -435,7 +435,8 @@ public class DeviceConnectorConstants {
     public static final String CONNECTION_ID = "connectionId"; 
     public static final String CONNECTION_NAME = "connectionName"; 
     public static final String CONNECTION_TYPE = "connectionType"; 
-    public static final String TYPE_OPCUA = "OPCUA"; 
+    public static final String DEVICE_TYPE = "deviceType"; 
+    public static final String TYPE_OPC_UA = "OPC_UA"; 
 }
 EOF
 
@@ -658,10 +659,12 @@ import com.eqtechnologic.eqube.exception.BusinessException;
 import com.eqtechnologic.eqube.logging.LogTemplate; 
 import com.eqtechnologic.eqube.logging.Logger; 
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorValidationResult; 
+import com.eqtechnologic.eqube.connectionconfiguration.client.service.beans.ConnectionPropertiesView; 
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry; 
 
 import java.util.ArrayList; 
 import java.util.List; 
+import java.util.Map; 
 
 /** 
  * Helper class for Device Connector Connection Component 
@@ -717,12 +720,25 @@ public class DeviceConnectorHelper {
         } 
 
         String connType = configuration.getConnectionType(); 
+        if (configuration.getConnectionProperties() != null) { 
+            for (Map.Entry<String, ConnectionPropertiesView> entry : configuration.getConnectionProperties().entrySet()) { 
+                if ("deviceType".equalsIgnoreCase(entry.getKey())) { 
+                    ConnectionPropertiesView view = entry.getValue(); 
+                    if (view != null && view.getPropertyValue() != null && !view.getPropertyValue().trim().isEmpty()) { 
+                        connType = view.getPropertyValue().trim(); 
+                        break; 
+                    } 
+                } 
+            } 
+        } 
         result.setConnectionType(connType != null ? connType : ""); 
         result.setConnectionName(configuration.getConnectionName()); 
 
         if (allowedConnectionTypes != null && !allowedConnectionTypes.isEmpty()) { 
+            final String finalConnType = connType != null ? connType : ""; 
             boolean typeMatched = allowedConnectionTypes.stream().anyMatch(type -> 
-                type != null && type.equalsIgnoreCase(connType) 
+                type != null && (type.equalsIgnoreCase(finalConnType) || 
+                                 type.replace("_", "").equalsIgnoreCase(finalConnType.replace("_", ""))) 
             ); 
             result.setConnectionTypeValid(typeMatched); 
             result.setValid(typeMatched); 

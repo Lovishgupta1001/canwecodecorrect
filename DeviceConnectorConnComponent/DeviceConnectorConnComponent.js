@@ -188,9 +188,11 @@ define(function (require) {
                 return false;
             }
             var connType = String(conn.connectionType).toUpperCase();
+            var normalizedConnType = connType.replace(/[^A-Z0-9]/g, "");
 
             return this.allowedConnectionTypes.some(function (allowed) {
-                return connType === String(allowed).toUpperCase();
+                var allowedType = String(allowed).toUpperCase();
+                return connType === allowedType || normalizedConnType === allowedType.replace(/[^A-Z0-9]/g, "");
             });
         },
 

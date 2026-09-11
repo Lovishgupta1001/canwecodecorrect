@@ -158,7 +158,7 @@ define(function (require) {
                 var connData = this.deviceConnComp.getConnectionData();
                 var connId = connData.connectionId || this.model.getKey("connectionId") || "";
                 var connName = connData.connectionName || this.model.getKey("connectionName") || "";
-                var connType = connData.connectionType || this.model.getKey("connectionType") || "OPCUA";
+                var connType = connData.connectionType || this.model.getKey("connectionType") || "OPC_UA";
                 return {
                     connectionId: connId,
                     connectionName: (connName && connName !== this.nls.SelectConnection) ? connName : "",
@@ -169,7 +169,7 @@ define(function (require) {
             }
             var mConnId = this.model.getKey("connectionId") || "";
             var mConnName = this.model.getKey("connectionName") || "";
-            var mConnType = this.model.getKey("connectionType") || "OPCUA";
+            var mConnType = this.model.getKey("connectionType") || "OPC_UA";
             return {
                 connectionId: mConnId,
                 connectionName: (mConnName && mConnName !== this.nls.SelectConnection) ? mConnName : "",
@@ -289,7 +289,7 @@ define(function (require) {
                 activityId: this.activityId,
                 reqres: this.designerReqres,
                 activityReqres: this.activityReqres,
-                allowedConnectionTypes: ["OPCUA"],
+                allowedConnectionTypes: ["OPC_UA"],
                 data: connData
             };
 
@@ -336,7 +336,7 @@ define(function (require) {
         _onConnectionChanged: function (connData) {
             var connId = connData ? connData.connectionId : "";
             var connName = connData ? (connData.connectionName || connData.name || "") : "";
-            var connType = connData ? (connData.connectionType || "OPCUA") : "OPCUA";
+            var connType = connData ? (connData.connectionType || "OPC_UA") : "OPC_UA";
 
             this.model.setKey("connectionComboBox", connName);
             this.model.setKey("connectionName", connName);

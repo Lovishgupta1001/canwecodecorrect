@@ -323,8 +323,8 @@ define([
                 connectionId: connId,
                 connectionName: connName,
                 name: connName,
-                type: connData.type || "OPCUA",
-                connectionType: connData.connectionType || "OPCUA"
+                type: connData.type || "OPC_UA",
+                connectionType: connData.connectionType || "OPC_UA"
             };
         },
 
