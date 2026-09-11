@@ -235,6 +235,13 @@
     cursor: pointer;
     pointer-events: auto;
     line-height: 1;
+
+    &[disabled],
+    &.disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
 }
 
 .sample-copy-success {

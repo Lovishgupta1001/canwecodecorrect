@@ -180,7 +180,7 @@ define(function (require) {
             })));
 
             if (this.$(".call-method-radio").is(":checked") && dataItems.length) {
-                CallMethodGridManager.removeOutputVariablesFromProcessModel(dataItems, this);
+                CallMethodGridManager.onDeleteCallMethodRows(this, dataItems);
             }
 
             if (grid?.dataSource) {

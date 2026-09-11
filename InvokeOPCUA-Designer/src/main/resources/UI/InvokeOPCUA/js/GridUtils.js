@@ -437,6 +437,10 @@ define(function (require) {
             var dataItem = globalSelfOrDataItem?.model ? null : (globalSelfOrDataItem || {});
             return function (item) {
                 var targetItem = dataItem || item || {};
+                var methodName = ((targetItem?.get ? targetItem.get("name") : targetItem?.name) || "").trim();
+                var nodeId = ((targetItem?.get ? targetItem.get("nodeId") : targetItem?.nodeId) || "").trim();
+                var hasMethodNode = !!(methodName || nodeId);
+
                 var params = targetItem?.get ? targetItem.get("inputParameters") : targetItem?.inputParameters;
                 var parameters = [];
                 if (params) {
@@ -460,14 +464,22 @@ define(function (require) {
                 var tooltipText = firstName && firstValue
                     ? firstName + ": " + firstValue
                     : displayValue;
+
+                var disabledAttr = hasMethodNode ? "" : " disabled='disabled'";
+                var disabledClass = hasMethodNode ? "" : " disabled is-disabled";
+                var buttonTitle = hasMethodNode
+                    ? (nls.ViewInputParameters || "View Input Parameters")
+                    : (nls.SelectMethodNodeFirst || "Please select a method node first");
+
                 return "<div class='input-parameters-cell'>" +
                     "<span class='input-parameter-value' title='" +
                     _.escape(tooltipText) + "'>" +
                     _.escape(displayValue) +
                     "</span>" +
                     "<button type='button' " +
-                    "class='input-parameter-badge' " +
-                    "title='" + _.escape(nls.ViewInputParameters) + "'>" +
+                    "class='input-parameter-badge" + disabledClass + "' " +
+                    disabledAttr +
+                    " title='" + _.escape(buttonTitle) + "'>" +
                     count +
                     "</button>" +
                     "</div>";

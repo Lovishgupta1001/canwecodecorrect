@@ -51,6 +51,7 @@ define({
         "OutputParameter": "Output Parameter",
         "AddMethodCall": "Add Method Call:",
         "ParameterName": "Parameter Name",
+        "SelectMethodNodeFirst": "Please select a method node first",
         "DataType": "Data Type",
         "Value": "Value",
         "SelectDataChange": "Select Data Change",
