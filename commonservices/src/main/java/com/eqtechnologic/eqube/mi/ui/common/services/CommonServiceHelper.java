@@ -36,6 +36,7 @@ public class CommonServiceHelper {
     private eQUserManager userManager = new eQUserManager(); 
     private static String contextPath; 
     private static final String PLUGIN_VERSION_NA = "NA"; 
+    public static final String DEVICE_CONNECTOR = "Device Connector"; 
 
     /** 
      * Get TimeZone Map with ID and GMT value 
@@ -114,7 +115,7 @@ public class CommonServiceHelper {
 
         if (userConnectionCredentialsBeans != null) { 
             for (ConnectionConfigurationView connConfigBean : userConnectionCredentialsBeans) { 
-                if (!connConfigBean.isPluginBased()) { 
+                if (connConfigBean != null && !connConfigBean.isPluginBased() && DEVICE_CONNECTOR.equalsIgnoreCase(connConfigBean.getPluginDisplayName())) { 
                     connUIBeanList.add(toDeviceConnectorBean(connConfigBean)); 
                 } 
             } 
