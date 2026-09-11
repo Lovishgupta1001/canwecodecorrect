@@ -6,11 +6,7 @@ define(function (require) {
 
     var DeviceConnectorConnModel = Backbone.Model.extend({
         defaults: {
-            connectionComboBox: "",
-            connectionName: "",
-            connectionId: "",
-            connectionType: "",
-            selectConnection: ""
+            connectionComboBox: ""
         }
     });
 

@@ -387,10 +387,6 @@ onBeforeDestroy: function () {
 | Field Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `connectionComboBox` | `String` | `""` | Display text of the chosen connection. |
-| `connectionName` | `String` | `""` | Name of the chosen connection. |
-| `connectionId` | `String` | `""` | Unique identifier of the connection. |
-| `connectionType` | `String` | `""` | Protocol or connection type (e.g., `"OPCUA"`). |
-| `selectConnection` | `String` | `""` | Form field matching `connectionName`. |
 
 ---
 

@@ -130,38 +130,15 @@ define(function (require) {
                     connText = rawText;
                 }
             }
-            var connId = this.connectionComboBox ? this.connectionComboBox.value() : "";
-            if (connId === Constants.NO_CONN_ID || connId === "Select Connection") {
-                connId = "";
-            }
 
             if (this.allowedConnectionTypes && this.allowedConnectionTypes.length) {
-                var connItem = null;
-                if (this.connectionComboBox && this.connectionComboBox.dataSource) {
-                    var allItems = this.connectionComboBox.dataSource.data();
-                    for (var i = 0; i < allItems.length; i++) {
-                        var item = allItems[i];
-                        if (String(item.connectionId) === String(connId)) {
-                            connItem = item.toJSON ? item.toJSON() : item;
-                            break;
-                        }
-                    }
-                }
-                var testItem = connItem ? connItem : {
-                    connectionType: this.model.get("connectionType")
-                };
-                if (!this.isConnectionAllowed(testItem)) {
-                    connId = "";
+                var connItem = this._getSelectedConnectionItem();
+                if (!this.isConnectionAllowed(connItem)) {
                     connText = "";
-                    this.model.set("connectionType", "");
                 }
             }
 
             this.model.set(Constants.fields.connectionComboBox, connText);
-            this.model.set("connectionName", connText);
-            this.model.set("connectionId", connId);
-            this.model.set("selectConnection", connText);
-
             return this.model.toJSON();
         },
 
@@ -170,19 +147,37 @@ define(function (require) {
             return (connId && connId !== Constants.NO_CONN_ID && connId !== "Select Connection") ? connId : null;
         },
 
+        _getSelectedConnectionItem: function () {
+            var connId = this.getSelectedConnection();
+            if (!connId || !this.connectionComboBox || !this.connectionComboBox.dataSource) {
+                return null;
+            }
+            var allItems = this.connectionComboBox.dataSource.data();
+            for (var i = 0; i < allItems.length; i++) {
+                var item = allItems[i];
+                if (String(item.connectionId) === String(connId)) {
+                    return item.toJSON ? item.toJSON() : item;
+                }
+            }
+            return null;
+        },
+
         getConnectionData: function () {
             var connId = this.getSelectedConnection();
-            var connName = this.model.get("connectionName");
-            var connType = this.model.get("connectionType");
+            var connItem = this._getSelectedConnectionItem();
+            var connText = (this.connectionComboBox && this.connectionComboBox.text() !== (nls.messages && nls.messages.selectConnection))
+                ? this.connectionComboBox.text()
+                : "";
             return {
                 connectionId: connId ? connId : "",
-                connectionName: connName ? connName : "",
-                connectionType: connType ? connType : ""
+                connectionName: connItem ? connItem.connectionName : connText,
+                connectionType: connItem ? connItem.connectionType : ""
             };
         },
 
         getConnectionType: function () {
-            return this.model.get("connectionType");
+            var connItem = this._getSelectedConnectionItem();
+            return connItem ? connItem.connectionType : "";
         },
 
         isConnectionAllowed: function (conn) {
@@ -205,21 +200,8 @@ define(function (require) {
                 return (nls.messages && nls.messages.selectValidConnection) ? nls.messages.selectValidConnection : "Select a valid connection.";
             }
             if (this.allowedConnectionTypes && this.allowedConnectionTypes.length) {
-                var connItem = null;
-                if (this.connectionComboBox && this.connectionComboBox.dataSource) {
-                    var allItems = this.connectionComboBox.dataSource.data();
-                    for (var i = 0; i < allItems.length; i++) {
-                        var item = allItems[i];
-                        if (String(item.connectionId) === String(connId)) {
-                            connItem = item.toJSON ? item.toJSON() : item;
-                            break;
-                        }
-                    }
-                }
-                var testItem = connItem ? connItem : {
-                    connectionType: this.model.get("connectionType")
-                };
-                if (!this.isConnectionAllowed(testItem)) {
+                var connItem = this._getSelectedConnectionItem();
+                if (!this.isConnectionAllowed(connItem)) {
                     var allowedStr = this.allowedConnectionTypes.join(", ");
                     return (nls.messages && nls.messages.invalidConnectionType)
                         ? (nls.messages.invalidConnectionType + " Only " + allowedStr + " connection(s) are supported.")
@@ -334,40 +316,22 @@ define(function (require) {
             }
 
             if (!connId || connId === Constants.NO_CONN_ID || connId === "Select Connection") {
-                globalSelf.model.set("connectionType", "");
-                globalSelf.model.set("connectionId", "");
                 globalSelf.model.set(Constants.fields.connectionComboBox, "");
-                globalSelf.model.set("selectConnection", "");
                 globalSelf.trigger(Constants.EVENTS.INVALID_CONNECTION_SELECTED);
                 return;
             }
 
             var connText = globalSelf.connectionComboBox ? globalSelf.connectionComboBox.text() : "";
-            var connItem = null;
-            if (globalSelf.connectionComboBox && globalSelf.connectionComboBox.dataSource) {
-                var allItems = globalSelf.connectionComboBox.dataSource.data();
-                for (var i = 0; i < allItems.length; i++) {
-                    var item = allItems[i];
-                    if (String(item.connectionId) === String(connId)) {
-                        connItem = item.toJSON ? item.toJSON() : item;
-                        break;
-                    }
-                }
-            }
-
+            var connItem = globalSelf._getSelectedConnectionItem();
             var connName = connItem ? connItem.connectionName : connText;
             var connType = connItem ? connItem.connectionType : "";
 
             if (globalSelf.allowedConnectionTypes && globalSelf.allowedConnectionTypes.length) {
-                var testItem = connItem ? connItem : { connectionType: connType };
-                if (!globalSelf.isConnectionAllowed(testItem)) {
+                if (!globalSelf.isConnectionAllowed(connItem)) {
                     var allowedStr = globalSelf.allowedConnectionTypes.join(", ");
                     var errorMsg = "Selected connection '" + connName + "' is not allowed. Only " + allowedStr + " connection(s) are supported.";
                     globalSelf._showConnErrorTooltip(element, errorMsg);
-                    globalSelf.model.set("connectionType", "");
-                    globalSelf.model.set("connectionId", "");
                     globalSelf.model.set(Constants.fields.connectionComboBox, "");
-                    globalSelf.model.set("selectConnection", "");
                     globalSelf.trigger(Constants.EVENTS.INVALID_CONNECTION_SELECTED, {
                         connectionId: connId,
                         connectionName: connName,
@@ -379,12 +343,7 @@ define(function (require) {
             }
 
             globalSelf._hideConnErrorTooltip(element);
-
             globalSelf.model.set(Constants.fields.connectionComboBox, connText);
-            globalSelf.model.set("connectionName", connName);
-            globalSelf.model.set("connectionId", connId);
-            globalSelf.model.set("connectionType", connType);
-            globalSelf.model.set("selectConnection", connText);
 
             globalSelf.trigger(Constants.EVENTS.CHANGE_CONNECTION_VARIABLE, {
                 connectionId: connId,
