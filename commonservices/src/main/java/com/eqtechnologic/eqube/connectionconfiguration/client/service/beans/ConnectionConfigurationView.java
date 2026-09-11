@@ -48,6 +48,7 @@ public class ConnectionConfigurationView implements Serializable {
     private Long creationDate;
     private String lastUpdateBy;
     private Long lastUpdateDate;
+    private String connectionType;
 
     public ConnectionConfigurationView() {
     }
@@ -298,5 +299,22 @@ public class ConnectionConfigurationView implements Serializable {
 
     public void setLastUpdateDate(Long lastUpdateDate) {
         this.lastUpdateDate = lastUpdateDate;
+    }
+
+    public String getConnectionType() {
+        if (this.connectionType != null && !this.connectionType.isEmpty()) {
+            return this.connectionType;
+        }
+        if (this.connectionProperties != null) {
+            ConnectionPropertiesView view = this.connectionProperties.get("deviceType");
+            if (view != null && view.getPropertyValue() != null) {
+                return view.getPropertyValue();
+            }
+        }
+        return this.connectionType;
+    }
+
+    public void setConnectionType(String connectionType) {
+        this.connectionType = connectionType;
     }
 }
