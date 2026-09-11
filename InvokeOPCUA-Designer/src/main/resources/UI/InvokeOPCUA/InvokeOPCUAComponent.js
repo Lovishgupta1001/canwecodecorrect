@@ -559,6 +559,17 @@ define(function (require) {
             return "";
         },
 
+        isValid: function () {
+            return this.getErrorMessage() === "";
+        },
+
+        validate: function () {
+            if (this.deviceConnComp && this.deviceConnComp.validate) {
+                return this.deviceConnComp.validate();
+            }
+            return this.isValid();
+        },
+
         _destroyComponent: function (component) {
             if (component && component.destroy) {
                 component.destroy();

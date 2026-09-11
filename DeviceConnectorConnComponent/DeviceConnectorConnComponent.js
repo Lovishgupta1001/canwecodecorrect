@@ -211,6 +211,42 @@ define(function (require) {
             return "";
         },
 
+        isValid: function () {
+            return this.getErrorMessage() === "";
+        },
+
+        validate: function () {
+            var errorMsg = this.getErrorMessage();
+            var element = this.$el.find("#connectionComboBox").parent().find(".k-input, .k-dropdown-wrap");
+            if (!element.length) {
+                element = this.$el.find("#connectionComboBox");
+            }
+            if (errorMsg) {
+                this._showConnErrorTooltip(element, errorMsg);
+                return false;
+            }
+            this._hideConnErrorTooltip(element);
+            return true;
+        },
+
+        validateConnection: function (callback) {
+            var connId = this.getSelectedConnection();
+            var connItem = this._getSelectedConnectionItem();
+            var errorMsg = this.getErrorMessage();
+            var valid = errorMsg === "";
+            var result = {
+                valid: valid,
+                connectionId: connId ? connId : "",
+                connectionName: connItem ? connItem.connectionName : "",
+                connectionType: connItem ? connItem.connectionType : "",
+                message: errorMsg
+            };
+            if (callback) {
+                callback(result);
+            }
+            return result;
+        },
+
         _fetchAccessibleConnectionsList: function () {
             var allConnections = [];
             var nonPluginPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
