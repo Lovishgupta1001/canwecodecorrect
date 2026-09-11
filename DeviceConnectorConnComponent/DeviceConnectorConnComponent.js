@@ -171,7 +171,8 @@ define(function (require) {
             return {
                 connectionId: connId ? connId : "",
                 connectionName: connItem ? connItem.connectionName : connText,
-                connectionType: connItem ? connItem.connectionType : ""
+                connectionType: connItem ? connItem.connectionType : "",
+                pluginDisplayName: connItem ? (connItem.pluginDisplayName ? connItem.pluginDisplayName : "") : ""
             };
         },
 
@@ -276,7 +277,8 @@ define(function (require) {
                 connectionsDetails.forEach(function (connection) {
                     if (String(connection.connectionId) === String(item.connectionId)) {
                         item.connectionColor = connection.connectionColor;
-                        item.connectionType = connection.connectionType || connection.pluginName || connection.pluginDisplayName || "";
+                        item.connectionType = connection.connectionType;
+                        item.pluginDisplayName = connection.pluginDisplayName ? connection.pluginDisplayName : "";
                         finalConnArr.push(item);
                         flag = true;
                     }
@@ -296,7 +298,8 @@ define(function (require) {
                         connectionId: connection.connectionId,
                         connectionName: connection.connectionName,
                         connectionColor: connection.connectionColor,
-                        connectionType: connection.connectionType || connection.pluginName || connection.pluginDisplayName || ""
+                        connectionType: connection.connectionType,
+                        pluginDisplayName: connection.pluginDisplayName ? connection.pluginDisplayName : ""
                     });
                 }
             });
