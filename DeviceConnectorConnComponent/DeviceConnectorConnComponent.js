@@ -112,14 +112,10 @@ define(function (require) {
                 }
             }
 
-            var selectedConn = obj.connectionComboBox || obj.selectConnection || obj.connectionName || obj.connectionId;
+            var selectedConn = obj.connectionComboBox;
             if (selectedConn && this.connectionComboBox) {
                 this.connectionComboBox.text(selectedConn);
                 var currentVal = this.connectionComboBox.value();
-                if (!currentVal) {
-                    this.connectionComboBox.value(selectedConn);
-                    currentVal = this.connectionComboBox.value();
-                }
                 if (currentVal && currentVal !== Constants.NO_CONN_ID && currentVal !== "Select Connection") {
                     this._handleConnectionChange(currentVal);
                 }
@@ -130,7 +126,7 @@ define(function (require) {
             var connText = "";
             if (this.connectionComboBox) {
                 var rawText = this.connectionComboBox.text();
-                if (rawText && rawText !== nls.messages.selectConnection && rawText !== "Select Connection") {
+                if (rawText && rawText !== (nls.messages && nls.messages.selectConnection) && rawText !== "Select Connection") {
                     connText = rawText;
                 }
             }
@@ -151,22 +147,20 @@ define(function (require) {
                         }
                     }
                 }
-                var testItem = connItem || {
-                    connectionType: this.model.get("connectionType"),
-                    pluginType: this.model.get("pluginType")
+                var testItem = connItem ? connItem : {
+                    connectionType: this.model.get("connectionType")
                 };
                 if (!this.isConnectionAllowed(testItem)) {
                     connId = "";
                     connText = "";
                     this.model.set("connectionType", "");
-                    this.model.set("pluginType", "");
                 }
             }
 
             this.model.set(Constants.fields.connectionComboBox, connText);
             this.model.set("connectionName", connText);
             this.model.set("connectionId", connId);
-            this.model.set("selectConnection", connText || connId);
+            this.model.set("selectConnection", connText);
 
             return this.model.toJSON();
         },
@@ -178,45 +172,37 @@ define(function (require) {
 
         getConnectionData: function () {
             var connId = this.getSelectedConnection();
-            var connText = this.connectionComboBox ? this.connectionComboBox.text() : "";
-            if (connText === nls.messages.selectConnection || connText === "Select Connection") {
-                connText = "";
-            }
-            var connType = this.getConnectionType();
+            var connName = this.model.get("connectionName");
+            var connType = this.model.get("connectionType");
             return {
-                connectionId: connId || "",
-                connectionName: connText,
-                name: connText,
-                type: connType,
-                connectionType: connType,
-                pluginType: this.model.get("pluginType") || ""
+                connectionId: connId ? connId : "",
+                connectionName: connName ? connName : "",
+                connectionType: connType ? connType : ""
             };
         },
 
         getConnectionType: function () {
-            return this.model.get("connectionType") || "";
+            return this.model.get("connectionType");
         },
 
         isConnectionAllowed: function (conn) {
             if (!this.allowedConnectionTypes || !this.allowedConnectionTypes.length) {
                 return true;
             }
-            if (!conn) {
+            if (!conn || !conn.connectionType) {
                 return false;
             }
-            var connType = String(conn.connectionType || conn.type || conn.pluginType || "").toUpperCase();
-            var pluginType = String(conn.pluginDisplayName || conn.pluginType || "").toUpperCase();
+            var connType = String(conn.connectionType).toUpperCase();
 
             return this.allowedConnectionTypes.some(function (allowed) {
-                var allowedUpper = String(allowed).toUpperCase();
-                return connType === allowedUpper || pluginType === allowedUpper || connType.indexOf(allowedUpper) !== -1;
+                return connType === String(allowed).toUpperCase();
             });
         },
 
         getErrorMessage: function () {
             var connId = this.getSelectedConnection();
             if (!connId) {
-                return (nls.messages && nls.messages.selectValidConnection) || "Select a valid connection.";
+                return (nls.messages && nls.messages.selectValidConnection) ? nls.messages.selectValidConnection : "Select a valid connection.";
             }
             if (this.allowedConnectionTypes && this.allowedConnectionTypes.length) {
                 var connItem = null;
@@ -230,9 +216,8 @@ define(function (require) {
                         }
                     }
                 }
-                var testItem = connItem || {
-                    connectionType: this.model.get("connectionType"),
-                    pluginType: this.model.get("pluginType")
+                var testItem = connItem ? connItem : {
+                    connectionType: this.model.get("connectionType")
                 };
                 if (!this.isConnectionAllowed(testItem)) {
                     var allowedStr = this.allowedConnectionTypes.join(", ");
@@ -271,8 +256,7 @@ define(function (require) {
                 connectionsDetails.forEach(function (connection) {
                     if (String(connection.connectionId) === String(item.connectionId)) {
                         item.connectionColor = connection.connectionColor;
-                        item.connectionType = connection.connectionType || connection.type || "";
-                        item.pluginType = connection.pluginDisplayName || connection.pluginType || "";
+                        item.connectionType = connection.connectionType;
                         finalConnArr.push(item);
                         flag = true;
                     }
@@ -284,17 +268,15 @@ define(function (require) {
 
             connectionsDetails.forEach(function (connection) {
                 var exists = finalConnArr.some(function (f) {
-                    return String(f.connectionId) === String(connection.connectionId != null ? connection.connectionId : connection.id);
+                    return String(f.connectionId) === String(connection.connectionId);
                 });
                 if (!exists) {
                     finalConnArr.push({
-                        key: connection.connectionName || connection.name || connection.key,
-                        connectionId: connection.connectionId != null ? connection.connectionId : connection.id,
-                        connectionName: connection.connectionName || connection.name || connection.key,
-                        connectionColor: connection.connectionColor || "rgb(226, 0, 132)",
-                        connectionType: connection.connectionType || connection.type || "",
-                        pluginType: connection.pluginDisplayName || connection.pluginType || "",
-                        rawConnection: connection
+                        key: connection.connectionName,
+                        connectionId: connection.connectionId,
+                        connectionName: connection.connectionName,
+                        connectionColor: connection.connectionColor,
+                        connectionType: connection.connectionType
                     });
                 }
             });
@@ -322,7 +304,7 @@ define(function (require) {
                         text: item.key
                     });
                 },
-                optionLabel: nls.messages.selectConnection || "Select Connection",
+                optionLabel: (nls.messages && nls.messages.selectConnection) ? nls.messages.selectConnection : "Select Connection",
                 select: function (e) {
                     if (!(e.dataItem && e.dataItem.connectionId)) {
                         e.preventDefault();
@@ -333,18 +315,11 @@ define(function (require) {
                 }
             });
 
-            var selectedConn = globalSelf.model.get(Constants.fields.connectionComboBox) ||
-                globalSelf.model.get("connectionName") ||
-                globalSelf.model.get("selectConnection") ||
-                globalSelf.model.get("connectionId");
+            var selectedConn = globalSelf.model.get(Constants.fields.connectionComboBox);
 
             if (selectedConn) {
                 globalSelf.connectionComboBox.text(selectedConn);
                 var currentVal = globalSelf.connectionComboBox.value();
-                if (!currentVal) {
-                    globalSelf.connectionComboBox.value(selectedConn);
-                    currentVal = globalSelf.connectionComboBox.value();
-                }
                 if (currentVal && currentVal !== Constants.NO_CONN_ID && currentVal !== "Select Connection") {
                     globalSelf._handleConnectionChange(currentVal);
                 }
@@ -380,12 +355,11 @@ define(function (require) {
                 }
             }
 
-            var connName = (connItem && (connItem.connectionName || connItem.key)) || connText;
-            var connType = (connItem && (connItem.connectionType || connItem.type || connItem.pluginType)) || "";
-            var pluginType = (connItem && connItem.pluginType) || "";
+            var connName = connItem ? connItem.connectionName : connText;
+            var connType = connItem ? connItem.connectionType : "";
 
             if (globalSelf.allowedConnectionTypes && globalSelf.allowedConnectionTypes.length) {
-                var testItem = connItem || { connectionType: connType, pluginType: pluginType };
+                var testItem = connItem ? connItem : { connectionType: connType };
                 if (!globalSelf.isConnectionAllowed(testItem)) {
                     var allowedStr = globalSelf.allowedConnectionTypes.join(", ");
                     var errorMsg = "Selected connection '" + connName + "' is not allowed. Only " + allowedStr + " connection(s) are supported.";
@@ -410,14 +384,12 @@ define(function (require) {
             globalSelf.model.set("connectionName", connName);
             globalSelf.model.set("connectionId", connId);
             globalSelf.model.set("connectionType", connType);
-            globalSelf.model.set("pluginType", pluginType);
-            globalSelf.model.set("selectConnection", connText || connId);
+            globalSelf.model.set("selectConnection", connText);
 
             globalSelf.trigger(Constants.EVENTS.CHANGE_CONNECTION_VARIABLE, {
                 connectionId: connId,
                 connectionName: connName,
                 connectionType: connType,
-                pluginType: pluginType,
                 connectionItem: connItem
             });
         },

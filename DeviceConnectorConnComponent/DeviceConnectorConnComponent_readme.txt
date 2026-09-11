@@ -99,10 +99,7 @@ var connData = connComp.getConnectionData();
 // connData => {
 //     connectionId: "102",
 //     connectionName: "Local_OPCUA_Server",
-//     name: "Local_OPCUA_Server",
-//     type: "OPCUA",
-//     connectionType: "OPCUA",
-//     pluginType: "OPCUA"
+//     connectionType: "OPCUA"
 // }
 
 // Get normalized model object
@@ -368,7 +365,7 @@ onBeforeDestroy: function () {
 | `getData()` | `Object` | Returns `{ connectionComboBox, connectionName, connectionId, connectionType, selectConnection }`. Sanitizes and clears unallowed connections. |
 | `setData(obj)` | `void` | Selects the connection matching `obj.connectionComboBox` or `obj.connectionId`. |
 | `getSelectedConnection()` | `String \| null` | Returns the currently selected `connectionId` (or `null` if placeholder / unallowed connection). |
-| `getConnectionData()` | `Object` | Returns `{ connectionId, connectionName, name, type, connectionType, pluginType }`. |
+| `getConnectionData()` | `Object` | Returns `{ connectionId, connectionName, connectionType }`. |
 | `getConnectionType()` | `String` | Returns the `connectionType` string (e.g. `"OPCUA"`). |
 | `getErrorMessage()` | `String` | Validates if a connection is selected and permitted by `allowedConnectionTypes`. Returns an error message if invalid, or `""` if valid. Use this to block form / activity saving. |
 | `isConnectionAllowed(conn)` | `Boolean` | Checks whether the specified connection object or type matches `allowedConnectionTypes`. |
@@ -379,7 +376,7 @@ onBeforeDestroy: function () {
 
 | Event Name | Constant | Payload | Description |
 | :--- | :--- | :--- | :--- |
-| `CHANGE_CONNECTION_VARIABLE` | `Constants.EVENTS.CHANGE_CONNECTION_VARIABLE` | `{ connectionId, connectionName, connectionType, pluginType, connectionItem }` | Triggered when a **valid / allowed** connection is selected from the dropdown. |
+| `CHANGE_CONNECTION_VARIABLE` | `Constants.EVENTS.CHANGE_CONNECTION_VARIABLE` | `{ connectionId, connectionName, connectionType, connectionItem }` | Triggered when a **valid / allowed** connection is selected from the dropdown. |
 | `REFRESH_CONNECTION` | `Constants.EVENTS.REFRESH_CONNECTION` | `{ connectionId, connectionName, connectionData }` | Triggered when the user clicks the refresh button. |
 | `INVALID_CONNECTION_SELECTED` | `Constants.EVENTS.INVALID_CONNECTION_SELECTED` | `{ connectionId, connectionName, connectionType, message } \| undefined` | Triggered when an unallowed connection is selected, or when the dropdown is reset to "Select Connection". |
 
@@ -393,8 +390,7 @@ onBeforeDestroy: function () {
 | `connectionName` | `String` | `""` | Name of the chosen connection. |
 | `connectionId` | `String` | `""` | Unique identifier of the connection. |
 | `connectionType` | `String` | `""` | Protocol or connection type (e.g., `"OPCUA"`). |
-| `pluginType` | `String` | `""` | Plugin type identifier if applicable. |
-| `selectConnection` | `String` | `""` | Fallback field matching `connectionName` or `connectionId`. |
+| `selectConnection` | `String` | `""` | Form field matching `connectionName`. |
 
 ---
 
