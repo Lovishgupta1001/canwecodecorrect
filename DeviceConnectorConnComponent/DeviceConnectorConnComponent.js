@@ -7,11 +7,15 @@ define(function (require) {
     var uilayer = require("uilayer"),
         _ = require("underscore"),
         AjaxUtility = require("Widgets/common/utilities/utilities").AjaxUtility,
-        ActivitiesUtility = require("Components/Activities/ActivitiesUtility/ActivitiesUtility"),
         model = require("./model/DeviceConnectorConnComponentModel"),
         template = require("tpl!./template/DeviceConnectorConnComponentTemplate"),
         nls = require("i18n!./nls/DeviceConnectorConnComponentNLS"),
         Constants = require("./constants/Constants");
+
+    var actUtilModule = "Components/Activities/ActivitiesUtility/ActivitiesUtility";
+    var ActivitiesUtility = (window.require && window.require.defined && window.require.defined(actUtilModule))
+        ? window.require(actUtilModule)
+        : null;
 
     var DeviceConnectorConnComponent = MIUIComponentI.extend({
         model: model,
@@ -31,10 +35,18 @@ define(function (require) {
 
         onInitialize: function (options) {
             this._initialized = true;
-            this.activityId = options.activityId;
-            this.activityReqres = options.activityReqres;
-            this.designerReqres = options.reqres;
-            this.processModel = this.designerReqres ? this.designerReqres.request("getCurrentActiveEntityModelFromDataStore") : null;
+            this.activityId = options.activityId || null;
+            this.activityReqres = options.activityReqres || null;
+            this.designerReqres = options.reqres || null;
+            this.allowedConnectionTypes = null;
+            if (options.allowedConnectionTypes) {
+                this.allowedConnectionTypes = Array.isArray(options.allowedConnectionTypes)
+                    ? options.allowedConnectionTypes
+                    : [options.allowedConnectionTypes];
+            }
+            this.processModel = (this.designerReqres && this.designerReqres.request)
+                ? this.designerReqres.request("getCurrentActiveEntityModelFromDataStore")
+                : null;
             if (!this.model || !this.model.set) {
                 this.model = new model();
             }
@@ -78,14 +90,14 @@ define(function (require) {
         },
 
         highlightErrors: function (errorObjectList) {
-            if (!errorObjectList?.length) return;
+            if (!errorObjectList || !errorObjectList.length) return;
             var element = this.$el.find("#connectionComboBox").parent().find(".k-input, .k-dropdown-wrap");
             if (!element.length) {
                 element = this.$el.find("#connectionComboBox");
             }
             errorObjectList.forEach(function (errorObject) {
                 if (!errorObject) return;
-                var message = errorObject.message || nls.messages.selectValidConnection || "Select a valid connection.";
+                var message = errorObject.message || (nls.messages && nls.messages.selectValidConnection) || "Select a valid connection.";
                 this._showConnErrorTooltip(element, message);
             }, this);
         },
@@ -123,6 +135,33 @@ define(function (require) {
                 }
             }
             var connId = this.connectionComboBox ? this.connectionComboBox.value() : "";
+            if (connId === Constants.NO_CONN_ID || connId === "Select Connection") {
+                connId = "";
+            }
+
+            if (this.allowedConnectionTypes && this.allowedConnectionTypes.length) {
+                var connItem = null;
+                if (this.connectionComboBox && this.connectionComboBox.dataSource) {
+                    var allItems = this.connectionComboBox.dataSource.data();
+                    for (var i = 0; i < allItems.length; i++) {
+                        var item = allItems[i];
+                        if (String(item.connectionId) === String(connId)) {
+                            connItem = item.toJSON ? item.toJSON() : item;
+                            break;
+                        }
+                    }
+                }
+                var testItem = connItem || {
+                    connectionType: this.model.get("connectionType"),
+                    pluginType: this.model.get("pluginType")
+                };
+                if (!this.isConnectionAllowed(testItem)) {
+                    connId = "";
+                    connText = "";
+                    this.model.set("connectionType", "");
+                    this.model.set("pluginType", "");
+                }
+            }
 
             this.model.set(Constants.fields.connectionComboBox, connText);
             this.model.set("connectionName", connText);
@@ -140,9 +179,12 @@ define(function (require) {
         getConnectionData: function () {
             var connId = this.getSelectedConnection();
             var connText = this.connectionComboBox ? this.connectionComboBox.text() : "";
+            if (connText === nls.messages.selectConnection || connText === "Select Connection") {
+                connText = "";
+            }
             var connType = this.getConnectionType();
             return {
-                connectionId: connId,
+                connectionId: connId || "",
                 connectionName: connText,
                 name: connText,
                 type: connType,
@@ -155,7 +197,50 @@ define(function (require) {
             return this.model.get("connectionType") || "";
         },
 
+        isConnectionAllowed: function (conn) {
+            if (!this.allowedConnectionTypes || !this.allowedConnectionTypes.length) {
+                return true;
+            }
+            if (!conn) {
+                return false;
+            }
+            var connType = String(conn.connectionType || conn.type || conn.pluginType || "").toUpperCase();
+            var pluginType = String(conn.pluginDisplayName || conn.pluginType || "").toUpperCase();
+
+            return this.allowedConnectionTypes.some(function (allowed) {
+                var allowedUpper = String(allowed).toUpperCase();
+                return connType === allowedUpper || pluginType === allowedUpper || connType.indexOf(allowedUpper) !== -1;
+            });
+        },
+
         getErrorMessage: function () {
+            var connId = this.getSelectedConnection();
+            if (!connId) {
+                return (nls.messages && nls.messages.selectValidConnection) || "Select a valid connection.";
+            }
+            if (this.allowedConnectionTypes && this.allowedConnectionTypes.length) {
+                var connItem = null;
+                if (this.connectionComboBox && this.connectionComboBox.dataSource) {
+                    var allItems = this.connectionComboBox.dataSource.data();
+                    for (var i = 0; i < allItems.length; i++) {
+                        var item = allItems[i];
+                        if (String(item.connectionId) === String(connId)) {
+                            connItem = item.toJSON ? item.toJSON() : item;
+                            break;
+                        }
+                    }
+                }
+                var testItem = connItem || {
+                    connectionType: this.model.get("connectionType"),
+                    pluginType: this.model.get("pluginType")
+                };
+                if (!this.isConnectionAllowed(testItem)) {
+                    var allowedStr = this.allowedConnectionTypes.join(", ");
+                    return (nls.messages && nls.messages.invalidConnectionType)
+                        ? (nls.messages.invalidConnectionType + " Only " + allowedStr + " connection(s) are supported.")
+                        : ("Selected connection is not allowed. Only " + allowedStr + " connection(s) are supported.");
+                }
+            }
             return "";
         },
 
@@ -239,7 +324,7 @@ define(function (require) {
                 },
                 optionLabel: nls.messages.selectConnection || "Select Connection",
                 select: function (e) {
-                    if (!(e.dataItem?.connectionId)) {
+                    if (!(e.dataItem && e.dataItem.connectionId)) {
                         e.preventDefault();
                     }
                 },
@@ -275,11 +360,12 @@ define(function (require) {
 
             if (!connId || connId === Constants.NO_CONN_ID || connId === "Select Connection") {
                 globalSelf.model.set("connectionType", "");
+                globalSelf.model.set("connectionId", "");
+                globalSelf.model.set(Constants.fields.connectionComboBox, "");
+                globalSelf.model.set("selectConnection", "");
                 globalSelf.trigger(Constants.EVENTS.INVALID_CONNECTION_SELECTED);
                 return;
             }
-
-            globalSelf._hideConnErrorTooltip(element);
 
             var connText = globalSelf.connectionComboBox ? globalSelf.connectionComboBox.text() : "";
             var connItem = null;
@@ -294,21 +380,44 @@ define(function (require) {
                 }
             }
 
-            var connName = connItem?.connectionName || connItem?.key || connText;
-            var connType = connItem?.connectionType || connItem?.type || connItem?.pluginType || "";
+            var connName = (connItem && (connItem.connectionName || connItem.key)) || connText;
+            var connType = (connItem && (connItem.connectionType || connItem.type || connItem.pluginType)) || "";
+            var pluginType = (connItem && connItem.pluginType) || "";
+
+            if (globalSelf.allowedConnectionTypes && globalSelf.allowedConnectionTypes.length) {
+                var testItem = connItem || { connectionType: connType, pluginType: pluginType };
+                if (!globalSelf.isConnectionAllowed(testItem)) {
+                    var allowedStr = globalSelf.allowedConnectionTypes.join(", ");
+                    var errorMsg = "Selected connection '" + connName + "' is not allowed. Only " + allowedStr + " connection(s) are supported.";
+                    globalSelf._showConnErrorTooltip(element, errorMsg);
+                    globalSelf.model.set("connectionType", "");
+                    globalSelf.model.set("connectionId", "");
+                    globalSelf.model.set(Constants.fields.connectionComboBox, "");
+                    globalSelf.model.set("selectConnection", "");
+                    globalSelf.trigger(Constants.EVENTS.INVALID_CONNECTION_SELECTED, {
+                        connectionId: connId,
+                        connectionName: connName,
+                        connectionType: connType,
+                        message: errorMsg
+                    });
+                    return;
+                }
+            }
+
+            globalSelf._hideConnErrorTooltip(element);
 
             globalSelf.model.set(Constants.fields.connectionComboBox, connText);
             globalSelf.model.set("connectionName", connName);
             globalSelf.model.set("connectionId", connId);
             globalSelf.model.set("connectionType", connType);
-            globalSelf.model.set("pluginType", connItem?.pluginType || "");
+            globalSelf.model.set("pluginType", pluginType);
             globalSelf.model.set("selectConnection", connText || connId);
 
             globalSelf.trigger(Constants.EVENTS.CHANGE_CONNECTION_VARIABLE, {
                 connectionId: connId,
                 connectionName: connName,
                 connectionType: connType,
-                pluginType: connItem?.pluginType,
+                pluginType: pluginType,
                 connectionItem: connItem
             });
         },
@@ -369,13 +478,14 @@ define(function (require) {
         },
 
         onBeforeDestroy: function () {
-            var element = this.$el?.find("#connectionComboBox")?.parent()?.find(".k-input, .k-dropdown-wrap");
-            if (element?.length) {
+            var element = this.$el ? this.$el.find("#connectionComboBox").parent().find(".k-input, .k-dropdown-wrap") : null;
+            if (element && element.length) {
                 this._hideConnErrorTooltip(element);
             }
             this.activityId = null;
             this.designerReqres = null;
             this.processModel = null;
+            this.allowedConnectionTypes = null;
             if (this.connectionComboBox) {
                 if (this.connectionComboBox.destroy) {
                     this.connectionComboBox.destroy();

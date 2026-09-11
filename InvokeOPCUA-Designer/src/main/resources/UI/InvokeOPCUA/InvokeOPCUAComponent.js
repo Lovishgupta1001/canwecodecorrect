@@ -37,7 +37,7 @@ define(function (require) {
         onInitialize: function (options) {
             this.activityId = options.activityId;
             this.designerReqres = options.reqres;
-            this.activityReqres = options.activityReqres || (Backbone?.Wreqr ? new Backbone.Wreqr.RequestResponse() : null);
+            this.activityReqres = options.activityReqres || ((Backbone && Backbone.Wreqr) ? new Backbone.Wreqr.RequestResponse() : null);
             this.processModel = this.designerReqres ? this.designerReqres.request("getCurrentActiveEntityModelFromDataStore") : null;
 
             if (!this.model.getKey("dataChangeWrite")) {
@@ -236,7 +236,9 @@ define(function (require) {
                 selected.each(function () { rows.push($(this).closest("tr")[0]); });
             } else {
                 var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
-                tbody?.find("input:checked").each(function () { rows.push($(this).closest("tr")[0]); });
+                if (tbody && tbody.length) {
+                    tbody.find("input:checked").each(function () { rows.push($(this).closest("tr")[0]); });
+                }
             }
 
             if (rows.length) {
@@ -245,16 +247,18 @@ define(function (require) {
         },
 
         _onAddDataChangeRow: function () {
-            this.dataChangeWriteGrid?.widget?.dataSource?.add({
-                name: "",
-                nodeId: "",
-                sampleValue: "",
-                newValue: ""
-            });
+            if (this.dataChangeWriteGrid && this.dataChangeWriteGrid.widget && this.dataChangeWriteGrid.widget.dataSource) {
+                this.dataChangeWriteGrid.widget.dataSource.add({
+                    name: "",
+                    nodeId: "",
+                    sampleValue: "",
+                    newValue: ""
+                });
+            }
         },
 
         _onAddCallMethodRow: function () {
-            if (this.callMethodGrid?.widget?.dataSource) {
+            if (this.callMethodGrid && this.callMethodGrid.widget && this.callMethodGrid.widget.dataSource) {
                 var count = this.callMethodGrid.widget.dataSource.data().length;
                 this.callMethodGrid.widget.dataSource.add({
                     name: "",
@@ -285,6 +289,7 @@ define(function (require) {
                 activityId: this.activityId,
                 reqres: this.designerReqres,
                 activityReqres: this.activityReqres,
+                allowedConnectionTypes: ["OPCUA"],
                 data: connData
             };
 
@@ -406,20 +411,24 @@ define(function (require) {
             this.model.setKey("executionMode", this.$(".parallel-mode-radio").is(":checked") ? Constants.PARALLEL : Constants.SEQUENTIAL);
 
             if (isDataChangeWrite) {
-                var dcData = this.dataChangeWriteGrid?.widget?.dataSource ? this.dataChangeWriteGrid.widget.dataSource.data().toJSON() : [];
+                var dcData = (this.dataChangeWriteGrid && this.dataChangeWriteGrid.widget && this.dataChangeWriteGrid.widget.dataSource)
+                    ? this.dataChangeWriteGrid.widget.dataSource.data().toJSON()
+                    : [];
                 _.each(dcData, function (item) {
-                    if (item?.newValue && item.newValue.constructor === Object) {
+                    if (item && item.newValue && item.newValue.constructor === Object) {
                         item.newValue = ExpressionBuilderUtility.getExpression(item.newValue);
                     }
                 });
                 this.model.setKey("dataChangeWrite", dcData);
                 this.model.setKey("callMethod", []);
             } else {
-                var cmData = this.callMethodGrid?.widget?.dataSource ? this.callMethodGrid.widget.dataSource.data().toJSON() : [];
+                var cmData = (this.callMethodGrid && this.callMethodGrid.widget && this.callMethodGrid.widget.dataSource)
+                    ? this.callMethodGrid.widget.dataSource.data().toJSON()
+                    : [];
                 _.each(cmData, function (item) {
-                    if (item?.inputParameters?.length) {
+                    if (item && item.inputParameters && item.inputParameters.length) {
                         _.each(item.inputParameters, function (param) {
-                            if (param?.value && param.value.constructor === Object) {
+                            if (param && param.value && param.value.constructor === Object) {
                                 param.value = ExpressionBuilderUtility.getExpression(param.value);
                             }
                         });
@@ -471,7 +480,7 @@ define(function (require) {
         },
 
         highlightErrors: function (errorObjectList) {
-            if (!errorObjectList?.length) return;
+            if (!errorObjectList || !errorObjectList.length) return;
 
             errorObjectList.forEach(function (errorObject) {
                 if (!errorObject) return;
@@ -523,13 +532,15 @@ define(function (require) {
                         }
                     }
 
-                    var grid = gridObj?.widget || gridObj;
+                    var grid = (gridObj && gridObj.widget) ? gridObj.widget : gridObj;
                     if (grid && rowIdx >= 0) {
                         var tbody = grid.tbody || (grid.element ? grid.element.find("tbody") : null);
                         var rows = tbody ? tbody.find("tr") : [];
                         var targetRow = $(rows[rowIdx]);
                         if (targetRow.length) {
-                            targetRow[0].scrollIntoView?.({ behavior: "smooth", block: "center" });
+                            if (targetRow[0] && targetRow[0].scrollIntoView) {
+                                targetRow[0].scrollIntoView({ behavior: "smooth", block: "center" });
+                            }
                             var cell = fieldName ? targetRow.find("." + fieldName) : targetRow;
                             var target = cell.length ? cell : targetRow;
                             target.addErrorHighlightClass("components-error-red-highlight");
@@ -549,6 +560,14 @@ define(function (require) {
         },
 
         getErrorMessage: function () {
+            if (this.deviceConnComp && this.deviceConnComp.getErrorMessage) {
+                var connErr = this.deviceConnComp.getErrorMessage();
+                if (connErr) {
+                    return connErr;
+                }
+            } else if (!this.model.getKey("connectionId")) {
+                return (this.nls && this.nls.selectValidConnection) || "Select a valid connection.";
+            }
             return "";
         },
 
