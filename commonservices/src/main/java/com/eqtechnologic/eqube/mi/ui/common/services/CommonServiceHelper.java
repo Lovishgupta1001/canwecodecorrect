@@ -234,26 +234,11 @@ public class CommonServiceHelper {
             connectionUIBean.setPluginUIDisplayName(pluginDisplayName.toString()); 
         } else { 
             connectionUIBean.setPluginBased(false); 
-            String connType = boBean.getConnectionType();
-            String deviceType = null;
-            if (propertiesMap != null) {
-                for (Map.Entry<String, ConnectionPropertiesView> entry : propertiesMap.entrySet()) {
-                    if ("deviceType".equalsIgnoreCase(entry.getKey())) {
-                        ConnectionPropertiesView view = entry.getValue();
-                        if (view != null && view.getPropertyValue() != null && !view.getPropertyValue().trim().isEmpty()) {
-                            deviceType = view.getPropertyValue().trim();
-                            break;
-                        }
-                    }
-                }
-            }
-            if (deviceType != null && !deviceType.isEmpty()) {
-                connType = deviceType;
-            }
-            connectionUIBean.setConnectionType(connType);
-            String displayName = boBean.getPluginDisplayName() != null ? boBean.getPluginDisplayName() : (boBean.getConnectionName() != null ? boBean.getConnectionName() : connType);
-            connectionUIBean.setPluginUIName(displayName);
-            connectionUIBean.setPluginUIDisplayName(displayName);
+            String deviceType = getPropertyValue(propertiesMap, "deviceType", null); 
+            String displayName = boBean.getPluginDisplayName() != null ? boBean.getPluginDisplayName() 
+                : (boBean.getConnectionName() != null ? boBean.getConnectionName() : deviceType); 
+            connectionUIBean.setPluginUIName(displayName); 
+            connectionUIBean.setPluginUIDisplayName(displayName); 
         } 
         setConnectionColor(connectionUIBean, propertiesMap); 
         setAuthenticationUsage(connectionUIBean, propertiesMap); 

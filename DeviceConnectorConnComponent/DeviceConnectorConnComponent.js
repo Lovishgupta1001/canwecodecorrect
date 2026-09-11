@@ -276,7 +276,7 @@ define(function (require) {
                 connectionsDetails.forEach(function (connection) {
                     if (String(connection.connectionId) === String(item.connectionId)) {
                         item.connectionColor = connection.connectionColor;
-                        item.connectionType = connection.connectionType;
+                        item.connectionType = connection.connectionType || connection.pluginName || connection.pluginDisplayName || "";
                         finalConnArr.push(item);
                         flag = true;
                     }
@@ -296,7 +296,7 @@ define(function (require) {
                         connectionId: connection.connectionId,
                         connectionName: connection.connectionName,
                         connectionColor: connection.connectionColor,
-                        connectionType: connection.connectionType
+                        connectionType: connection.connectionType || connection.pluginName || connection.pluginDisplayName || ""
                     });
                 }
             });

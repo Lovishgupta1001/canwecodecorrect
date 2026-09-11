@@ -80,17 +80,15 @@ public class DeviceConnectorHelper {
             return result; 
         } 
 
-        String connType = configuration.getConnectionType(); 
+        String connType = null; 
         if (configuration.getConnectionProperties() != null) { 
-            for (Map.Entry<String, ConnectionPropertiesView> entry : configuration.getConnectionProperties().entrySet()) { 
-                if ("deviceType".equalsIgnoreCase(entry.getKey())) { 
-                    ConnectionPropertiesView view = entry.getValue(); 
-                    if (view != null && view.getPropertyValue() != null && !view.getPropertyValue().trim().isEmpty()) { 
-                        connType = view.getPropertyValue().trim(); 
-                        break; 
-                    } 
-                } 
+            ConnectionPropertiesView view = configuration.getConnectionProperties().get("deviceType"); 
+            if (view != null && view.getPropertyValue() != null && !view.getPropertyValue().trim().isEmpty()) { 
+                connType = view.getPropertyValue().trim(); 
             } 
+        } 
+        if (connType == null || connType.isEmpty()) { 
+            connType = configuration.getPluginName(); 
         } 
         result.setConnectionType(connType != null ? connType : ""); 
         result.setConnectionName(configuration.getConnectionName()); 
