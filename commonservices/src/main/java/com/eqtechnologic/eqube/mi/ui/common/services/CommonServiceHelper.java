@@ -234,8 +234,6 @@ public class CommonServiceHelper {
             connectionUIBean.setPluginUIDisplayName(pluginDisplayName.toString()); 
         } else { 
             connectionUIBean.setPluginBased(false); 
-            String deviceType = getPropertyValue(propertiesMap, "deviceType", null); 
-            connectionUIBean.setConnectionType(deviceType); 
             String displayName = boBean.getPluginDisplayName() != null ? boBean.getPluginDisplayName() : boBean.getConnectionName(); 
             connectionUIBean.setPluginUIName(displayName); 
             connectionUIBean.setPluginUIDisplayName(displayName); 

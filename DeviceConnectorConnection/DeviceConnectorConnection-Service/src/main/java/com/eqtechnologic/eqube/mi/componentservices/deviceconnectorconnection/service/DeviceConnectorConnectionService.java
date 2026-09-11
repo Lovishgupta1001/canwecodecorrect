@@ -14,7 +14,6 @@ package com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.s
 
 import com.eqtechnologic.eqube.mi.component.service.ComponentService; 
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorConnCompInitialInput; 
-import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorPluginDefinition; 
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorValidationResult; 
 import com.eqtechnologic.eqube.exception.BusinessException; 
 import java.util.List; 

@@ -14,7 +14,8 @@ define({
             "selectValidConnection": "Select a valid connection.",
             "connectionsRefreshed": "Connections refreshed successfully.",
             "invalidConnection": "Select a valid connection.",
-            "invalidConnectionType": "Selected connection is not allowed."
+            "invalidConnectionType": "Selected connection is not allowed.",
+            "validationFailed": "Failed to validate connection."
         },
         "deviceconnectorconn.connectionNotEmpty": "Connection cannot be empty."
     }

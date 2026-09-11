@@ -31,7 +31,6 @@ public class ConnectionUIBean implements Serializable {
     private String pluginUIDisplayName;
     private String connectionColor;
     private boolean useConnectionForAuthentication;
-    private String connectionType;
 
     public ConnectionUIBean() {
     }
@@ -210,13 +209,5 @@ public class ConnectionUIBean implements Serializable {
 
     public void setUseConnectionForAuthentication(boolean useConnectionForAuthentication) {
         this.useConnectionForAuthentication = useConnectionForAuthentication;
-    }
-
-    public String getConnectionType() {
-        return connectionType;
-    }
-
-    public void setConnectionType(String connectionType) {
-        this.connectionType = connectionType;
     }
 }

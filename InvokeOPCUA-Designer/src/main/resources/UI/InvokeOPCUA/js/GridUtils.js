@@ -37,21 +37,21 @@ define(function (require) {
         },
 
         renderGridSearchBar: function (searchClass, grid, fields, globalSelf, nls) {
-            var searchElement = globalSelf.$("." + searchClass);
+            var searchElement = globalSelf?.$("." + searchClass);
 
-            if (!searchElement.length || !grid) {
+            if (!searchElement?.length || !grid) {
                 return null;
             }
 
-            var ds = grid.widget ? grid.widget.dataSource : (grid.dataSource || null);
+            var ds = grid.widget?.dataSource || grid.dataSource || null;
             if (!ds) {
                 return null;
             }
 
             var searchFields;
-            if(Array.isArray(fields)){
+            if (Array.isArray(fields)) {
                 searchFields = fields;
-            } else if (fields){
+            } else if (fields) {
                 searchFields = [fields, "nodeId"];
             } else {
                 searchFields = ["name", "nodeId"];
@@ -84,7 +84,7 @@ define(function (require) {
             }
 
             var getVal = function (key) {
-                return dataItem.get ? dataItem.get(key) : dataItem[key];
+                return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
             };
 
             var html = "<div class='ul-header-xxxs-b ul-pad-1x'>" + nls.NodeDetails + "</div>";
@@ -118,7 +118,7 @@ define(function (require) {
         },
 
         initializeGridHelpTooltips: function (container) {
-            container.find(".grid-help-container").each(this._initializeHelpTooltip);
+            container?.find?.(".grid-help-container")?.each?.(this._initializeHelpTooltip);
 
             $(document)
                 .off("click.sampleValueCopy")
@@ -193,28 +193,37 @@ define(function (require) {
             });
         },
 
-        getVariableNodeTemplate: function (globalSelf) {
+        resizeGridIfExists: function (grid) {
+            if (grid?.widget?.resize) {
+                grid.widget.resize();
+                return true;
+            }
+            return false;
+        },
+
+        _formatDisplayText: function (name, id) {
+            if (name && id) {
+                return name + " (" + id + ")";
+            }
+            if (id) {
+                return "(" + id + ")";
+            }
+            return name || "";
+        },
+
+        _getNodeCellTemplate: function (globalSelf, btnClass, isMethod) {
             return function (dataItem) {
                 var getVal = function (key) {
-                    return dataItem.get ? dataItem.get(key) : dataItem[key];
+                    return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
                 };
 
                 var name = (getVal("name") || "").trim();
                 var nodeId = (getVal("nodeId") || "").trim();
-
-                var displayText = "";
-                if (name && nodeId) {
-                    displayText = name + " (" + nodeId + ")";
-                } else if (nodeId) {
-                    displayText = "(" + nodeId + ")";
-                } else if (name) {
-                    displayText = name;
-                }
-
+                var displayText = GridUtils._formatDisplayText(name, nodeId);
                 var rawHelpText = getVal("nodeIdHelpText") || getVal("nodeIdDetails") || getVal("nodeDetails");
-                var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId, false);
+                var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId, isMethod);
                 var hasSelection = !!(name || nodeId);
-                var uid = dataItem.uid || "";
+                var uid = dataItem?.uid || "";
 
                 return "<div class='invokeopcua-node-cell'>" +
                     "<span class='invokeopcua-node-cell-text eq-common-ellipsis' title='" + _.escape(displayText) + "'>" +
@@ -226,81 +235,41 @@ define(function (require) {
                         "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
                         "</div>"
                         : "") +
-                    "<div role='button' class='ul-tertiary-button browse-data-change-btn' data-row-uid='" +
-                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</div>" +
+                    "<div role='button' class='ul-tertiary-button " + btnClass + "' data-row-uid='" +
+                    uid + "'>" + (globalSelf?.nls?.Browse || nls.Browse || "") + "</div>" +
                     "</div>" +
                     "</div>";
             };
         },
 
+        getVariableNodeTemplate: function (globalSelf) {
+            return this._getNodeCellTemplate(globalSelf, "browse-data-change-btn", false);
+        },
+
         getMethodNodeTemplate: function (globalSelf) {
-            return function (dataItem) {
-                var getVal = function (key) {
-                    return dataItem.get ? dataItem.get(key) : dataItem[key];
-                };
-
-                var name = (getVal("name") || "").trim();
-                var nodeId = (getVal("nodeId") || "").trim();
-
-                var displayText = "";
-                if (name && nodeId) {
-                    displayText = name + " (" + nodeId + ")";
-                } else if (nodeId) {
-                    displayText = "(" + nodeId + ")";
-                } else if (name) {
-                    displayText = name;
-                }
-
-                var rawHelpText = getVal("nodeIdHelpText") || getVal("nodeIdDetails") || getVal("nodeDetails");
-                var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId, true);
-                var hasSelection = !!(name || nodeId);
-                var uid = dataItem.uid || "";
-
-                return "<div class='invokeopcua-node-cell'>" +
-                    "<span class='invokeopcua-node-cell-text eq-common-ellipsis' title='" + _.escape(displayText) + "'>" +
-                    _.escape(displayText) +
-                    "</span>" +
-                    "<div class='invokeopcua-node-cell-actions'>" +
-                    (hasSelection
-                        ? "<div class='grid-help-container invokeopcua-info-icon'>" +
-                        "<input class='node-id-help-tooltip' data-help='" + _.escape(nodeIdHelpText) + "'/>" +
-                        "</div>"
-                        : "") +
-                    "<div role='button' class='ul-tertiary-button browse-call-method-btn' data-row-uid='" +
-                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</div>" +
-                    "</div>" +
-                    "</div>";
-            };
+            return this._getNodeCellTemplate(globalSelf, "browse-call-method-btn", true);
         },
 
         getParentObjectNodeTemplate: function (globalSelf) {
             return function (dataItem) {
                 var getVal = function (key) {
-                    return dataItem.get ? dataItem.get(key) : dataItem[key];
+                    return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
                 };
 
                 var objectName = (getVal("objectName") || "").trim();
                 var objectNodeId = (getVal("objectNodeId") || "").trim();
+                var displayText = GridUtils._formatDisplayText(objectName, objectNodeId);
 
-                var displayText = "";
-                if (objectName && objectNodeId) {
-                    displayText = objectName + " (" + objectNodeId + ")";
-                } else if (objectNodeId) {
-                    displayText = "(" + objectNodeId + ")";
-                } else if (objectName) {
-                    displayText = objectName;
-                }
-
-                var parentHelpText = "<div class='ul-header-xxxs-b ul-pad-1x'>" + (globalSelf.nls.ParentObjectNode || "Parent Object Node") + "</div>";
+                var parentHelpText = "<div class='ul-header-xxxs-b ul-pad-1x'>" + (globalSelf?.nls?.ParentObjectNode || nls.ParentObjectNode || "") + "</div>";
                 if (objectName) {
-                    parentHelpText += "<div><span class='ul-body-m-b ul-pad-1x-r invokeopcua-label'>" + (globalSelf.nls.NodeName || "Node Name") + ":</span><span>" + _.escape(objectName) + "</span></div>";
+                    parentHelpText += "<div><span class='ul-body-m-b ul-pad-1x-r invokeopcua-label'>" + (globalSelf?.nls?.NodeName || nls.NodeName || "") + ":</span><span>" + _.escape(objectName) + "</span></div>";
                 }
                 if (objectNodeId) {
-                    parentHelpText += "<div><span class='ul-body-m-b ul-pad-1x-r invokeopcua-label'>" + (globalSelf.nls.ObjectNodeId || "Object Node ID") + ":</span><span>" + _.escape(objectNodeId) + "</span></div>";
+                    parentHelpText += "<div><span class='ul-body-m-b ul-pad-1x-r invokeopcua-label'>" + (globalSelf?.nls?.ObjectNodeId || nls.ObjectNodeId || "") + ":</span><span>" + _.escape(objectNodeId) + "</span></div>";
                 }
 
                 var hasSelection = !!(objectName || objectNodeId);
-                var uid = dataItem.uid || "";
+                var uid = dataItem?.uid || "";
 
                 return "<div class='invokeopcua-node-cell'>" +
                     "<span class='invokeopcua-node-cell-text eq-common-ellipsis' title='" + _.escape(displayText) + "'>" +
@@ -313,7 +282,7 @@ define(function (require) {
                         "</div>"
                         : "") +
                     "<div role='button' class='ul-tertiary-button browse-parent-object-btn' data-row-uid='" +
-                    uid + "'>" + (globalSelf.nls.Browse || "Browse") + "</div>" +
+                    uid + "'>" + (globalSelf?.nls?.Browse || nls.Browse || "") + "</div>" +
                     "</div>" +
                     "</div>";
             };
@@ -397,7 +366,7 @@ define(function (require) {
         getSampleValueTemplate: function () {
             return function (dataItem) {
                 var getVal = function (key) {
-                    return dataItem.get ? dataItem.get(key) : dataItem[key];
+                    return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
                 };
 
                 var rawSampleValue = getVal("sampleValue");
@@ -450,7 +419,7 @@ define(function (require) {
 
         getOutputValueTemplate: function (dataItem) {
             var getVal = function (key) {
-                return dataItem.get ? dataItem.get(key) : dataItem[key];
+                return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
             };
             var outputValue = getVal("outputValue") || "";
             var isEmpty = !outputValue;
@@ -468,7 +437,7 @@ define(function (require) {
             var dataItem = globalSelfOrDataItem?.model ? null : (globalSelfOrDataItem || {});
             return function (item) {
                 var targetItem = dataItem || item || {};
-                var params = targetItem.get ? targetItem.get("inputParameters") : targetItem.inputParameters;
+                var params = targetItem?.get ? targetItem.get("inputParameters") : targetItem?.inputParameters;
                 var parameters = [];
                 if (params) {
                     if (typeof params.toJSON === "function") {
@@ -480,8 +449,8 @@ define(function (require) {
                 parameters = parameters.map(function (p) {
                     return (p && typeof p.toJSON === "function") ? p.toJSON() : p;
                 });
-                var count = parameters.length || 0;
-                var firstParam = parameters[0] || {};
+                var count = parameters?.length || 0;
+                var firstParam = parameters?.[0] || {};
                 var firstName = firstParam.name ||
                     firstParam.parameterName ||
                     firstParam.displayName ||

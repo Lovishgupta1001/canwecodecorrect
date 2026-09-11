@@ -7,15 +7,13 @@ define([
 
     var DataChangeGridManager = {
         refreshGridMode: function (globalSelf) {
-            if (!globalSelf || !globalSelf.dataChangeWriteGrid) {
+            if (!globalSelf?.dataChangeWriteGrid) {
                 return;
             }
 
-            if (globalSelf.dataChangeWriteGrid.widget && globalSelf.dataChangeWriteGrid.widget.dataSource) {
-                var currentData = globalSelf.dataChangeWriteGrid.widget.dataSource.data().toJSON();
-                if (currentData && currentData.length) {
-                    globalSelf.model.setKey("dataChangeWrite", currentData);
-                }
+            var currentData = globalSelf.dataChangeWriteGrid?.widget?.dataSource?.data?.()?.toJSON?.();
+            if (currentData?.length) {
+                globalSelf.model.setKey("dataChangeWrite", currentData);
             }
 
             globalSelf._destroyComponent(globalSelf.dataChangeWriteGrid);
@@ -36,7 +34,7 @@ define([
                 },
                 {
                     field: "name",
-                    title: globalSelf.nls.VariableNode || "Variable Node",
+                    title: globalSelf?.nls?.VariableNode,
                     width: "50%",
                     attributes: { "class": "variableNode name nodeId" },
                     template: GridUtils.getVariableNodeTemplate(globalSelf),
@@ -105,15 +103,11 @@ define([
         },
 
         _resizeGridIfExists: function (grid) {
-            if (grid && grid.widget) {
-                grid.widget.resize();
-                return true;
-            }
-            return false;
+            return GridUtils.resizeGridIfExists(grid);
         },
 
         renderDataChangeWriteComponent: function (globalSelf) {
-            if (this._resizeGridIfExists(globalSelf.dataChangeWriteGrid)) {
+            if (this._resizeGridIfExists(globalSelf?.dataChangeWriteGrid)) {
                 return;
             }
 
@@ -165,25 +159,23 @@ define([
                 e.stopPropagation();
 
                 var row = $(this).closest("tr");
-                var grid = globalSelf.dataChangeWriteGrid ? (globalSelf.dataChangeWriteGrid.widget || globalSelf.dataChangeWriteGrid) : null;
+                var grid = globalSelf.dataChangeWriteGrid?.widget || globalSelf.dataChangeWriteGrid;
                 if (!grid) {
                     return;
                 }
 
-                var dataItem = grid.dataItem(row);
+                var dataItem = grid.dataItem?.(row);
                 if (!dataItem) {
                     return;
                 }
 
-                var connData = globalSelf.getConnectionPayload ? globalSelf.getConnectionPayload() : null;
-                if (!connData || !connData.connectionId) {
-                    uilayer.notifier("warning", globalSelf.nls.SelectConnection || "Please select a connection.");
+                var connData = globalSelf.getConnectionPayload?.();
+                if (!connData?.connectionId) {
+                    uilayer.notifier("warning", globalSelf?.nls?.SelectConnection);
                     return;
                 }
 
-                if (globalSelf.addressSpaceBrowser) {
-                    globalSelf.addressSpaceBrowser.openForBrowse(dataItem, "DATA_CHANGE_WRITE", connData);
-                }
+                globalSelf.addressSpaceBrowser?.openForBrowse?.(dataItem, "DATA_CHANGE_WRITE", connData);
             });
         }
     };

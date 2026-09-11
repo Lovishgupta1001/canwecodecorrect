@@ -9,15 +9,21 @@ define(function (require) {
 
     var ExpressionBuilderManager = {
 
+        _extractValue: function (rawVal) {
+            if (typeof rawVal === "string") {
+                return rawVal;
+            }
+            if (rawVal && typeof rawVal === "object") {
+                return rawVal.value || rawVal.expression || "";
+            }
+            return "";
+        },
+
         getTemplate: function (field) {
+            var manager = this;
             return function (dataItem) {
-                var rawVal = dataItem.get ? dataItem.get(field) : dataItem[field];
-                var value = "";
-                if (typeof rawVal === "string") {
-                    value = rawVal;
-                } else if (rawVal && typeof rawVal === "object") {
-                    value = rawVal.value || rawVal.expression || "";
-                }
+                var rawVal = dataItem?.get ? dataItem.get(field) : dataItem?.[field];
+                var value = manager._extractValue(rawVal);
                 var isEmpty = !value;
                 return "<div class='invokeopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
                     "<span class='invokeopcua-editable-cell-value' title='" + value + "'>" +
@@ -29,40 +35,32 @@ define(function (require) {
         },
 
         getEditor: function (field, globalSelf) {
+            var manager = this;
             return function (container, options) {
                 var editor = $('<div class="expression-editor" data-bind="value:' + field + '"></div>');
                 editor.appendTo(container);
 
                 var configData = {
-                    processModel: globalSelf.processModel,
-                    activityID: globalSelf.activityId,
+                    processModel: globalSelf?.processModel,
+                    activityID: globalSelf?.activityId,
                     tabName: "CONFIGURATION"
                 };
 
-                var value = "";
-                var rawVal = options.model.get ? options.model.get(field) : options.model[field];
-                if (rawVal) {
-                    if (typeof rawVal === "string") {
-                        value = rawVal;
-                    } else if (typeof rawVal === "object") {
-                        value = rawVal.value || rawVal.expression || "";
-                    }
-                }
+                var rawVal = options.model?.get ? options.model.get(field) : options.model?.[field];
+                var value = manager._extractValue(rawVal);
 
                 var expressionBuilder;
 
                 var changeHandler = function () {
                     var expression = ExpressionBuilderUtility.getExpression(expressionBuilder);
                     if (expression !== undefined && expression !== null) {
-                        options.model.set(field, expression);
+                        options.model?.set?.(field, expression);
                     }
 
-                    var gridWidget = (globalSelf.inputParametersModalGrid?.widget)
-                        || (globalSelf._getGridInstance ? globalSelf._getGridInstance() : null);
+                    var gridWidget = (globalSelf?.inputParametersModalGrid?.widget)
+                        || (globalSelf?._getGridInstance ? globalSelf._getGridInstance() : null);
 
-                    if (gridWidget?.closeCell) {
-                        gridWidget.closeCell();
-                    }
+                    gridWidget?.closeCell?.();
                 };
 
                 expressionBuilder = ExpressionBuilderUtility.render(
@@ -78,9 +76,7 @@ define(function (require) {
         },
 
         destroy: function (expressionBuilder) {
-            if (expressionBuilder) {
-                ExpressionBuilderUtility.destroy(expressionBuilder);
-            }
+            ExpressionBuilderUtility?.destroy?.(expressionBuilder);
         }
     };
 
