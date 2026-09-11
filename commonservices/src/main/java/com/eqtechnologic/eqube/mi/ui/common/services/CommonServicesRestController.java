@@ -19,6 +19,7 @@ import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.logging.transaction.annotation.LogModuleName; 
 import com.eqtechnologic.eqube.mi.ui.ACOperation; 
 import com.eqtechnologic.eqube.mi.ui.common.services.uibeans.ConnectionUIBean; 
+import com.eqtechnologic.eqube.mi.ui.common.services.uibeans.DeviceConnectorBean; 
 import com.eqtechnologic.eqube.mi.ui.common.services.uibeans.PasswordPolicyBean; 
 import com.eqtechnologic.eqube.property.common.client.interfaces.IPropertyClient; 
 import com.eqtechnologic.eqube.servermanagement.service.ServerManagementService; 
@@ -89,10 +90,10 @@ public class CommonServicesRestController {
         return connUIBeanList; 
     } 
     @Loggable 
-    @GetMapping(value = "/fetchAccessibleNonPluginConnections") 
-    public List<ConnectionUIBean> fetchAccessibleNonPluginConnections() throws BusinessException { 
+    @GetMapping(value = "/fetchAccessibleDeviceConnectorConnections") 
+    public List<DeviceConnectorBean> fetchAccessibleDeviceConnectorConnections() throws BusinessException { 
         authorizeAction(); 
-        List<ConnectionUIBean> connUIBeanList = serviceHelper.fetchAccessibleNonPluginConnections(); 
+        List<DeviceConnectorBean> connUIBeanList = serviceHelper.fetchAccessibleDeviceConnectorConnections(); 
         return connUIBeanList; 
     } 
     @Loggable 

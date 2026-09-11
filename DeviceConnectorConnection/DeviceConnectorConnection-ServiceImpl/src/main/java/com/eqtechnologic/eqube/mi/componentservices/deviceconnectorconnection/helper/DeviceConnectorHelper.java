@@ -87,9 +87,6 @@ public class DeviceConnectorHelper {
                 connType = view.getPropertyValue().trim(); 
             } 
         } 
-        if (connType == null || connType.isEmpty()) { 
-            connType = configuration.getPluginName(); 
-        } 
         result.setConnectionType(connType != null ? connType : ""); 
         result.setConnectionName(configuration.getConnectionName()); 
 

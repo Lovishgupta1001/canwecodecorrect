@@ -1,6 +1,6 @@
 # DeviceConnectorConnComponent
 
-A reusable, generic UI connection dropdown component for eQube MI workflow activities and standalone applications. It provides a standardized Kendo dropdown with color-coded connection badges, real-time connection refreshing, process-variable merging, protocol filtering/validation, and error tooltip highlighting.
+A reusable, generic UI connection dropdown component for eQube MI workflow activities and standalone applications. It provides a standardized Kendo dropdown with color-coded connection badges, real-time connection refreshing, process-variable merging, server-side protocol validation, and error tooltip highlighting with full NLS localization.
 
 ---
 
@@ -10,9 +10,9 @@ Use this pattern when embedding the connection dropdown in modal dialogs, config
 
 ### How Standalone Mode Operates
 - **Zero Activity Dependencies**: Does not require `activityId`, `reqres`, or `activityReqres`.
-- **Pure Server Fetch**: Directly fetches accessible connections via `services/fetchAccessibleNonPluginConnections`.
+- **Pure Server Fetch**: Directly fetches accessible connections via `services/fetchAccessibleDeviceConnectorConnections`.
 - **Automatic Fallback**: `ActivitiesUtility` is dynamically detected; when not present in the runtime, it cleanly skips process variable merging without errors.
-- **Protocol Filtering**: You can optionally supply `allowedConnectionTypes: ["OPCUA"]` to restrict selectable connections, or omit it to allow any connection.
+- **Server-Side Protocol Validation**: You can optionally supply `allowedConnectionTypes: ["OPCUA"]` to restrict selectable connections. On selection, the component validates against `componentservices/deviceconnector/validateConnection`. Omit it to allow any non-plugin connection.
 
 ### Step 1: HTML Container
 Add a target container element in your template or HTML layout:
@@ -30,7 +30,7 @@ var connOptions = {
     el: $("#standalone-connection-container"), // Target DOM/jQuery element
     allowedConnectionTypes: ["OPCUA"],         // Optional: e.g. ["OPCUA"], ["MQTT"], or omit for any
     data: {
-        connectionId: "conn_123"               // Optional: preselected connection ID
+        connectionComboBox: "Local_OPCUA_Server" // Optional: preselected connection display text
     }
 };
 ```
@@ -53,6 +53,7 @@ define(function (require) {
         console.log("Selected connection ID:", data.connectionId);
         console.log("Selected connection Name:", data.connectionName);
         console.log("Selected connection Type:", data.connectionType);
+        console.log("Validation Result:", data.validationResult);
     });
 
     // Event: Invalid or unallowed connection selected
@@ -69,7 +70,7 @@ define(function (require) {
 
 #### Approach B: Factory Pattern (`window.MIUIComponent`)
 ```javascript
-if (window.MIUIComponent && window.MIUIComponent.DeviceConnectorConnComponent) {
+if (window.MIUIComponent?.DeviceConnectorConnComponent) {
     window.MIUIComponent.DeviceConnectorConnComponent(connOptions).done(function (comp) {
         comp.listenTo(comp, "CHANGE_CONNECTION_VARIABLE", function (data) {
             console.log("Connection chosen:", data.connectionName);
@@ -79,13 +80,18 @@ if (window.MIUIComponent && window.MIUIComponent.DeviceConnectorConnComponent) {
 ```
 
 ### Step 4: Validation & Pre-Submit Checks
-Before submitting a custom form or applying changes, call `getErrorMessage()`:
+Before submitting a custom form or applying changes, call `getErrorMessage()` or `validate()`:
 ```javascript
 var errorMsg = connComp.getErrorMessage();
 if (errorMsg) {
-    // Shows message, e.g.: "Selected connection 'XYZ' is not allowed. Only OPCUA connection(s) are supported."
+    // Displays error message from NLS or backend validation
     alert(errorMsg);
     return false; // Abort submission
+}
+
+// Or use synchronous validate() which automatically shows error tooltip if invalid:
+if (!connComp.validate()) {
+    return false;
 }
 ```
 
@@ -99,22 +105,23 @@ var connData = connComp.getConnectionData();
 // connData => {
 //     connectionId: "102",
 //     connectionName: "Local_OPCUA_Server",
-//     connectionType: "OPCUA"
+//     connectionType: "OPCUA",
+//     pluginDisplayName: ""
 // }
+
+// Get validated connection type directly
+var connType = connComp.getConnectionType(); // e.g. "OPCUA"
 
 // Get normalized model object
 var modelData = connComp.getData();
+// modelData => { connectionComboBox: "Local_OPCUA_Server" }
 ```
 
 ### Step 6: Teardown & Cleanup
 When the dialog or panel is closed, clean up DOM bindings and Kendo widgets:
 ```javascript
 if (connComp) {
-    if (connComp.destroy) {
-        connComp.destroy();
-    } else if (connComp.onBeforeDestroy) {
-        connComp.onBeforeDestroy();
-    }
+    connComp?.destroy?.();
     connComp = null;
 }
 ```
@@ -127,7 +134,9 @@ Follow this pattern when embedding the connection dropdown inside an eQube MI Pr
 
 ### How Activity Mode Operates
 - **Hybrid Source Merging**: Combines accessible connections with upstream in-flight process model variables via `ActivitiesUtility.getConnectionAndRemainingVariableComponentDataSource(processModel, activityId)`.
-- **Platform Lifecycle**: Integrates with Process Designer's lifecycle (`onRender`, `getData`, `setData`, `getErrorMessage`, `highlightErrors`, `onBeforeDestroy`).
+- **Initial Data Fetch**: Queries `componentservices/deviceconnector/getDeviceConnectorConnInitialData` to fetch accessible connection IDs and validate any pre-existing connection.
+- **Server-Side Validation**: Validates connections against `componentservices/deviceconnector/validateConnection` using `allowedConnectionTypes`.
+- **Platform Lifecycle**: Integrates cleanly with Process Designer's lifecycle (`onRender`, `getData`, `setData`, `getErrorMessage`, `highlightErrors`, `onBeforeDestroy`).
 - **Save Blocking**: Pre-save validation prevents invalid or unallowed connections from saving into the Process definition database.
 
 ### Step 1: HTML Container in Activity Template
@@ -151,8 +160,6 @@ onRender: function () {
                     this.model.getKey("connectionName");
     if (savedConn) {
         connData.connectionComboBox = savedConn;
-        connData.connectionName = savedConn;
-        connData.connectionId = this.model.getKey("connectionId") || "";
     }
 
     // 2. Setup options with activity context
@@ -167,7 +174,7 @@ onRender: function () {
 
     // 3. Mount using Promise pattern
     var deviceConnPromise;
-    if (window.MIUIComponent && window.MIUIComponent.DeviceConnectorConnComponent) {
+    if (window.MIUIComponent?.DeviceConnectorConnComponent) {
         deviceConnPromise = window.MIUIComponent.DeviceConnectorConnComponent(connOptions);
     } else {
         var deferred = $.Deferred();
@@ -202,6 +209,15 @@ onRender: function () {
             DeviceConnConstants.EVENTS.INVALID_CONNECTION_SELECTED,
             globalSelf._onConnectionInvalid.bind(globalSelf)
         );
+
+        // Initial connection fetch on load (for pre-saved connections)
+        globalSelf.listenTo(
+            globalSelf.deviceConnComp,
+            DeviceConnConstants.EVENTS.INITIAL_CONNECTION_FETCH,
+            function (initialData) {
+                console.log("Initial connection verified:", initialData.connectionName);
+            }
+        );
     });
 }
 ```
@@ -210,8 +226,8 @@ onRender: function () {
 ```javascript
 _onConnectionChanged: function (connData) {
     var connId = connData ? connData.connectionId : "";
-    var connName = connData ? (connData.connectionName || connData.name || "") : "";
-    var connType = connData ? (connData.connectionType || "OPCUA") : "OPCUA";
+    var connName = connData ? (connData.connectionName || "") : "";
+    var connType = connData ? (connData.connectionType || "") : "";
 
     // Update Activity Backbone Model
     this.model.setKey("connectionComboBox", connName);
@@ -224,7 +240,7 @@ _onConnectionChanged: function (connData) {
     this.$(".activity-config-section").show();
 },
 
-_onConnectionInvalid: function () {
+_onConnectionInvalid: function (errData) {
     // Hide configuration sections and clear model
     this.$(".activity-config-section").hide();
     this.model.setKey("connectionComboBox", "");
@@ -244,10 +260,10 @@ When the user clicks "Save" or "Apply", Process Designer automatically queries `
 ```javascript
 getErrorMessage: function () {
     // 1. Delegate connection validation to DeviceConnectorConnComponent
-    if (this.deviceConnComp && this.deviceConnComp.getErrorMessage) {
+    if (this.deviceConnComp?.getErrorMessage) {
         var connErr = this.deviceConnComp.getErrorMessage();
         if (connErr) {
-            return connErr; // Returns error string; blocks saving to database
+            return connErr; // Blocks saving to database
         }
     } else if (!this.model.getKey("connectionId")) {
         return "Select a valid connection.";
@@ -261,16 +277,12 @@ getErrorMessage: function () {
 ### Step 5: Serialize Data in `getData()`
 ```javascript
 getData: function () {
-    if (this.deviceConnComp && this.deviceConnComp.getData) {
-        var connData = this.deviceConnComp.getData();
-        this.model.setKey("connectionComboBox", connData.connectionComboBox || "");
-        this.model.setKey("connectionName", connData.connectionName || "");
-        this.model.setKey("connectionId", connData.connectionId || "");
-        this.model.setKey("selectConnection", connData.connectionComboBox || connData.connectionId || "");
-        if (connData.connectionType) {
-            this.model.setKey("connectionType", connData.connectionType);
-        }
-    }
+    var connData = this.deviceConnComp?.getConnectionData?.() || {};
+    this.model.setKey("connectionComboBox", connData.connectionName || "");
+    this.model.setKey("connectionName", connData.connectionName || "");
+    this.model.setKey("connectionId", connData.connectionId || "");
+    this.model.setKey("connectionType", connData.connectionType || "");
+    this.model.setKey("selectConnection", connData.connectionName || connData.connectionId || "");
     return this.model.toJSON();
 }
 ```
@@ -278,30 +290,27 @@ getData: function () {
 ### Step 6: Populate Data in `setData(obj)`
 ```javascript
 setData: function (obj) {
+    if (!obj) return;
     for (var key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             this.model.setKey(key, obj[key]);
         }
     }
-    if (this.deviceConnComp && this.deviceConnComp.setData) {
-        this.deviceConnComp.setData(obj);
-    }
+    this.deviceConnComp?.setData?.(obj);
 }
 ```
 
 ### Step 7: Forward Platform Validation Errors in `highlightErrors()`
 ```javascript
 highlightErrors: function (errorObjectList) {
-    if (!errorObjectList || !errorObjectList.length) return;
+    if (!errorObjectList?.length) return;
 
     errorObjectList.forEach(function (errorObject) {
         if (!errorObject) return;
         var path = errorObject.path || errorObject.resource || "";
 
         if (path.indexOf("connection") !== -1 || path.indexOf("selectConnection") !== -1) {
-            if (this.deviceConnComp && this.deviceConnComp.highlightErrors) {
-                this.deviceConnComp.highlightErrors([errorObject]);
-            }
+            this.deviceConnComp?.highlightErrors?.([errorObject]);
             return;
         }
     }, this);
@@ -313,11 +322,7 @@ highlightErrors: function (errorObjectList) {
 onBeforeDestroy: function () {
     if (this.deviceConnComp) {
         this.stopListening(this.deviceConnComp);
-        if (this.deviceConnComp.destroy) {
-            this.deviceConnComp.destroy();
-        } else if (this.deviceConnComp.onBeforeDestroy) {
-            this.deviceConnComp.onBeforeDestroy();
-        }
+        this.deviceConnComp.destroy?.();
         this.deviceConnComp = null;
     }
 }
@@ -325,20 +330,26 @@ onBeforeDestroy: function () {
 
 ---
 
-## 3. `allowedConnectionTypes` Filtering & Validation
+## 3. `allowedConnectionTypes` Filtering & Server-Side Validation
 
-1. **Full Visibility**:
-   - The dropdown displays **all accessible connections** in the user's environment.
-2. **Behavior on Selecting an Unallowed Connection**:
-   - **Visual Feedback**: Shows red border highlight (`.components-error-red-highlight`) and an error tooltip on the dropdown:
-     `"Selected connection '<ConnectionName>' is not allowed. Only <Types> connection(s) are supported."`
-   - **Model Reset**: Clears `connectionId`, `connectionType`, and `connectionComboBox` in `this.model` to `""`.
-   - **Event**: Triggers `INVALID_CONNECTION_SELECTED` with payload `{ connectionId, connectionName, connectionType, message }`.
-   - **Pre-Save Check**: `getErrorMessage()` returns the error message, blocking the activity from being saved.
-   - **Sanitization**: `getData()` validates `isConnectionAllowed()` and strips unallowed connection values.
-3. **Behavior on Selecting an Allowed Connection**:
-   - Hides any existing error tooltip and red border highlight.
-   - Populates model attributes and triggers `CHANGE_CONNECTION_VARIABLE`.
+1. **Full Visibility at Dropdown Population**:
+   - The dropdown displays **all accessible device connector connections** in the user's environment via `services/fetchAccessibleDeviceConnectorConnections`.
+   - Populates `connectionId`, `connectionName`, `connectionType`, and `connectionColor` without restricting items up front.
+2. **Server-Side Validation at Choosing / Load Time**:
+   - When a user selects a connection (or when an existing connection is loaded in `onRender` or `setData`):
+     - The component sends `POST componentservices/deviceconnector/validateConnection?connId=<id>` with payload `allowedConnectionTypes` (e.g. `["OPCUA"]`).
+     - On the backend, `DeviceConnectorHelper.validateConnection()` fetches the connection configuration, inspects `deviceType` in `connectionProperties`, and verifies if it matches `allowedConnectionTypes`.
+3. **Behavior on Selecting an Unallowed or Invalid Connection**:
+   - **Visual Feedback**: Shows red border highlight (`.components-error-red-highlight`), an error tooltip on the dropdown with the server or NLS message, and an error notification banner (`uilayer.notifier("error", message)`).
+   - **Model Reset**: Clears `connectionComboBox` in `this.model` to `""`.
+   - **Event**: Triggers `INVALID_CONNECTION_SELECTED` with payload `{ connectionId, message, validationResult }`.
+   - **Pre-Save Check**: `getErrorMessage()` returns the validation error message, blocking the activity from being saved.
+4. **Behavior on Selecting an Allowed Connection**:
+   - Hides any existing error tooltip and removes the red border highlight.
+   - Saves `lastValidatedConnectionId`, `lastValidatedConnectionName`, and `lastValidatedConnectionType`.
+   - Updates `this.model.set("connectionComboBox", connText)`.
+   - Attaches `connectionType` to the selected item cache.
+   - Triggers `CHANGE_CONNECTION_VARIABLE` with payload `{ connectionId, connectionName, connectionType, connectionItem, validationResult }`.
    - `getErrorMessage()` returns `""`.
 
 ---
@@ -348,8 +359,8 @@ onBeforeDestroy: function () {
 | Option | Type | Required? | Context | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `el` | `jQuery \| HTMLElement \| String` | **Yes** | Both | Container DOM element where the dropdown is rendered. |
-| `allowedConnectionTypes` | `Array<String> \| String` | No | Both | List of allowed connection types (e.g. `["OPCUA"]`). If omitted, all connection types are accepted. |
-| `data` | `Object` | No | Both | Initial connection data: `{ connectionId, connectionName, connectionComboBox }`. |
+| `allowedConnectionTypes` | `Array<String> \| String` | No | Both | List of allowed connection types (e.g. `["OPCUA"]`). Validated on the server. If omitted, all non-plugin connections are accepted. |
+| `data` | `Object` | No | Both | Initial connection data: `{ connectionComboBox }`. |
 | `activityId` | `String` | No | Inside Activity | The current activity ID (used to fetch upstream process variables). Omit outside activities. |
 | `reqres` | `Backbone.Wreqr.RequestResponse` | No | Inside Activity | Designer Reqres channel for Process Model access. Omit outside activities. |
 | `activityReqres` | `Backbone.Wreqr.RequestResponse` | No | Inside Activity | Activity-level Reqres channel. Omit outside activities. |
@@ -362,13 +373,17 @@ onBeforeDestroy: function () {
 
 | Method | Return Type | Description |
 | :--- | :--- | :--- |
-| `getData()` | `Object` | Returns `{ connectionComboBox, connectionName, connectionId, connectionType, selectConnection }`. Sanitizes and clears unallowed connections. |
-| `setData(obj)` | `void` | Selects the connection matching `obj.connectionComboBox` or `obj.connectionId`. |
+| `getData()` | `Object` | Returns `{ connectionComboBox: "..." }`. |
+| `setData(obj)` | `void` | Selects the connection matching `obj.connectionComboBox`, sets the model, and validates the connection. |
 | `getSelectedConnection()` | `String \| null` | Returns the currently selected `connectionId` (or `null` if placeholder / unallowed connection). |
-| `getConnectionData()` | `Object` | Returns `{ connectionId, connectionName, connectionType }`. |
-| `getConnectionType()` | `String` | Returns the `connectionType` string (e.g. `"OPCUA"`). |
-| `getErrorMessage()` | `String` | Validates if a connection is selected and permitted by `allowedConnectionTypes`. Returns an error message if invalid, or `""` if valid. Use this to block form / activity saving. |
-| `isConnectionAllowed(conn)` | `Boolean` | Checks whether the specified connection object or type matches `allowedConnectionTypes`. |
+| `getConnectionData()` | `Object` | Returns `{ connectionId, connectionName, connectionType, pluginDisplayName }`. |
+| `getConnectionType()` | `String` | Returns the validated `connectionType` string (e.g. `"OPCUA"`). |
+| `getAccessibleConnectionIds()` | `Array<Long>` | Returns the array of accessible connection IDs fetched via initial data service. |
+| `getErrorMessage()` | `String` | Validates if a connection is selected and permitted by `allowedConnectionTypes` and server validation. Returns an error message if invalid, or `""` if valid. Use this to block form / activity saving. |
+| `isValid()` | `Boolean` | Returns `true` if `getErrorMessage() === ""`, otherwise `false`. |
+| `validate()` | `Boolean` | Synchronous validation check. Shows the error tooltip if invalid and returns boolean. |
+| `validateConnection(callback)` | `Object \| void` | Asynchronous validation method that calls the backend and passes result `{ valid, connectionId, connectionName, connectionType, message }` to callback. |
+| `isConnectionAllowed(conn)` | `Boolean` | Checks whether the specified connection or validated type matches `allowedConnectionTypes`. |
 | `highlightErrors(errorList)` | `void` | Displays red border highlight and an error tooltip on the dropdown for each error object in the list. |
 | `destroy()` / `onBeforeDestroy()` | `void` | Cleans up Kendo dropdown widget, tooltips, DOM elements, and model bindings. |
 
@@ -376,9 +391,10 @@ onBeforeDestroy: function () {
 
 | Event Name | Constant | Payload | Description |
 | :--- | :--- | :--- | :--- |
-| `CHANGE_CONNECTION_VARIABLE` | `Constants.EVENTS.CHANGE_CONNECTION_VARIABLE` | `{ connectionId, connectionName, connectionType, connectionItem }` | Triggered when a **valid / allowed** connection is selected from the dropdown. |
-| `REFRESH_CONNECTION` | `Constants.EVENTS.REFRESH_CONNECTION` | `{ connectionId, connectionName, connectionData }` | Triggered when the user clicks the refresh button. |
-| `INVALID_CONNECTION_SELECTED` | `Constants.EVENTS.INVALID_CONNECTION_SELECTED` | `{ connectionId, connectionName, connectionType, message } \| undefined` | Triggered when an unallowed connection is selected, or when the dropdown is reset to "Select Connection". |
+| `CHANGE_CONNECTION_VARIABLE` | `Constants.EVENTS.CHANGE_CONNECTION_VARIABLE` | `{ connectionId, connectionName, connectionType, connectionItem, validationResult }` | Triggered when a **valid / allowed** connection is selected and verified by the server. |
+| `REFRESH_CONNECTION` | `Constants.EVENTS.REFRESH_CONNECTION` | `{ connectionId, connectionName, connectionData, validationResult }` | Triggered when the user clicks the refresh button and the connection revalidates successfully. |
+| `INITIAL_CONNECTION_FETCH` | `Constants.EVENTS.INITIAL_CONNECTION_FETCH` | `{ connectionId, connectionName }` | Triggered during initial load when a pre-existing connection is restored. |
+| `INVALID_CONNECTION_SELECTED` | `Constants.EVENTS.INVALID_CONNECTION_SELECTED` | `{ connectionId, message, validationResult }` | Triggered when an unallowed or invalid connection is selected, or when validation fails. |
 
 ---
 
@@ -390,7 +406,38 @@ onBeforeDestroy: function () {
 
 ---
 
-## 7. Component File Structure
+## 7. Backend Architecture & REST Services
+
+The component interacts with two backend services:
+
+1. **`CommonServicesRestController`** (`services/fetchAccessibleDeviceConnectorConnections`):
+   - Fetches all accessible device connector connections (returns `List<DeviceConnectorBean>`).
+   - Populates the dropdown options with display name, connection ID, connection type, and color badge.
+2. **`DeviceConnectorRestController`** (`componentservices/deviceconnector/...`):
+   - `GET getDeviceConnectorConnInitialData`:
+     - Invoked on component load to fetch accessible connection IDs (`connIds`).
+   - `POST validateConnection?connId=<id>`:
+     - Invoked whenever a connection is selected, loaded, or refreshed.
+     - Accepts request body of `List<String> allowedConnectionTypes`.
+     - Delegated to `DeviceConnectorHelper.validateConnection()` which inspects the raw `ConnectionConfigurationView`'s `deviceType` property and returns a `DeviceConnectorValidationResult`.
+
+---
+
+## 8. NLS Internationalization
+
+All user-facing strings are strictly resolved via NLS (`nls/DeviceConnectorConnComponentNLS.js`):
+- `labels.connection`: `"Connection"`
+- `buttons.refreshConnection`: `"Refresh connection"`
+- `messages.selectConnection`: `"Select Connection"`
+- `messages.selectValidConnection`: `"Select a valid connection."`
+- `messages.connectionsRefreshed`: `"Connections refreshed successfully."`
+- `messages.invalidConnection`: `"Select a valid connection."`
+- `messages.invalidConnectionType`: `"Selected connection is not allowed."`
+- `messages.validationFailed`: `"Failed to validate connection."`
+
+---
+
+## 9. Component File Structure
 
 ```text
 DeviceConnectorConnComponent/

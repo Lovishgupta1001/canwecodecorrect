@@ -274,7 +274,7 @@ define(function (require) {
 
         _fetchAccessibleConnectionsList: function () {
             var allConnections = [];
-            var nonPluginPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleNonPluginConnections", null, "json", null, true);
+            var nonPluginPromise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleDeviceConnectorConnections", null, "json", null, true);
             nonPluginPromise?.done?.(function (connectionsData) {
                 if (Array.isArray(connectionsData)) {
                     allConnections = connectionsData;
