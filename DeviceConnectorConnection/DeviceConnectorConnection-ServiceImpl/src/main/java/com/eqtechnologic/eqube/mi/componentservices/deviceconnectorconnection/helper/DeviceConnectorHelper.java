@@ -80,7 +80,13 @@ public class DeviceConnectorHelper {
             return result; 
         } 
 
-        String connType = configuration.getConnectionType(); 
+        String connType = null; 
+        if (configuration.getConnectionProperties() != null) { 
+            ConnectionPropertiesView view = configuration.getConnectionProperties().get("deviceType"); 
+            if (view != null && view.getPropertyValue() != null && !view.getPropertyValue().trim().isEmpty()) { 
+                connType = view.getPropertyValue().trim(); 
+            } 
+        } 
         if (connType == null || connType.isEmpty()) { 
             connType = configuration.getPluginName(); 
         } 
