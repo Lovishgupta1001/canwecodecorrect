@@ -24,6 +24,8 @@ define([
             this.connectionData = null;
             this.allNodesMap = {};
             this.loadedNodeIds = {};
+            this.fullTreeData = [];
+            this._isFilteredForParent = false;
             this._rendered = false;
             this.lastFetchedConnId = null;
 
@@ -330,6 +332,8 @@ define([
             this.connectionData = connectionData || this._getEffectiveConnectionPayload();
             this.allNodesMap = {};
             this.loadedNodeIds = {};
+            this.fullTreeData = [];
+            this._isFilteredForParent = false;
             this.selectedNode = null;
             this.lastFetchedConnId = null;
             this._updateActionButtonState();
@@ -361,7 +365,7 @@ define([
 
             var actionLabel = (this.targetMode === "CALL_METHOD")
                 ? this.nls?.SelectMethod
-                : this.nls?.SelectNode;
+                : (this.targetMode === "PARENT_OBJECT" ? (this.nls?.SelectParentObject || this.nls?.SelectNode) : this.nls?.SelectNode);
 
             this.containerElem.find("#address-space-select-btn").text(actionLabel);
 
@@ -388,6 +392,7 @@ define([
             if (!this.lastFetchedConnId || String(this.lastFetchedConnId) !== String(currentConnId)) {
                 this._fetchRootAddressSpace();
             } else {
+                this._showAppropriateTreeForMode();
                 this._preselectTargetNode();
             }
         },
@@ -406,6 +411,13 @@ define([
                     this.containerElem.find("#address-space-select-btn").text(this.nls?.SelectNode);
                 }
                 this._updateActionButtonState();
+
+                if (this._isFilteredForParent && this.fullTreeData) {
+                    var tree = this._getTreeWidget();
+                    var ds = this._createTreeDataSource(this.fullTreeData);
+                    tree?.setDataSource?.(ds);
+                    this._isFilteredForParent = false;
+                }
             }
 
             var browser = this;
@@ -434,7 +446,12 @@ define([
             if (!this.targetRow) {
                 return;
             }
-            var targetNodeId = this.targetRow.get ? this.targetRow.get("nodeId") : this.targetRow?.nodeId;
+            var targetNodeId = null;
+            if (this.targetMode === "PARENT_OBJECT") {
+                targetNodeId = this.targetRow.get ? this.targetRow.get("objectNodeId") : this.targetRow?.objectNodeId;
+            } else {
+                targetNodeId = this.targetRow.get ? this.targetRow.get("nodeId") : this.targetRow?.nodeId;
+            }
             if (!targetNodeId) {
                 return;
             }
@@ -470,17 +487,16 @@ define([
                 browser.waitWidget?.hide?.();
                 var data = response?.data || response || [];
                 var flatList = browser._processNodes(data, null);
+                browser.fullTreeData = flatList.slice();
 
                 var tree = browser._getTreeWidget();
                 if (!tree) {
                     browser._initTreeList(flatList);
                     browser._bindTreeEvents();
                     tree = browser._getTreeWidget();
-                } else if (tree.setDataSource) {
-                    var ds = browser._createTreeDataSource(flatList);
-                    tree.setDataSource(ds);
                 }
 
+                browser._showAppropriateTreeForMode();
                 tree?.resize?.(true);
                 browser._preselectTargetNode();
             });
@@ -508,11 +524,15 @@ define([
                     parentId: parentId ? String(parentId) : null,
                     nodeId: node.nodeId || "",
                     displayName: node.displayName || node.nodeId || "",
+                    browseName: node.browseName || "",
                     nodeClass: node.nodeClass || "",
                     needToFetchChildren: (node.needToFetchChildren !== null && node.needToFetchChildren !== void 0) ? node.needToFetchChildren : false,
                     hasChildren: hasChildren,
                     value: (node.value !== null && node.value !== void 0) ? node.value : "",
                     valueType: node.valueType || "",
+                    dataType: node.dataType || "",
+                    dataTypeName: node.dataTypeName || "",
+                    description: node.description || "",
                     rawNode: node
                 };
 
@@ -549,8 +569,16 @@ define([
                 var children = response?.data || response || [];
                 var flatChildren = browser._processNodes(children, parentNode.id);
 
+                if (browser.fullTreeData) {
+                    flatChildren.forEach(function (child) {
+                        if (!browser.fullTreeData.some(function (x) { return x.id === child.id; })) {
+                            browser.fullTreeData.push(child);
+                        }
+                    });
+                }
+
                 var tree = browser._getTreeWidget();
-                if (tree?.dataSource) {
+                if (tree?.dataSource && !browser._isFilteredForParent) {
                     flatChildren.forEach(function (childItem) {
                         if (!tree.dataSource.get(childItem.id)) {
                             tree.dataSource.add(childItem);
@@ -595,9 +623,15 @@ define([
             var val = (node.get ? node.get("value") : node.value);
             var sampleVal = (val !== null && val !== void 0) ? String(val) : "";
 
+            var raw = node.rawNode || node;
+            var dataTypeName = node.dataTypeName || raw.dataTypeName || "";
+            var dataTypeNodeId = node.dataType || raw.dataType || node.dataTypeNodeId || raw.dataTypeNodeId || "";
+
             if (row.set) {
                 row.set("name", name);
                 row.set("nodeId", nodeId);
+                row.set("dataTypeName", dataTypeName);
+                row.set("dataTypeNodeId", dataTypeNodeId);
                 row.set("sampleValue", sampleVal);
                 var curNewVal = row.get ? row.get("newValue") : row.newValue;
                 if (!curNewVal && val !== null && val !== void 0) {
@@ -606,6 +640,8 @@ define([
             } else {
                 row.name = name;
                 row.nodeId = nodeId;
+                row.dataTypeName = dataTypeName;
+                row.dataTypeNodeId = dataTypeNodeId;
                 row.sampleValue = sampleVal;
                 if (!row.newValue && val !== null && val !== void 0) {
                     row.newValue = GridUtils.getDefaultExpression(val);
@@ -627,23 +663,26 @@ define([
             var displayName = (node.get ? node.get("displayName") : node.displayName) || "";
             var name = displayName.replace(/\s/g, "");
             var nodeId = (node.get ? node.get("nodeId") : node.nodeId) || "";
-            var parentObjectNodeId = this._resolveParentNodeId(node);
-            var parentObjectName = this._resolveParentNodeName(node);
+
+            row._selectedMethodNode = node;
 
             if (row.set) {
                 row.set("name", name);
                 row.set("nodeId", nodeId);
-                row.set("objectNodeId", parentObjectNodeId);
-                row.set("objectName", parentObjectName);
+                row.set("objectName", "");
+                row.set("objectNodeId", "");
             } else {
                 row.name = name;
                 row.nodeId = nodeId;
-                row.objectNodeId = parentObjectNodeId;
-                row.objectName = parentObjectName;
+                row.objectName = "";
+                row.objectNodeId = "";
             }
 
             var grid = this.globalSelf?.callMethodGrid ? (this.globalSelf.callMethodGrid.widget || this.globalSelf.callMethodGrid) : null;
-            grid?.refresh?.();
+            if (grid?.refresh) {
+                grid.refresh();
+                GridUtils.initializeGridHelpTooltips(this.globalSelf.$(".cvt-grid-div-call-method"));
+            }
 
             this.waitWidget?.show?.();
 
@@ -657,10 +696,13 @@ define([
                 var inputArgs = data.inputArguments || data.inputParameters || [];
 
                 var params = inputArgs.map(function (arg) {
+                    var typeStr = arg.dataTypeName || arg.dataType || arg.valueType || arg.type || "String";
                     return {
                         name: arg.name || arg.displayName || "",
-                        type: arg.dataType || arg.valueType || arg.type || "String",
-                        value: "",
+                        type: typeStr,
+                        dataType: typeStr,
+                        dataTypeName: typeStr,
+                        value: arg.value || "",
                         description: arg.description || ""
                     };
                 });
@@ -725,6 +767,136 @@ define([
             return parentNode ? (parentNode.displayName || parentNode.nodeId || "") : "";
         },
 
+        _showAppropriateTreeForMode: function () {
+            var tree = this._getTreeWidget();
+            if (!tree) {
+                return;
+            }
+
+            if (this.targetMode === "PARENT_OBJECT") {
+                var parentNodes = this._getParentNodesForTargetMethod(this.targetRow);
+                var ds = this._createTreeDataSource(parentNodes);
+                tree.setDataSource(ds);
+                this._isFilteredForParent = true;
+                if (!parentNodes.length) {
+                    uilayer.notifier("warning", this.nls?.ErrorFetchingMethodParams || "No parent object nodes found for the selected method.");
+                }
+            } else {
+                if (this._isFilteredForParent || !tree.dataSource || tree.dataSource.data().length === 0) {
+                    var ds = this._createTreeDataSource(this.fullTreeData || []);
+                    tree.setDataSource(ds);
+                    this._isFilteredForParent = false;
+                }
+            }
+        },
+
+        _getParentNodesForTargetMethod: function (targetRow) {
+            if (!targetRow) {
+                return [];
+            }
+
+            var methodNodeId = (targetRow.get ? targetRow.get("nodeId") : targetRow.nodeId) || "";
+            var selectedNode = targetRow._selectedMethodNode || null;
+
+            if (!selectedNode && methodNodeId) {
+                for (var key in this.allNodesMap) {
+                    var item = this.allNodesMap[key];
+                    if (item && item.nodeId === methodNodeId && (item.nodeClass || "").toUpperCase() === "METHOD") {
+                        selectedNode = item;
+                        break;
+                    }
+                }
+                if (!selectedNode && this.allNodesMap[methodNodeId]) {
+                    selectedNode = this.allNodesMap[methodNodeId];
+                }
+            }
+
+            if (!selectedNode) {
+                return [];
+            }
+
+            var parentNodes = [];
+            var parentIdsMap = {};
+
+            var isRootFolder = function (node) {
+                if (!node) return true;
+                var nid = String(node.nodeId || "");
+                return nid === "i=84" || nid === "ns=0;i=84" || node.displayName === "Root";
+            };
+
+            var isStandardObjectsFolder = function (node, isDirect) {
+                if (!node) return true;
+                if (isDirect) return false;
+                var nid = String(node.nodeId || "");
+                return nid === "i=85" || nid === "ns=0;i=85" || (node.displayName === "Objects" && !node.parentId);
+            };
+
+            // 1. Walk up the ancestor tree from the selected method node
+            var curr = selectedNode;
+            var isDirect = true;
+            while (curr && curr.parentId) {
+                var parent = this.allNodesMap[curr.parentId];
+                if (!parent) {
+                    break;
+                }
+                if (!isRootFolder(parent) && !isStandardObjectsFolder(parent, isDirect) && !parentIdsMap[parent.id]) {
+                    parentIdsMap[parent.id] = true;
+                    parentNodes.push(parent);
+                }
+                curr = parent;
+                isDirect = false;
+            }
+
+            // 2. Also check other occurrences of this method nodeId across allNodesMap
+            if (methodNodeId) {
+                for (var id in this.allNodesMap) {
+                    var otherItem = this.allNodesMap[id];
+                    if (otherItem && otherItem.nodeId === methodNodeId && otherItem.id !== selectedNode.id && otherItem.parentId) {
+                        var otherCurr = otherItem;
+                        var otherIsDirect = true;
+                        while (otherCurr && otherCurr.parentId) {
+                            var otherParent = this.allNodesMap[otherCurr.parentId];
+                            if (!otherParent) {
+                                break;
+                            }
+                            if (!isRootFolder(otherParent) && !isStandardObjectsFolder(otherParent, otherIsDirect) && !parentIdsMap[otherParent.id]) {
+                                parentIdsMap[otherParent.id] = true;
+                                parentNodes.push(otherParent);
+                            }
+                            otherCurr = otherParent;
+                            otherIsDirect = false;
+                        }
+                    }
+                }
+            }
+
+            // Fallback: If no parents matched, allow direct parent even if it was a folder
+            if (parentNodes.length === 0 && selectedNode.parentId) {
+                var directParent = this.allNodesMap[selectedNode.parentId];
+                if (directParent) {
+                    parentNodes.push(directParent);
+                    parentIdsMap[directParent.id] = true;
+                }
+            }
+
+            // Map nodes into tree items for dataSource, clearing parentId for root-level entries
+            return parentNodes.map(function (p) {
+                var hasParentInList = Boolean(p.parentId && parentIdsMap[p.parentId]);
+                return {
+                    id: String(p.id),
+                    parentId: hasParentInList ? String(p.parentId) : null,
+                    nodeId: p.nodeId || "",
+                    displayName: p.displayName || p.nodeId || "",
+                    nodeClass: p.nodeClass || "",
+                    needToFetchChildren: false,
+                    hasChildren: false,
+                    value: p.value || "",
+                    valueType: p.valueType || "",
+                    rawNode: p.rawNode || p
+                };
+            });
+        },
+
         _onSearch: function (query) {
             var tree = this._getTreeWidget();
             if (!tree?.dataSource) {
@@ -757,6 +929,12 @@ define([
             this.targetRow = null;
             this.targetMode = null;
             this._updateActionButtonState();
+            if (this._isFilteredForParent && this.fullTreeData) {
+                var tree = this._getTreeWidget();
+                var ds = this._createTreeDataSource(this.fullTreeData);
+                tree?.setDataSource?.(ds);
+                this._isFilteredForParent = false;
+            }
             this.globalSelf?.$el?.find("#invokeopcua-address-space-drawer-section")?.addClass("ul-state-collapsed");
         },
 
@@ -777,6 +955,8 @@ define([
             this.targetRow = null;
             this.allNodesMap = null;
             this.loadedNodeIds = null;
+            this.fullTreeData = null;
+            this._isFilteredForParent = false;
         }
     };
 

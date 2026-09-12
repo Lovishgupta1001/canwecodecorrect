@@ -270,6 +270,14 @@ define(function (require) {
 
                 var hasSelection = !!(objectName || objectNodeId);
                 var uid = dataItem?.uid || "";
+                var methodName = (getVal("name") || "").trim();
+                var methodNodeId = (getVal("nodeId") || "").trim();
+                var hasMethodNode = !!(methodName || methodNodeId);
+
+                var browseBtnClass = "ul-tertiary-button browse-parent-object-btn" +
+                    (!hasMethodNode ? " disabled is-disabled ul-state-disabled" : "");
+                var browseDisabledAttr = !hasMethodNode ? " disabled='disabled' aria-disabled='true'" : "";
+                var browseTitleAttr = !hasMethodNode ? " title='" + _.escape(globalSelf?.nls?.SelectMethodNodeFirst || "Please select a method node first") + "'" : "";
 
                 return "<div class='invokeopcua-node-cell'>" +
                     "<span class='invokeopcua-node-cell-text eq-common-ellipsis' title='" + _.escape(displayText) + "'>" +
@@ -281,7 +289,7 @@ define(function (require) {
                         "<input class='node-id-help-tooltip' data-help='" + _.escape(parentHelpText) + "'/>" +
                         "</div>"
                         : "") +
-                    "<div role='button' class='ul-tertiary-button browse-parent-object-btn' data-row-uid='" +
+                    "<div role='button' class='" + browseBtnClass + "'" + browseDisabledAttr + browseTitleAttr + " data-row-uid='" +
                     uid + "'>" + (globalSelf?.nls?.Browse || nls.Browse || "") + "</div>" +
                     "</div>" +
                     "</div>";
@@ -323,13 +331,16 @@ define(function (require) {
                 return value;
             }
 
-            var parsed = JSON.parse(trimmed);
-
-            return parsed &&
-            typeof parsed === "object" &&
-            parsed.hasOwnProperty("Value")
-                ? parsed.Value
-                : parsed;
+            try {
+                var parsed = JSON.parse(trimmed);
+                return parsed &&
+                typeof parsed === "object" &&
+                parsed.hasOwnProperty("Value")
+                    ? parsed.Value
+                    : parsed;
+            } catch (e) {
+                return value;
+            }
         },
 
         getDefaultExpression: function (rawSampleValue) {
@@ -345,6 +356,10 @@ define(function (require) {
 
             if (typeof value !== "object") {
                 var strVal = String(value).trim();
+
+                if (strVal === "true" || strVal === "false") {
+                    return strVal;
+                }
 
                 if ((strVal.startsWith('"') && strVal.endsWith('"')) ||
                     (strVal.startsWith("'") && strVal.endsWith("'"))) {

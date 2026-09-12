@@ -133,6 +133,14 @@
     user-select: none;
     display: inline-flex;
     align-items: center;
+
+    &[disabled],
+    &.disabled,
+    &.ul-state-disabled {
+        opacity: 0.35;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+    }
 }
 
 .invokeopcua-node-cell {

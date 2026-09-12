@@ -88,6 +88,14 @@ define([
                                 type: "string",
                                 editable: false
                             },
+                            dataTypeName: {
+                                type: "string",
+                                editable: false
+                            },
+                            dataTypeNodeId: {
+                                type: "string",
+                                editable: false
+                            },
                             sampleValue: {
                                 type: "string",
                                 editable: false

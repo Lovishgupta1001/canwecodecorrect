@@ -335,6 +335,14 @@ define([
                 var dataItem = grid.dataItem?.(row);
                 if (!dataItem) return;
 
+                if (targetMode === "PARENT_OBJECT") {
+                    var methodName = ((dataItem.get ? dataItem.get("name") : dataItem.name) || "").trim();
+                    var nodeId = ((dataItem.get ? dataItem.get("nodeId") : dataItem.nodeId) || "").trim();
+                    if (!methodName && !nodeId) {
+                        return;
+                    }
+                }
+
                 var connData = globalSelf.getConnectionPayload?.();
                 if (!connData?.connectionId) {
                     uilayer.notifier("warning", globalSelf?.nls?.SelectConnection);
@@ -354,6 +362,18 @@ define([
             $container.off("click", ".browse-parent-object-btn").on("click", ".browse-parent-object-btn", function (e) {
                 e.preventDefault();
                 e.stopPropagation();
+                var $btn = $(this);
+                if ($btn.is(":disabled") || $btn.hasClass("disabled") || $btn.hasClass("ul-state-disabled") || $btn.attr("disabled")) {
+                    return;
+                }
+                var row = $btn.closest("tr");
+                var grid = globalSelf.callMethodGrid?.widget || globalSelf.callMethodGrid;
+                var dataItem = grid?.dataItem?.(row);
+                var methodName = ((dataItem?.get ? dataItem.get("name") : dataItem?.name) || "").trim();
+                var nodeId = ((dataItem?.get ? dataItem.get("nodeId") : dataItem?.nodeId) || "").trim();
+                if (!methodName && !nodeId) {
+                    return;
+                }
                 handleBrowseClick(this, "PARENT_OBJECT");
             });
         },
