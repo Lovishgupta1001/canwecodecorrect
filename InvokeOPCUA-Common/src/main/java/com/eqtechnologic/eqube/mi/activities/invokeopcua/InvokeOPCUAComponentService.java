@@ -22,9 +22,9 @@ import com.eqtechnologic.eqube.mi.component.service.ComponentExportEntity;
 import com.eqtechnologic.eqube.mi.component.service.ComponentValidator;
 import com.eqtechnologic.eqube.mi.component.service.RemapInfo;
 import com.eqtechnologic.eqube.soa.servicemanagement.annotations.Exported;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.AbstractNodeBean;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
-import com.eqtechnologic.eqube.transport.uiservice.beans.OPCUATransportInfoBean;
+// import com.eqtechnologic.eqube.transport.opcuatransport.beans.AbstractNodeBean;
+// import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
+// import com.eqtechnologic.eqube.transport.uiservice.beans.OPCUATransportInfoBean;
 import com.google.auto.service.AutoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -135,6 +135,10 @@ public class InvokeOPCUAComponentService implements ActivityService<Object, Map,
         return null;
     }
 
+    /*
+     * The following service methods use com.eqtechnologic.eqube.transport.* classes
+     * and have been commented out.
+
     public List<AbstractNodeBean> fetchAddressSpace(Object connectionDetails) throws BusinessException {
         return opcuaHelper.fetchAddressSpace(connectionDetails);
     }
@@ -146,6 +150,11 @@ public class InvokeOPCUAComponentService implements ActivityService<Object, Map,
     public OpcUaMethodWriteItem fetchMethodParamsByID(String nodeId, Object connectionDetails) throws BusinessException {
         return opcuaHelper.fetchMethodParamsByID(nodeId, connectionDetails);
     }
+    */
+
+    /*
+     * The following service methods are not bare minimum required for Invoke OPC UA activity
+     * and have been commented out.
 
     public Map<String, Object> fetchServerEventFieldsAndTypes(Object connectionDetails) throws BusinessException {
         return opcuaHelper.fetchServerEventFieldsAndTypes(connectionDetails);
@@ -166,4 +175,5 @@ public class InvokeOPCUAComponentService implements ActivityService<Object, Map,
     public List<String> fetchConfiguredKeystores() {
         return opcuaHelper.fetchConfiguredKeystores();
     }
+    */
 }

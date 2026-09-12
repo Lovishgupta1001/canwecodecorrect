@@ -15,9 +15,9 @@ import com.eqtechnologic.eqube.logging.Logger;
 import com.eqtechnologic.eqube.mi.ui.MIOperation;
 import com.eqtechnologic.eqube.soa.methodauthorization.annotations.Authorize;
 import com.eqtechnologic.eqube.soa.methodauthorization.annotations.OperationNames;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.AbstractNodeBean;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
-import com.eqtechnologic.eqube.transport.uiservice.beans.OPCUATransportInfoBean;
+// import com.eqtechnologic.eqube.transport.opcuatransport.beans.AbstractNodeBean;
+// import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
+// import com.eqtechnologic.eqube.transport.uiservice.beans.OPCUATransportInfoBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,13 +59,10 @@ public class InvokeOPCUAComponentRestController {
         return Arrays.asList("OPC UA", "OPCUA");
     }
 
-    /**
-     * Service is used to fetch Address Space
-     *
-     * @param connectionDetails connection details or transport bean
-     * @return List of AbstractNodeBean
-     * @throws BusinessException
-     */
+    /*
+     * The following endpoints use com.eqtechnologic.eqube.transport.* classes
+     * and have been commented out.
+
     @Loggable
     @PostMapping(value = "/fetchAddressSpace")
     public List<AbstractNodeBean> fetchAddressSpace(@RequestBody(required = false) Map<String, Object> connectionDetails) throws BusinessException {
@@ -73,14 +70,6 @@ public class InvokeOPCUAComponentRestController {
         return opcuaHelper.getInvokeOPCUAService().fetchAddressSpace(connectionDetails);
     }
 
-    /**
-     * Service is used to fetch Address Space Children of a node using its id
-     *
-     * @param nodeId node id
-     * @param connectionDetails connection details or transport bean
-     * @return List of AbstractNodeBean
-     * @throws BusinessException
-     */
     @Loggable
     @PostMapping(value = "/fetchAddressSpaceChildrenByID")
     public List<AbstractNodeBean> fetchChildrenByID(@RequestParam("nodeId") String nodeId, @RequestBody(required = false) Map<String, Object> connectionDetails) throws BusinessException {
@@ -88,28 +77,18 @@ public class InvokeOPCUAComponentRestController {
         return opcuaHelper.getInvokeOPCUAService().fetchChildrenByID(nodeId, connectionDetails);
     }
 
-    /**
-     * Service is used to fetch method parameters for a node using its id
-     *
-     * @param nodeId node id
-     * @param connectionDetails connection details or transport bean
-     * @return OpcUaMethodWriteItem
-     * @throws BusinessException
-     */
     @Loggable
     @PostMapping(value = "/fetchMethodParamsByID")
     public OpcUaMethodWriteItem fetchMethodParamsByID(@RequestParam("nodeId") String nodeId, @RequestBody(required = false) Map<String, Object> connectionDetails) throws BusinessException {
         checkMultipleOperations(operations);
         return opcuaHelper.getInvokeOPCUAService().fetchMethodParamsByID(nodeId, connectionDetails);
     }
+    */
 
-    /**
-     * Service is used to fetch server event fields and event types
-     *
-     * @param connectionDetails connection details or transport bean
-     * @return Map containing eventTypes and eventFields
-     * @throws BusinessException
-     */
+    /*
+     * The following endpoints are not bare minimum required for Invoke OPC UA activity
+     * and have been commented out.
+
     @Loggable
     @PostMapping(value = "/fetchServerEventFieldsAndTypes")
     public Map<String, Object> fetchServerEventFieldsAndTypes(@RequestBody(required = false) Map<String, Object> connectionDetails) throws BusinessException {
@@ -117,16 +96,6 @@ public class InvokeOPCUAComponentRestController {
         return opcuaHelper.getInvokeOPCUAService().fetchServerEventFieldsAndTypes(connectionDetails);
     }
 
-    /**
-     * Service is used to fetch enriched message using node id as well as parent node id
-     *
-     * @param nodeId node id
-     * @param parentNodeId parent node id
-     * @param enrichmentPath enrichment path
-     * @param connectionDetails connection details or transport bean
-     * @return String
-     * @throws BusinessException
-     */
     @Loggable
     @PostMapping(value = "/fetchEnrichedMessageByID")
     public String fetchEnrichedMessageByID(@RequestParam("nodeId") String nodeId,
@@ -137,15 +106,6 @@ public class InvokeOPCUAComponentRestController {
         return opcuaHelper.getInvokeOPCUAService().fetchEnrichedMessageByID(nodeId, parentNodeId, enrichmentPath, connectionDetails);
     }
 
-    /**
-     * Service is used to validate the selected parent node for a given method node
-     *
-     * @param nodeId node id
-     * @param objectNodeId parent object node id
-     * @param connectionDetails connection details or transport bean
-     * @return Boolean
-     * @throws BusinessException
-     */
     @Loggable
     @PostMapping(value = "/validateMethodWriteItem")
     public Boolean validateMethodWriteItem(@RequestParam("nodeId") String nodeId,
@@ -155,11 +115,6 @@ public class InvokeOPCUAComponentRestController {
         return opcuaHelper.getInvokeOPCUAService().validateMethodWriteItem(nodeId, objectNodeId, connectionDetails);
     }
 
-    /**
-     * Service is used to fetch OPC UA transport info
-     *
-     * @return OPCUATransportInfoBean
-     */
     @Loggable
     @GetMapping(value = "/fetchOPCUATransportInfo")
     public OPCUATransportInfoBean fetchOPCUATransportInfo() {
@@ -167,17 +122,13 @@ public class InvokeOPCUAComponentRestController {
         return opcuaHelper.getInvokeOPCUAService().fetchOPCUATransportInfo();
     }
 
-    /**
-     * Service is used to fetch configured keystores
-     *
-     * @return List of keystores
-     */
     @Loggable
     @GetMapping(value = "/fetchConfiguredKeystores")
     public List<String> fetchConfiguredKeystores() {
         checkMultipleOperations(operations);
         return opcuaHelper.getInvokeOPCUAService().fetchConfiguredKeystores();
     }
+    */
 
     @Authorize
     public void checkMultipleOperations(@OperationNames List<String> operations) {

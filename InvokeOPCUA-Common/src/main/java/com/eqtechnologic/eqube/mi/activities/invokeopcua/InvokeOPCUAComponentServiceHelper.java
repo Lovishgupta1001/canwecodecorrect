@@ -10,8 +10,8 @@
 package com.eqtechnologic.eqube.mi.activities.invokeopcua;
 
 import com.eqtechnologic.eqube.commoncomponents.enums.eQResourceType;
-import com.eqtechnologic.eqube.crypto.CipherManager;
-import com.eqtechnologic.eqube.crypto.model.Cipher;
+// import com.eqtechnologic.eqube.crypto.CipherManager;
+// import com.eqtechnologic.eqube.crypto.model.Cipher;
 import com.eqtechnologic.eqube.deploymanagement.beans.DeployRemapBean;
 import com.eqtechnologic.eqube.exception.BusinessException;
 import com.eqtechnologic.eqube.logging.LogTemplate;
@@ -23,29 +23,29 @@ import com.eqtechnologic.eqube.mi.component.service.RemapInfo;
 import com.eqtechnologic.eqube.mi.mdtransfer.beans.ProcessRemapInfos;
 import com.eqtechnologic.eqube.mi.mdtransfer.beans.eQExportEntity;
 import com.eqtechnologic.eqube.mi.util.AdminConsoleConstants;
-import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
-import com.eqtechnologic.eqube.platform.transport.client.constants.TransportClientConstants;
-import com.eqtechnologic.eqube.platform.transport.client.service.TransportClientService;
+// import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
+// import com.eqtechnologic.eqube.platform.transport.client.constants.TransportClientConstants;
+// import com.eqtechnologic.eqube.platform.transport.client.service.TransportClientService;
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
-import com.eqtechnologic.eqube.transport.bean.TransportBean;
-import com.eqtechnologic.eqube.transport.constants.TransportServiceConstants;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.AbstractNodeBean;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaArgumentInfo;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaEventField;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
-import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaNodeReference;
-import com.eqtechnologic.eqube.transport.opcuatransport.bo.beans.OpcUaTransportInfoBean;
-import com.eqtechnologic.eqube.transport.opcuatransport.service.OpcUaTransportService;
-import com.eqtechnologic.eqube.transport.opcuatransport.service.constants.OpcUaTransportServiceConstants;
-import com.eqtechnologic.eqube.transport.service.TransportService;
-import com.eqtechnologic.eqube.transport.uiservice.TransportConstant;
-import com.eqtechnologic.eqube.transport.uiservice.beans.OPCUATransportInfoBean;
-import com.eqtechnologic.eqube.transport.uiservice.beans.TransportAbstractUIBean;
-import com.eqtechnologic.eqube.transport.uiservice.beans.opcua.OPCUAEventFieldBean;
-import com.eqtechnologic.eqube.transport.uiservice.beans.opcua.OPCUAEventTypeBean;
+// import com.eqtechnologic.eqube.transport.bean.TransportBean;
+// import com.eqtechnologic.eqube.transport.constants.TransportServiceConstants;
+// import com.eqtechnologic.eqube.transport.opcuatransport.beans.AbstractNodeBean;
+// import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaArgumentInfo;
+// import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaEventField;
+// import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaMethodWriteItem;
+// import com.eqtechnologic.eqube.transport.opcuatransport.beans.OpcUaNodeReference;
+// import com.eqtechnologic.eqube.transport.opcuatransport.bo.beans.OpcUaTransportInfoBean;
+// import com.eqtechnologic.eqube.transport.opcuatransport.service.OpcUaTransportService;
+// import com.eqtechnologic.eqube.transport.opcuatransport.service.constants.OpcUaTransportServiceConstants;
+// import com.eqtechnologic.eqube.transport.service.TransportService;
+// import com.eqtechnologic.eqube.transport.uiservice.TransportConstant;
+// import com.eqtechnologic.eqube.transport.uiservice.beans.OPCUATransportInfoBean;
+// import com.eqtechnologic.eqube.transport.uiservice.beans.TransportAbstractUIBean;
+// import com.eqtechnologic.eqube.transport.uiservice.beans.opcua.OPCUAEventFieldBean;
+// import com.eqtechnologic.eqube.transport.uiservice.beans.opcua.OPCUAEventTypeBean;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
+// import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -68,6 +68,7 @@ public class InvokeOPCUAComponentServiceHelper {
         return ServiceRegistry.getInstance().getService(InvokeOPCUAConstants.INVOKE_OPCUA);
     }
 
+    /*
     private TransportService getTransportService() {
         return ServiceRegistry.getInstance().getService(TransportServiceConstants.SERVICE_NAME);
     }
@@ -75,14 +76,17 @@ public class InvokeOPCUAComponentServiceHelper {
     private OpcUaTransportService getOpcUaTransportService() {
         return ServiceRegistry.getInstance().getService(OpcUaTransportServiceConstants.SERVICE_NAME);
     }
+    */
 
     private ConversionService getConversionService() {
         return ServiceRegistry.getInstance().getService("conversionService");
     }
 
+    /*
     private TransportClientService getTransportClientService() {
         return ServiceRegistry.getInstance().getService(TransportClientConstants.SERVICE_NAME);
     }
+    */
 
     public static String decodeUIContent(String content) {
         if (content != null && !content.isEmpty()) {
@@ -91,6 +95,10 @@ public class InvokeOPCUAComponentServiceHelper {
             return content;
         }
     }
+
+    /*
+     * Password helpers for transport UI configuration - commented out as not bare minimum required
+     * for Invoke OPC UA activity.
 
     public static void addPasswordInDetails(TransportAbstractUIBean transportInfoUIBean, TransportBean transportBean, String existingPwd) {
         if (transportBean != null && transportInfoUIBean != null && transportInfoUIBean.getPassword() != null && transportInfoUIBean.getPassword().trim().length() > 0) {
@@ -113,6 +121,11 @@ public class InvokeOPCUAComponentServiceHelper {
         }
         return existingPWD;
     }
+    */
+
+    /*
+     * The following methods use com.eqtechnologic.eqube.transport.* classes
+     * and have been commented out.
 
     public TransportBean resolveTransportBean(Object connectionObj) {
         if (connectionObj == null) {
@@ -125,25 +138,15 @@ public class InvokeOPCUAComponentServiceHelper {
 
         if (connectionObj instanceof TransportAbstractUIBean) {
             TransportAbstractUIBean uiBean = (TransportAbstractUIBean) connectionObj;
-            TransportBean existingTransport = null;
             if (uiBean.getId() != null && uiBean.getId() > 0) {
                 try {
-                    existingTransport = getTransportService().getTransportBean(uiBean.getId());
+                    return getTransportService().getTransportBean(uiBean.getId());
                 } catch (Exception e) {
                     LOGGER.error("Could not fetch TransportBean by id: " + uiBean.getId(), e);
                 }
             }
             ConversionService conversionService = getConversionService();
-            TransportBean transportBean = conversionService != null ? conversionService.convert(uiBean, TransportBean.class) : null;
-            if (existingTransport != null) {
-                String existingPWD = setExistingPasswordValue(existingTransport);
-                if (transportBean != null) {
-                    addPasswordInDetails(uiBean, transportBean, existingPWD);
-                } else {
-                    transportBean = existingTransport;
-                }
-            }
-            return transportBean;
+            return conversionService != null ? conversionService.convert(uiBean, TransportBean.class) : null;
         }
 
         if (connectionObj instanceof Map) {
@@ -256,6 +259,11 @@ public class InvokeOPCUAComponentServiceHelper {
             throw new BusinessException(InvokeOPCUAExceptionType.INVOKE_OPCUA_ACTIVITY_EXCEPTION, InvokeOPCUAErrorCode.ERROR_WHILE_FETCHING_METHOD_PARAMS, "Error fetching method parameters for nodeId: " + nodeId + " - " + e.getMessage());
         }
     }
+    */
+
+    /*
+     * The following helper methods are not bare minimum required for Invoke OPC UA activity
+     * and have been commented out.
 
     public Map<String, Object> fetchServerEventFieldsAndTypes(Object connectionDetails) throws BusinessException {
         Map<String, Object> result = new HashMap<>();
@@ -331,6 +339,7 @@ public class InvokeOPCUAComponentServiceHelper {
             return Collections.emptyList();
         }
     }
+    */
 
     List<eQExportEntity> getConfigLinkedResources(Map<String, Object> configData) {
         List<eQExportEntity> exportEntities = new ArrayList<>();
@@ -342,6 +351,7 @@ public class InvokeOPCUAComponentServiceHelper {
             if (strConnName == null || strConnName.trim().isEmpty()) {
                 strConnName = (String) configData.get(InvokeOPCUAConstants.CONNECTION_NAME);
             }
+            /*
             if (strConnName != null && !strConnName.isEmpty()) {
                 try {
                     TransportClientBean transportClientBean = getTransportClientService().getTransportDetail(strConnName);
@@ -352,6 +362,7 @@ public class InvokeOPCUAComponentServiceHelper {
                     LOGGER.error("Error while fetching Transport for InvokeOPCUA: " + strConnName, e);
                 }
             }
+            */
         }
 
         return exportEntities;

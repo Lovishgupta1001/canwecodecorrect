@@ -29,9 +29,9 @@ public final class InvokeOPCUAConstants {
     public static final String EXECUTION_MODE = "executionMode";
     public static final String OPCUA_TYPE = "OPCUA";
 
-    public static final String DYNAMIC_TRANSPORT = "dynamicTransport";
-    public static final String TRANSPORT_NAME = "transportName";
-    public static final String WRITE_ITEMS = "writeItems";
+    // public static final String DYNAMIC_TRANSPORT = "dynamicTransport";
+    // public static final String TRANSPORT_NAME = "transportName";
+    // public static final String WRITE_ITEMS = "writeItems";
     public static final String DATA_CHANGE_WRITE_PROP = "dataChangeWrite";
     public static final String CALL_METHOD_PROP = "callMethod";
     public static final String INPUT_PARAMETERS = "inputParameters";

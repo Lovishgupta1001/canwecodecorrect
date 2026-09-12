@@ -25,8 +25,8 @@ public class InvokeOPCUAOutputBean {
     private List<Object> skippedWriteItems = new ArrayList<>();
 
     public InvokeOPCUAOutputBean(Object response) {
-        if (response instanceof Map<?, ?> map) {
-            Map<String, List<String>> result = (Map<String, List<String>>) map;
+        if (response instanceof Map) {
+            Map<String, List<String>> result = (Map<String, List<String>>) response;
             if (result.get("successfulWriteItems") != null) {
                 this.successfulWriteItems = new ArrayList<>(result.get("successfulWriteItems"));
             }

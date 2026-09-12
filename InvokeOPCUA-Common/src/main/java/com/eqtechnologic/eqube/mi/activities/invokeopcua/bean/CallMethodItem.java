@@ -38,6 +38,8 @@ public class CallMethodItem implements eQCVTBeans, Entity {
     @EntityAttribute(index = 2, attrName = "Object Node ID")
     private String objectNodeId;
 
+    private String objectName;
+
     private List<InputParameterItem> inputParameters = new ArrayList<>();
     private List<InputParameterItem> inputArguments = new ArrayList<>();
     private List<InputParameterItem> outputArguments = new ArrayList<>();
@@ -69,6 +71,14 @@ public class CallMethodItem implements eQCVTBeans, Entity {
 
     public void setObjectNodeId(String objectNodeId) {
         this.objectNodeId = objectNodeId;
+    }
+
+    public String getObjectName() {
+        return objectName;
+    }
+
+    public void setObjectName(String objectName) {
+        this.objectName = objectName;
     }
 
     public List<InputParameterItem> getInputParameters() {

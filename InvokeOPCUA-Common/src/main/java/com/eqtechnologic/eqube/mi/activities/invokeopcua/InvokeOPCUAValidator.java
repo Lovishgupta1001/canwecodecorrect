@@ -21,9 +21,9 @@ import com.eqtechnologic.eqube.mi.activities.invokeopcua.exception.InvokeOPCUAEr
 import com.eqtechnologic.eqube.mi.component.service.ComponentService;
 import com.eqtechnologic.eqube.mi.component.service.ComponentValidator;
 import com.eqtechnologic.eqube.mi.component.utility.ComponentUtility;
-import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
-import com.eqtechnologic.eqube.platform.transport.client.constants.TransportClientConstants;
-import com.eqtechnologic.eqube.platform.transport.client.service.TransportClientService;
+// import com.eqtechnologic.eqube.platform.transport.client.beans.TransportClientBean;
+// import com.eqtechnologic.eqube.platform.transport.client.constants.TransportClientConstants;
+// import com.eqtechnologic.eqube.platform.transport.client.service.TransportClientService;
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry;
 
 import java.util.ArrayList;
@@ -65,9 +65,12 @@ public class InvokeOPCUAValidator implements ComponentValidator<Map, Map> {
                     ComponentUtility.getInstance().createPath(InvokeOPCUAConstants.INVOKE_OPCUA, InvokeOPCUAConstants.CONNECTION_COMBOBOX),
                     false);
             errorList.add(error);
-        } else {
+        }
+        /*
+        else {
             validateConnection(connName, errorList);
         }
+        */
 
         String operation = (String) configMap.get(InvokeOPCUAConstants.OPERATION);
         if (InvokeOPCUAConstants.DATA_CHANGE_WRITE.equals(operation)) {
@@ -134,7 +137,8 @@ public class InvokeOPCUAValidator implements ComponentValidator<Map, Map> {
                 }
 
                 Object inputParamsObj = getInputParametersObj(item);
-                if (inputParamsObj instanceof List<?> inputParams) {
+                if (inputParamsObj instanceof List<?>) {
+                    List<?> inputParams = (List<?>) inputParamsObj;
                     validateMethodInputParameters(inputParams, row, additionalInfo, errorList);
                 }
             }
@@ -161,43 +165,45 @@ public class InvokeOPCUAValidator implements ComponentValidator<Map, Map> {
     }
 
     private String getName(Object obj) {
-        if (obj instanceof DataChangeWriteItem item) {
-            return item.getName();
-        } else if (obj instanceof CallMethodItem item) {
-            return item.getName();
-        } else if (obj instanceof Map<?, ?> map) {
-            return (String) map.get("name");
+        if (obj instanceof DataChangeWriteItem) {
+            return ((DataChangeWriteItem) obj).getName();
+        } else if (obj instanceof CallMethodItem) {
+            return ((CallMethodItem) obj).getName();
+        } else if (obj instanceof Map<?, ?>) {
+            return (String) ((Map<?, ?>) obj).get("name");
         }
         return null;
     }
 
     private String getNewValue(Object obj) {
-        if (obj instanceof DataChangeWriteItem item) {
-            return item.getNewValue();
-        } else if (obj instanceof Map<?, ?> map) {
-            return (String) map.get("newValue");
+        if (obj instanceof DataChangeWriteItem) {
+            return ((DataChangeWriteItem) obj).getNewValue();
+        } else if (obj instanceof Map<?, ?>) {
+            return (String) ((Map<?, ?>) obj).get("newValue");
         }
         return null;
     }
 
     private Object getInputParametersObj(Object obj) {
-        if (obj instanceof CallMethodItem item) {
-            return item.getInputParameters();
-        } else if (obj instanceof Map<?, ?> map) {
-            return map.get("inputParameters");
+        if (obj instanceof CallMethodItem) {
+            return ((CallMethodItem) obj).getInputParameters();
+        } else if (obj instanceof Map<?, ?>) {
+            return ((Map<?, ?>) obj).get("inputParameters");
         }
         return null;
     }
 
     private String getParamValue(Object pObj) {
-        if (pObj instanceof InputParameterItem item) {
-            return item.getValue();
-        } else if (pObj instanceof Map<?, ?> map) {
-            return (String) map.get("value");
+        if (pObj instanceof InputParameterItem) {
+            return ((InputParameterItem) pObj).getValue();
+        } else if (pObj instanceof Map<?, ?>) {
+            return (String) ((Map<?, ?>) pObj).get("value");
         }
         return null;
     }
 
+    /*
+     * Connection remote validation commented out to avoid remote service dependencies at basic validation time.
     private void validateConnection(String connName, List<eQError> errorList) {
         try {
             TransportClientBean transportClientBean = getTransportClientService().getTransportDetail(connName);
@@ -219,6 +225,7 @@ public class InvokeOPCUAValidator implements ComponentValidator<Map, Map> {
     private TransportClientService getTransportClientService() {
         return ServiceRegistry.getInstance().getService(TransportClientConstants.SERVICE_NAME);
     }
+    */
 
     private void validateExpression(String expressionValue, Map map, List<eQError> errors, String resource) {
         if (expressionValue == null || expressionValue.isEmpty()) {
