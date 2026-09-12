@@ -7,16 +7,17 @@ define([
 
     var DataChangeGridManager = {
         refreshGridMode: function (globalSelf) {
-            if (!globalSelf?.dataChangeWriteGrid) {
+            if (!globalSelf || !globalSelf.dataChangeWriteGrid) {
                 return;
             }
 
-            var currentData = globalSelf.dataChangeWriteGrid?.widget?.dataSource?.data?.()?.toJSON?.();
-            if (currentData?.length) {
+            var grid = globalSelf.dataChangeWriteGrid.widget || globalSelf.dataChangeWriteGrid;
+            var currentData = (grid && grid.dataSource) ? grid.dataSource.data().toJSON() : [];
+            if (currentData.length) {
                 globalSelf.model.setKey("dataChangeWrite", currentData);
             }
 
-            globalSelf._destroyComponent(globalSelf.dataChangeWriteGrid);
+            globalSelf._checkBeforeDestroy(globalSelf.dataChangeWriteGrid);
             globalSelf.dataChangeWriteGrid = null;
 
             globalSelf.$(".cvt-grid-div-data-change-write").empty();
@@ -34,7 +35,7 @@ define([
                 },
                 {
                     field: "name",
-                    title: globalSelf?.nls?.VariableNode,
+                    title: globalSelf.nls.VariableNode,
                     width: "50%",
                     attributes: { "class": "variableNode name nodeId" },
                     template: GridUtils.getVariableNodeTemplate(globalSelf),
@@ -115,7 +116,7 @@ define([
         },
 
         renderDataChangeWriteComponent: function (globalSelf) {
-            if (this._resizeGridIfExists(globalSelf?.dataChangeWriteGrid)) {
+            if (this._resizeGridIfExists(globalSelf.dataChangeWriteGrid)) {
                 return;
             }
 
@@ -167,23 +168,25 @@ define([
                 e.stopPropagation();
 
                 var row = $(this).closest("tr");
-                var grid = globalSelf.dataChangeWriteGrid?.widget || globalSelf.dataChangeWriteGrid;
+                var grid = globalSelf.dataChangeWriteGrid ? (globalSelf.dataChangeWriteGrid.widget || globalSelf.dataChangeWriteGrid) : null;
                 if (!grid) {
                     return;
                 }
 
-                var dataItem = grid.dataItem?.(row);
+                var dataItem = grid.dataItem ? grid.dataItem(row) : null;
                 if (!dataItem) {
                     return;
                 }
 
-                var connData = globalSelf.getConnectionPayload?.();
-                if (!connData?.connectionId) {
-                    uilayer.notifier("warning", globalSelf?.nls?.SelectConnection);
+                var connData = globalSelf.getConnectionPayload ? globalSelf.getConnectionPayload() : {};
+                if (!connData || !connData.connectionId) {
+                    uilayer.notifier("warning", globalSelf.nls.SelectConnection);
                     return;
                 }
 
-                globalSelf.addressSpaceBrowser?.openForBrowse?.(dataItem, "DATA_CHANGE_WRITE", connData);
+                if (globalSelf.addressSpaceBrowser && globalSelf.addressSpaceBrowser.openForBrowse) {
+                    globalSelf.addressSpaceBrowser.openForBrowse(dataItem, "DATA_CHANGE_WRITE", connData);
+                }
             });
         }
     };

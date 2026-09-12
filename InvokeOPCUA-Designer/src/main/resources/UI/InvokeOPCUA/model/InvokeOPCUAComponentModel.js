@@ -2,22 +2,16 @@
  * Created by Lovish.
  */
 define(function (require) {
+    "use strict";
 
     var ModelStore = require("ModelStore");
 
     ModelStore.InvokeOPCUAComponentModel = eQUI.Model.extend({
-        defaults: {},
-
-        onInitialize: function (options) {
-            this.set("connectionComboBox", "");
-            this.set("connectionName", "");
-            this.set("connectionId", "");
-            this.set("connectionType", "");
-            this.set("selectConnection", "");
-            this.set("operation", "DataChangeWrite");
-            this.set("executionMode", "Parallel");
-            this.set("dataChangeWrite", []);
-            this.set("callMethod", []);
+        defaults: {
+            operation: "DataChangeWrite",
+            executionMode: "Parallel",
+            dataChangeWrite: [],
+            callMethod: []
         },
 
         getKey: function (key) {

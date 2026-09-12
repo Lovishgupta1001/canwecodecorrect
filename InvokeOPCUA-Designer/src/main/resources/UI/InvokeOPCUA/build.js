@@ -52,7 +52,7 @@
     appDir: "./",
     useStrict: true,
     //it can take none, uglify,
-    optimize: "none",
+    optimize: "uglify",
     //do not change removeCombined
     removeCombined: true,
     //Dont create build.txt

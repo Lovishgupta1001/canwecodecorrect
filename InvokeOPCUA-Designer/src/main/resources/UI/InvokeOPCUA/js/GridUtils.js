@@ -37,13 +37,16 @@ define(function (require) {
         },
 
         renderGridSearchBar: function (searchClass, grid, fields, globalSelf, nls) {
-            var searchElement = globalSelf?.$("." + searchClass);
+            if (!globalSelf || !globalSelf.$) {
+                return null;
+            }
+            var searchElement = globalSelf.$("." + searchClass);
 
-            if (!searchElement?.length || !grid) {
+            if (!searchElement.length || !grid) {
                 return null;
             }
 
-            var ds = grid.widget?.dataSource || grid.dataSource || null;
+            var ds = (grid.widget && grid.widget.dataSource) ? grid.widget.dataSource : grid.dataSource;
             if (!ds) {
                 return null;
             }
@@ -84,7 +87,7 @@ define(function (require) {
             }
 
             var getVal = function (key) {
-                return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
+                return (dataItem && dataItem.get) ? dataItem.get(key) : (dataItem ? dataItem[key] : "");
             };
 
             var html = "<div class='ul-header-xxxs-b ul-pad-1x'>" + nls.NodeDetails + "</div>";
@@ -118,7 +121,9 @@ define(function (require) {
         },
 
         initializeGridHelpTooltips: function (container) {
-            container?.find?.(".grid-help-container")?.each?.(this._initializeHelpTooltip);
+            if (container && container.find) {
+                container.find(".grid-help-container").each(this._initializeHelpTooltip);
+            }
 
             $(document)
                 .off("click.sampleValueCopy")
@@ -142,7 +147,7 @@ define(function (require) {
         },
 
         _copyToClipboard: function (text) {
-            if (navigator.clipboard?.writeText) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(null, function () {
                     GridUtils._fallbackCopyText(text);
                 });
@@ -194,7 +199,7 @@ define(function (require) {
         },
 
         resizeGridIfExists: function (grid) {
-            if (grid?.widget?.resize) {
+            if (grid && grid.widget && grid.widget.resize) {
                 grid.widget.resize();
                 return true;
             }
@@ -214,7 +219,7 @@ define(function (require) {
         _getNodeCellTemplate: function (globalSelf, btnClass, isMethod) {
             return function (dataItem) {
                 var getVal = function (key) {
-                    return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
+                    return (dataItem && dataItem.get) ? dataItem.get(key) : (dataItem ? dataItem[key] : "");
                 };
 
                 var name = (getVal("name") || "").trim();
@@ -223,7 +228,8 @@ define(function (require) {
                 var rawHelpText = getVal("nodeIdHelpText") || getVal("nodeIdDetails") || getVal("nodeDetails");
                 var nodeIdHelpText = GridUtils._formatNodeDetailsHelpText(dataItem, rawHelpText, nodeId, isMethod);
                 var hasSelection = !!(name || nodeId);
-                var uid = dataItem?.uid || "";
+                var uid = (dataItem && dataItem.uid) ? dataItem.uid : "";
+                var browseText = (globalSelf && globalSelf.nls && globalSelf.nls.Browse) ? globalSelf.nls.Browse : (nls.Browse || "");
 
                 return "<div class='invokeopcua-node-cell'>" +
                     "<span class='invokeopcua-node-cell-text eq-common-ellipsis' title='" + _.escape(displayText) + "'>" +
@@ -236,7 +242,7 @@ define(function (require) {
                         "</div>"
                         : "") +
                     "<div role='button' class='ul-tertiary-button " + btnClass + "' data-row-uid='" +
-                    uid + "'>" + (globalSelf?.nls?.Browse || nls.Browse || "") + "</div>" +
+                    uid + "'>" + browseText + "</div>" +
                     "</div>" +
                     "</div>";
             };
@@ -253,23 +259,27 @@ define(function (require) {
         getParentObjectNodeTemplate: function (globalSelf) {
             return function (dataItem) {
                 var getVal = function (key) {
-                    return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
+                    return (dataItem && dataItem.get) ? dataItem.get(key) : (dataItem ? dataItem[key] : "");
                 };
 
                 var objectName = (getVal("objectName") || "").trim();
                 var objectNodeId = (getVal("objectNodeId") || "").trim();
                 var displayText = GridUtils._formatDisplayText(objectName, objectNodeId);
 
-                var parentHelpText = "<div class='ul-header-xxxs-b ul-pad-1x'>" + (globalSelf?.nls?.ParentObjectNode || nls.ParentObjectNode || "") + "</div>";
+                var parentObjLabel = (globalSelf && globalSelf.nls && globalSelf.nls.ParentObjectNode) ? globalSelf.nls.ParentObjectNode : (nls.ParentObjectNode || "");
+                var nodeNameLabel = (globalSelf && globalSelf.nls && globalSelf.nls.NodeName) ? globalSelf.nls.NodeName : (nls.NodeName || "");
+                var objectNodeIdLabel = (globalSelf && globalSelf.nls && globalSelf.nls.ObjectNodeId) ? globalSelf.nls.ObjectNodeId : (nls.ObjectNodeId || "");
+
+                var parentHelpText = "<div class='ul-header-xxxs-b ul-pad-1x'>" + parentObjLabel + "</div>";
                 if (objectName) {
-                    parentHelpText += "<div><span class='ul-body-m-b ul-pad-1x-r invokeopcua-label'>" + (globalSelf?.nls?.NodeName || nls.NodeName || "") + ":</span><span>" + _.escape(objectName) + "</span></div>";
+                    parentHelpText += "<div><span class='ul-body-m-b ul-pad-1x-r invokeopcua-label'>" + nodeNameLabel + ":</span><span>" + _.escape(objectName) + "</span></div>";
                 }
                 if (objectNodeId) {
-                    parentHelpText += "<div><span class='ul-body-m-b ul-pad-1x-r invokeopcua-label'>" + (globalSelf?.nls?.ObjectNodeId || nls.ObjectNodeId || "") + ":</span><span>" + _.escape(objectNodeId) + "</span></div>";
+                    parentHelpText += "<div><span class='ul-body-m-b ul-pad-1x-r invokeopcua-label'>" + objectNodeIdLabel + ":</span><span>" + _.escape(objectNodeId) + "</span></div>";
                 }
 
                 var hasSelection = !!(objectName || objectNodeId);
-                var uid = dataItem?.uid || "";
+                var uid = (dataItem && dataItem.uid) ? dataItem.uid : "";
                 var methodName = (getVal("name") || "").trim();
                 var methodNodeId = (getVal("nodeId") || "").trim();
                 var hasMethodNode = !!(methodName || methodNodeId);
@@ -277,7 +287,9 @@ define(function (require) {
                 var browseBtnClass = "ul-tertiary-button browse-parent-object-btn" +
                     (!hasMethodNode ? " disabled is-disabled ul-state-disabled" : "");
                 var browseDisabledAttr = !hasMethodNode ? " disabled='disabled' aria-disabled='true'" : "";
-                var browseTitleAttr = !hasMethodNode ? " title='" + _.escape(globalSelf?.nls?.SelectMethodNodeFirst || "Please select a method node first") + "'" : "";
+                var selectMethodFirstMsg = (globalSelf && globalSelf.nls && globalSelf.nls.SelectMethodNodeFirst) ? globalSelf.nls.SelectMethodNodeFirst : "Please select a method node first";
+                var browseTitleAttr = !hasMethodNode ? " title='" + _.escape(selectMethodFirstMsg) + "'" : "";
+                var browseText = (globalSelf && globalSelf.nls && globalSelf.nls.Browse) ? globalSelf.nls.Browse : (nls.Browse || "");
 
                 return "<div class='invokeopcua-node-cell'>" +
                     "<span class='invokeopcua-node-cell-text eq-common-ellipsis' title='" + _.escape(displayText) + "'>" +
@@ -290,7 +302,7 @@ define(function (require) {
                         "</div>"
                         : "") +
                     "<div role='button' class='" + browseBtnClass + "'" + browseDisabledAttr + browseTitleAttr + " data-row-uid='" +
-                    uid + "'>" + (globalSelf?.nls?.Browse || nls.Browse || "") + "</div>" +
+                    uid + "'>" + browseText + "</div>" +
                     "</div>" +
                     "</div>";
             };
@@ -381,7 +393,7 @@ define(function (require) {
         getSampleValueTemplate: function () {
             return function (dataItem) {
                 var getVal = function (key) {
-                    return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
+                    return (dataItem && dataItem.get) ? dataItem.get(key) : (dataItem ? dataItem[key] : "");
                 };
 
                 var rawSampleValue = getVal("sampleValue");
@@ -434,7 +446,7 @@ define(function (require) {
 
         getOutputValueTemplate: function (dataItem) {
             var getVal = function (key) {
-                return dataItem?.get ? dataItem.get(key) : dataItem?.[key];
+                return (dataItem && dataItem.get) ? dataItem.get(key) : (dataItem ? dataItem[key] : "");
             };
             var outputValue = getVal("outputValue") || "";
             var isEmpty = !outputValue;
@@ -449,14 +461,14 @@ define(function (require) {
         },
 
         getInputParametersTemplate: function (globalSelfOrDataItem) {
-            var dataItem = globalSelfOrDataItem?.model ? null : (globalSelfOrDataItem || {});
+            var dataItem = (globalSelfOrDataItem && globalSelfOrDataItem.model) ? null : (globalSelfOrDataItem || {});
             return function (item) {
                 var targetItem = dataItem || item || {};
-                var methodName = ((targetItem?.get ? targetItem.get("name") : targetItem?.name) || "").trim();
-                var nodeId = ((targetItem?.get ? targetItem.get("nodeId") : targetItem?.nodeId) || "").trim();
+                var methodName = (((targetItem && targetItem.get) ? targetItem.get("name") : targetItem.name) || "").trim();
+                var nodeId = (((targetItem && targetItem.get) ? targetItem.get("nodeId") : targetItem.nodeId) || "").trim();
                 var hasMethodNode = !!(methodName || nodeId);
 
-                var params = targetItem?.get ? targetItem.get("inputParameters") : targetItem?.inputParameters;
+                var params = (targetItem && targetItem.get) ? targetItem.get("inputParameters") : targetItem.inputParameters;
                 var parameters = [];
                 if (params) {
                     if (typeof params.toJSON === "function") {
@@ -468,8 +480,8 @@ define(function (require) {
                 parameters = parameters.map(function (p) {
                     return (p && typeof p.toJSON === "function") ? p.toJSON() : p;
                 });
-                var count = parameters?.length || 0;
-                var firstParam = parameters?.[0] || {};
+                var count = parameters.length;
+                var firstParam = parameters.length > 0 ? parameters[0] : {};
                 var firstName = firstParam.name ||
                     firstParam.parameterName ||
                     firstParam.displayName ||

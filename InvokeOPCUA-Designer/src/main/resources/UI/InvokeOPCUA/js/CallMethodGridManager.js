@@ -9,7 +9,7 @@ define([
     var CallMethodGridManager = {
 
         _outputValueEditor: function (container, options) {
-            var currentVal = options.model?.get ? options.model.get(options.field) : options.model?.[options.field];
+            var currentVal = (options.model && options.model.get) ? options.model.get(options.field) : (options.model ? options.model[options.field] : "");
             if (options.model) {
                 options.model._oldOutputValue = currentVal || "";
             }
@@ -20,12 +20,14 @@ define([
         },
 
         refreshGridMode: function (globalSelf) {
-            if (!globalSelf?.callMethodGrid) {
+            if (!globalSelf || !globalSelf.callMethodGrid) {
                 return;
             }
 
-            var currentData = globalSelf.callMethodGrid?.widget?.dataSource?.data?.()?.toJSON?.();
-            if (currentData?.length) {
+            var widget = globalSelf.callMethodGrid.widget || globalSelf.callMethodGrid;
+            var dataSource = widget && widget.dataSource;
+            var currentData = (dataSource && dataSource.data) ? dataSource.data().toJSON() : null;
+            if (currentData && currentData.length) {
                 globalSelf.model.setKey("callMethod", currentData);
             }
 
@@ -40,6 +42,7 @@ define([
         },
 
         _getCallMethodColumns: function (globalSelf) {
+            var nls = (globalSelf && globalSelf.nls) ? globalSelf.nls : {};
             return [
                 {
                     selectable: true,
@@ -47,7 +50,7 @@ define([
                 },
                 {
                     field: "name",
-                    title: globalSelf?.nls?.MethodNode,
+                    title: nls.MethodNode,
                     width: "30%",
                     attributes: { "class": "methodNode name nodeId" },
                     template: GridUtils.getMethodNodeTemplate(globalSelf),
@@ -58,7 +61,7 @@ define([
                 },
                 {
                     field: "objectNodeId",
-                    title: globalSelf?.nls?.ParentObjectNode,
+                    title: nls.ParentObjectNode,
                     width: "30%",
                     attributes: { "class": "parentObjectNode objectNodeId" },
                     template: GridUtils.getParentObjectNodeTemplate(globalSelf),
@@ -69,7 +72,7 @@ define([
                 },
                 {
                     field: "inputParameters",
-                    title: globalSelf.nls.InputParameters,
+                    title: nls.InputParameters,
                     width: "20%",
                     attributes: { "class": "inputParameters" },
                     editable: function () {
@@ -81,7 +84,7 @@ define([
                 },
                 {
                     field: "outputValue",
-                    title: globalSelf?.nls?.OutputParameter || globalSelf?.nls?.OutputValue,
+                    title: nls.OutputParameter || nls.OutputValue,
                     width: "20%",
                     attributes: { "class": "outputValue outputParameter" },
                     template: GridUtils.getOutputValueTemplate,
@@ -145,7 +148,7 @@ define([
         },
 
         onOutputValueChange: function (globalSelf, model) {
-            if (!globalSelf?.processModel || !model) {
+            if (!globalSelf || !globalSelf.processModel || !model) {
                 return;
             }
 
@@ -184,8 +187,9 @@ define([
 
         _getOutputVariablesGridData: function (globalSelf) {
             var gridData = [];
-            if (globalSelf.callMethodGrid?.widget?.dataSource) {
-                var data = globalSelf.callMethodGrid.widget.dataSource.data().toJSON();
+            var widget = globalSelf && globalSelf.callMethodGrid && (globalSelf.callMethodGrid.widget || globalSelf.callMethodGrid);
+            if (widget && widget.dataSource) {
+                var data = widget.dataSource.data().toJSON();
                 _.each(data, function (item, index) {
                     var val = (item.outputValue || "").trim();
                     if (val) {
@@ -209,7 +213,7 @@ define([
         },
 
         onDeleteCallMethodRows: function (globalSelf, deletedDataItems) {
-            if (!globalSelf?.processModel || !deletedDataItems?.length) {
+            if (!globalSelf || !globalSelf.processModel || !deletedDataItems || !deletedDataItems.length) {
                 return;
             }
 
@@ -236,7 +240,7 @@ define([
         renderCallMethodComponent: function (globalSelf) {
             var manager = this;
 
-            if (this._resizeGridIfExists(globalSelf?.callMethodGrid)) {
+            if (this._resizeGridIfExists(globalSelf && globalSelf.callMethodGrid)) {
                 return;
             }
 
@@ -298,16 +302,17 @@ define([
             });
 
             var syncModel = function (e) {
-                if (globalSelf.callMethodGrid?.widget?.dataSource) {
-                    var gridData = globalSelf.callMethodGrid.widget.dataSource.data().toJSON();
+                var widget = globalSelf.callMethodGrid && (globalSelf.callMethodGrid.widget || globalSelf.callMethodGrid);
+                if (widget && widget.dataSource) {
+                    var gridData = widget.dataSource.data().toJSON();
                     globalSelf.model.setKey("callMethod", gridData);
                 }
-                if (e?.model) {
+                if (e && e.model) {
                     manager.onOutputValueChange(globalSelf, e.model);
                 }
             };
 
-            if (globalSelf.callMethodGrid?.widget) {
+            if (globalSelf.callMethodGrid && globalSelf.callMethodGrid.widget) {
                 globalSelf.callMethodGrid.widget.bind("save", syncModel);
                 globalSelf.callMethodGrid.widget.bind("cellClose", syncModel);
                 globalSelf.callMethodGrid.widget.bind("change", syncModel);
@@ -329,10 +334,10 @@ define([
 
             var handleBrowseClick = function (btn, targetMode) {
                 var row = $(btn).closest("tr");
-                var grid = globalSelf.callMethodGrid?.widget || globalSelf.callMethodGrid;
+                var grid = globalSelf && globalSelf.callMethodGrid ? (globalSelf.callMethodGrid.widget || globalSelf.callMethodGrid) : null;
                 if (!grid) return;
 
-                var dataItem = grid.dataItem?.(row);
+                var dataItem = grid.dataItem ? grid.dataItem(row) : null;
                 if (!dataItem) return;
 
                 if (targetMode === "PARENT_OBJECT") {
@@ -343,13 +348,16 @@ define([
                     }
                 }
 
-                var connData = globalSelf.getConnectionPayload?.();
-                if (!connData?.connectionId) {
-                    uilayer.notifier("warning", globalSelf?.nls?.SelectConnection);
+                var connData = (globalSelf.getConnectionPayload ? globalSelf.getConnectionPayload() : null) || {};
+                if (!connData.connectionId) {
+                    var nls = globalSelf.nls || {};
+                    uilayer.notifier("warning", nls.SelectConnection);
                     return;
                 }
 
-                globalSelf.addressSpaceBrowser?.openForBrowse?.(dataItem, targetMode, connData);
+                if (globalSelf.addressSpaceBrowser && globalSelf.addressSpaceBrowser.openForBrowse) {
+                    globalSelf.addressSpaceBrowser.openForBrowse(dataItem, targetMode, connData);
+                }
             };
 
             var $container = globalSelf.$(".cvt-grid-div-call-method");
@@ -367,10 +375,10 @@ define([
                     return;
                 }
                 var row = $btn.closest("tr");
-                var grid = globalSelf.callMethodGrid?.widget || globalSelf.callMethodGrid;
-                var dataItem = grid?.dataItem?.(row);
-                var methodName = ((dataItem?.get ? dataItem.get("name") : dataItem?.name) || "").trim();
-                var nodeId = ((dataItem?.get ? dataItem.get("nodeId") : dataItem?.nodeId) || "").trim();
+                var grid = globalSelf && globalSelf.callMethodGrid ? (globalSelf.callMethodGrid.widget || globalSelf.callMethodGrid) : null;
+                var dataItem = grid && grid.dataItem ? grid.dataItem(row) : null;
+                var methodName = ((dataItem && dataItem.get ? dataItem.get("name") : (dataItem ? dataItem.name : "")) || "").trim();
+                var nodeId = ((dataItem && dataItem.get ? dataItem.get("nodeId") : (dataItem ? dataItem.nodeId : "")) || "").trim();
                 if (!methodName && !nodeId) {
                     return;
                 }
@@ -425,6 +433,7 @@ define([
         },
 
         _createInputParametersModalGrid: function (gridElement, inputParameters, globalSelf) {
+            var nls = (globalSelf && globalSelf.nls) ? globalSelf.nls : {};
             return uilayer.grid({
                 elem: gridElement,
                 editable: {
@@ -438,21 +447,21 @@ define([
                 columns: [
                     {
                         field: "name",
-                        title: globalSelf?.nls?.ParameterName || "Parameter Name",
+                        title: nls.ParameterName || "Parameter Name",
                         editable: false,
                         attributes: { "class": "name" },
                         width: "30%"
                     },
                     {
                         field: "dataType",
-                        title: globalSelf?.nls?.DataType || "Data Type",
+                        title: nls.DataType || "Data Type",
                         editable: false,
                         attributes: { "class": "dataType" },
                         width: "30%"
                     },
                     {
                         field: "value",
-                        title: globalSelf?.nls?.Value || "Value",
+                        title: nls.Value || "Value",
                         width: "40%",
                         customEditor: true,
                         attributes: { "class": "value" },
@@ -495,9 +504,9 @@ define([
 
         openInputParametersModal: function (globalSelf, dataItem, anchorElem) {
             var manager = this;
+            var nls = (globalSelf && globalSelf.nls) ? globalSelf.nls : {};
 
             var methodName = (dataItem.get ? dataItem.get("name") : dataItem.name) || "";
-
             var inputParameters = dataItem.get
                 ? dataItem.get("inputParameters")
                 : dataItem.inputParameters;
@@ -509,7 +518,7 @@ define([
             var $popoverWrapper = $(
                 "<div class='input-parameters-modal-wrapper'>" +
                 "<div class='ul-pad-2x-b'>" +
-                "<div class='ul-body-m-b'>" + (globalSelf?.nls?.InputParameters || "Input Parameters") + "</div>" +
+                "<div class='ul-body-m-b'>" + (nls.InputParameters || "Input Parameters") + "</div>" +
                 "</div>" +
                 "<div class='input-parameters-modal-grid'></div>" +
                 "</div>"
@@ -526,13 +535,13 @@ define([
             var saveHandler = function (e) {
                 var updatedParameters = [];
 
-                if (globalSelf.inputParametersModalGrid?.widget?.dataSource) {
-                    updatedParameters = globalSelf.inputParametersModalGrid
-                        .widget.dataSource.data().toJSON();
+                var modalGridWidget = globalSelf.inputParametersModalGrid && (globalSelf.inputParametersModalGrid.widget || globalSelf.inputParametersModalGrid);
+                if (modalGridWidget && modalGridWidget.dataSource) {
+                    updatedParameters = modalGridWidget.dataSource.data().toJSON();
                 }
 
                 _.each(updatedParameters, function (param) {
-                    if (param?.value && typeof param.value === "object") {
+                    if (param && param.value && typeof param.value === "object") {
                         param.value = ExpressionBuilderUtility.getExpression(param.value);
                     }
                     if (!param.type && param.dataType) {
@@ -549,11 +558,12 @@ define([
                     dataItem.inputParameters = updatedParameters;
                 }
 
-                if (globalSelf.callMethodGrid?.widget) {
-                    globalSelf.callMethodGrid.widget.refresh();
+                var cmWidget = globalSelf.callMethodGrid && (globalSelf.callMethodGrid.widget || globalSelf.callMethodGrid);
+                if (cmWidget && cmWidget.refresh) {
+                    cmWidget.refresh();
                 }
 
-                if (e?.sender?.close) {
+                if (e && e.sender && e.sender.close) {
                     e.sender.close();
                 }
 
@@ -561,7 +571,7 @@ define([
             };
 
             var cancelHandler = function (e) {
-                if (e?.sender?.close) {
+                if (e && e.sender && e.sender.close) {
                     e.sender.close();
                 }
 
@@ -573,17 +583,17 @@ define([
                 anchor: $anchor,
                 pinPopover: true,
                 width: 580,
-                title: (globalSelf?.nls?.AddMethodCall || "Add Method Call") + " " + (methodName || ""),
+                title: (nls.AddMethodCall || "Add Method Call") + " " + (methodName || ""),
                 popupPosition: "left",
                 actions: ['close'],
                 buttons: [
                     {
-                        label: globalSelf?.nls?.Cancel || "Cancel",
+                        label: nls.Cancel || "Cancel",
                         action: "cancel",
                         uiStyle: "tertiary"
                     },
                     {
-                        label: globalSelf?.nls?.Save || "Save",
+                        label: nls.Save || "Save",
                         action: "save",
                         uiStyle: "primary"
                     }
@@ -592,8 +602,8 @@ define([
                 save: saveHandler,
                 ok: saveHandler,
                 messages: {
-                    ok: globalSelf?.nls?.Save || "Save",
-                    cancel: globalSelf?.nls?.Cancel || "Cancel"
+                    ok: nls.Save || "Save",
+                    cancel: nls.Cancel || "Cancel"
                 },
                 close: function () {
                     manager._destroyInputParametersModal(globalSelf, true);
@@ -626,7 +636,7 @@ define([
                     var popover = globalSelf.inputParametersModal;
                     globalSelf.inputParametersModal = null;
 
-                    if (!isFromCloseCallback && popover?.close) {
+                    if (!isFromCloseCallback && popover && popover.close) {
                         popover.close();
                     }
                 }
@@ -637,9 +647,13 @@ define([
                     $wrapper.remove();
                 }
             }
-            this.inputParamsGrid?.destroy?.();
+            if (this.inputParamsGrid && this.inputParamsGrid.destroy) {
+                this.inputParamsGrid.destroy();
+            }
             this.inputParamsGrid = null;
-            this.inputParamsModal?.destroy?.();
+            if (this.inputParamsModal && this.inputParamsModal.destroy) {
+                this.inputParamsModal.destroy();
+            }
             this.inputParamsModal = null;
             $("#input-parameters-modal-window").remove();
         }

@@ -1,6 +1,6 @@
 /**
-* Created by Lovish.
-*/
+ * Created by Lovish.
+ */
 define(function (require) {
     "use strict";
 
@@ -22,7 +22,7 @@ define(function (require) {
         getTemplate: function (field) {
             var manager = this;
             return function (dataItem) {
-                var rawVal = dataItem?.get ? dataItem.get(field) : dataItem?.[field];
+                var rawVal = (dataItem && dataItem.get) ? dataItem.get(field) : (dataItem ? dataItem[field] : "");
                 var value = manager._extractValue(rawVal);
                 var isEmpty = !value;
                 return "<div class='invokeopcua-editable-cell " + (isEmpty ? "is-empty" : "") + "'>" +
@@ -41,12 +41,12 @@ define(function (require) {
                 editor.appendTo(container);
 
                 var configData = {
-                    processModel: globalSelf?.processModel,
-                    activityID: globalSelf?.activityId,
+                    processModel: globalSelf.processModel,
+                    activityID: globalSelf.activityId,
                     tabName: "CONFIGURATION"
                 };
 
-                var rawVal = options.model?.get ? options.model.get(field) : options.model?.[field];
+                var rawVal = (options.model && options.model.get) ? options.model.get(field) : (options.model ? options.model[field] : "");
                 var value = manager._extractValue(rawVal);
 
                 var expressionBuilder;
@@ -54,13 +54,17 @@ define(function (require) {
                 var changeHandler = function () {
                     var expression = ExpressionBuilderUtility.getExpression(expressionBuilder);
                     if (expression !== undefined && expression !== null) {
-                        options.model?.set?.(field, expression);
+                        if (options.model && options.model.set) {
+                            options.model.set(field, expression);
+                        }
                     }
 
-                    var gridWidget = (globalSelf?.inputParametersModalGrid?.widget)
-                        || (globalSelf?._getGridInstance ? globalSelf._getGridInstance() : null);
+                    var gridWidget = (globalSelf.inputParametersModalGrid && globalSelf.inputParametersModalGrid.widget)
+                        || (globalSelf._getGridInstance ? globalSelf._getGridInstance() : null);
 
-                    gridWidget?.closeCell?.();
+                    if (gridWidget && gridWidget.closeCell) {
+                        gridWidget.closeCell();
+                    }
                 };
 
                 expressionBuilder = ExpressionBuilderUtility.render(
@@ -76,7 +80,9 @@ define(function (require) {
         },
 
         destroy: function (expressionBuilder) {
-            ExpressionBuilderUtility?.destroy?.(expressionBuilder);
+            if (ExpressionBuilderUtility && ExpressionBuilderUtility.destroy) {
+                ExpressionBuilderUtility.destroy(expressionBuilder);
+            }
         }
     };
 
