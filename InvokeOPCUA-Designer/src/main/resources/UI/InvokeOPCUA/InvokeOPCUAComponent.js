@@ -11,8 +11,8 @@ define(function (require) {
         nls = require("i18n!./nls/InvokeOPCUAComponentNLS"),
         Constants = require("./js/constants"),
         ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility"),
-        DeviceConnectorConnComponent = require("Components/Activities/DeviceConnectorConnComponent/DeviceConnectorConnComponent"),
-        DeviceConnConstants = require("Components/Activities/DeviceConnectorConnComponent/constants/Constants"),
+        DeviceConnectorConnComponent = require("Components/DeviceConnectorConnComponent/DeviceConnectorConnComponent"),
+        DeviceConnConstants = require("Components/DeviceConnectorConnComponent/constants/Constants"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
         CallMethodGridManager = require("./js/CallMethodGridManager"),
         AddressSpaceBrowser = require("./js/AddressSpaceBrowser");

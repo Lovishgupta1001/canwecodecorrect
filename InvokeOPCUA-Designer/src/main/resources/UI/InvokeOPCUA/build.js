@@ -38,8 +38,8 @@
         "Widgets/Designer/ProcessModel/ProcessModel": "empty:",
         "Components/ExpressionBuilderUtility/ExpressionBuilderUtility": "empty:",
         "Components/Activities/ActivitiesUtility/ActivitiesUtility": "empty:",
-        "Components/Activities/DeviceConnectorConnComponent/DeviceConnectorConnComponent": "empty:",
-        "Components/Activities/DeviceConnectorConnComponent/constants/Constants": "empty:",
+        "Components/DeviceConnectorConnComponent/DeviceConnectorConnComponent": "empty:",
+        "Components/DeviceConnectorConnComponent/constants/Constants": "empty:",
         "Widgets/Designer/ExpressionBuilder/constants/ExpressionBuilderLauncherTypes": "empty:",
         "Widgets/Designer/ExpressionBuilder/ExpressionBuilder": "empty:",
 

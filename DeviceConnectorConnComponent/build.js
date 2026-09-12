@@ -37,7 +37,7 @@
     "tpl": "Lib/UILayer/tpl",
     "i18n": "Lib/UILayer/i18n",
     "json": "Lib/UILayer/json",
-    "Components/Activities/DeviceConnectorConnComponent/DeviceConnectorConnComponent": "Components/Activities/DeviceConnectorConnComponent/DeviceConnectorConnComponent"
+    "Components/DeviceConnectorConnComponent/DeviceConnectorConnComponent": "Components/DeviceConnectorConnComponent/DeviceConnectorConnComponent"
   },
   appDir: "./",
   useStrict: true,
@@ -47,9 +47,9 @@
   baseUrl: "./../../..",
   findNestedDependencies: true,
   fileExclusionRegExp: /collection|^js$|behavior|constants|controller|model|template|view|.less$|build.js/,
-  dir: "./../../../_Components/Activities/DeviceConnectorConnComponent",
+  dir: "./../../../_Components/DeviceConnectorConnComponent",
   modules: [{
-    name: "Components/Activities/DeviceConnectorConnComponent/DeviceConnectorConnComponent",
+    name: "Components/DeviceConnectorConnComponent/DeviceConnectorConnComponent",
     exclude: ["text", "tpl", "uilayer", "i18n"]
   }]
 });
