@@ -202,11 +202,9 @@ define(function (require) {
                 return false;
             }
             var upperConnType = String(connType).toUpperCase();
-            var normalizedConnType = upperConnType.replace(/[^A-Z0-9]/g, "");
 
             return this.allowedConnectionTypes.some(function (allowed) {
-                var allowedType = String(allowed).toUpperCase();
-                return upperConnType === allowedType || normalizedConnType === allowedType.replace(/[^A-Z0-9]/g, "");
+                return upperConnType === String(allowed).toUpperCase();
             });
         },
 

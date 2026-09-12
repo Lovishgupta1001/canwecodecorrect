@@ -140,7 +140,7 @@ define(function (require) {
             var connData = this.deviceConnComp?.getConnectionData?.() || {};
             var connId = connData.connectionId || this.model.getKey("connectionId") || "";
             var connName = connData.connectionName || this.model.getKey("connectionName") || "";
-            var connType = connData.connectionType || this.model.getKey("connectionType") || "OPC_UA";
+            var connType = connData.connectionType || this.model.getKey("connectionType") || "OPCUA";
             var cleanName = (connName && connName !== this.nls?.SelectConnection) ? connName : "";
             return {
                 connectionId: connId,
@@ -259,7 +259,7 @@ define(function (require) {
                 activityId: this.activityId,
                 reqres: this.designerReqres,
                 activityReqres: this.activityReqres,
-                allowedConnectionTypes: ["OPC_UA"],
+                allowedConnectionTypes: ["OPCUA"],
                 data: connData
             };
 
@@ -306,7 +306,7 @@ define(function (require) {
         _onConnectionChanged: function (connData) {
             var connId = connData?.connectionId || "";
             var connName = connData?.connectionName || connData?.name || "";
-            var connType = connData?.connectionType || "OPC_UA";
+            var connType = connData?.connectionType || "OPCUA";
 
             this.model.setKey("connectionComboBox", connName);
             this.model.setKey("connectionName", connName);
