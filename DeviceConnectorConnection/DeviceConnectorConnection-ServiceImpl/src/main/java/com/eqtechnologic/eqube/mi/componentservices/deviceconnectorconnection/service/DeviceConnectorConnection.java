@@ -18,6 +18,7 @@ import com.eqtechnologic.eqube.mi.component.handlers.EntityReferenceHandler;
 import com.eqtechnologic.eqube.mi.component.service.ComponentExportEntity; 
 import com.eqtechnologic.eqube.mi.component.service.ComponentValidator; 
 import com.eqtechnologic.eqube.mi.component.service.RemapInfo; 
+import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorBean;
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorConnCompInitialInput; 
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorValidationResult; 
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.constants.DeviceConnectorConstants; 
@@ -57,6 +58,11 @@ public class DeviceConnectorConnection implements DeviceConnectorConnectionServi
     public DeviceConnectorValidationResult validateConnection(Long connId, List<String> allowedConnectionTypes) { 
         return DeviceConnectorHelper.validateConnection(connId, allowedConnectionTypes); 
     } 
+
+    @Override
+    public List<DeviceConnectorBean> fetchAccessibleDeviceConnectorConnections() throws BusinessException {
+        return DeviceConnectorHelper.fetchAccessibleDeviceConnectorConnections();
+    }
 
     @Override 
     public String getComponentType() { 

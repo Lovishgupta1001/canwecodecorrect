@@ -17,7 +17,6 @@ import com.eqtechnologic.eqube.connectionconfiguration.client.service.beans.Conn
 import com.eqtechnologic.eqube.connectionconfiguration.client.service.beans.ConnectionPropertiesView; 
 import com.eqtechnologic.eqube.exception.BusinessException; 
 import com.eqtechnologic.eqube.mi.ui.common.services.uibeans.ConnectionUIBean; 
-import com.eqtechnologic.eqube.mi.ui.common.services.uibeans.DeviceConnectorBean; 
 import com.eqtechnologic.eqube.mi.ui.usermgmt.eQUserManager; 
 import com.eqtechnologic.eqube.soa.servicemanagement.serviceregistry.ServiceRegistry; 
 
@@ -36,7 +35,6 @@ public class CommonServiceHelper {
     private eQUserManager userManager = new eQUserManager(); 
     private static String contextPath; 
     private static final String PLUGIN_VERSION_NA = "NA"; 
-    public static final String DEVICE_CONNECTOR = "Device Connector"; 
 
     /** 
      * Get TimeZone Map with ID and GMT value 
@@ -101,26 +99,6 @@ public class CommonServiceHelper {
                 } 
             } 
         } 
-        return connUIBeanList; 
-    } 
-
-    public List<DeviceConnectorBean> fetchAccessibleDeviceConnectorConnections() throws BusinessException { 
-        CommonConnectionService commonConnService = ServiceRegistry.getInstance().getService( 
-                CommonConnectionConstants.COMMON_CONNECTION_SERVICE); 
-
-        List<ConnectionConfigurationView> userConnectionCredentialsBeans = 
-                commonConnService.fetchAllAccessibleConn(); 
-
-        List<DeviceConnectorBean> connUIBeanList = new ArrayList<>(); 
-
-        if (userConnectionCredentialsBeans != null) { 
-            for (ConnectionConfigurationView connConfigBean : userConnectionCredentialsBeans) { 
-                if (connConfigBean != null && !connConfigBean.isPluginBased() && DEVICE_CONNECTOR.equalsIgnoreCase(connConfigBean.getPluginDisplayName())) { 
-                    connUIBeanList.add(toDeviceConnectorBean(connConfigBean)); 
-                } 
-            } 
-        } 
-
         return connUIBeanList; 
     } 
 
@@ -243,38 +221,6 @@ public class CommonServiceHelper {
         setConnectionColor(connectionUIBean, propertiesMap); 
         setAuthenticationUsage(connectionUIBean, propertiesMap); 
         return connectionUIBean; 
-    } 
-
-    public static DeviceConnectorBean toDeviceConnectorBean(ConnectionConfigurationView boBean) throws BusinessException { 
-        if (boBean == null) return null; 
-
-        DeviceConnectorBean deviceConnectorBean = new DeviceConnectorBean(); 
-
-        populateBasicFields(boBean, deviceConnectorBean); 
-        Map<String, ConnectionPropertiesView> propertiesMap = boBean.getConnectionProperties(); 
-        deviceConnectorBean.setPluginName(boBean.getPluginName()); 
-        deviceConnectorBean.setSaveCredentials(boBean.isSaveCredentials()); 
-        deviceConnectorBean.setXmldata(boBean.getXmldata()); 
-        deviceConnectorBean.setCreateModel(boBean.isCreateModel()); 
-        deviceConnectorBean.setPluginDisplayName(boBean.getPluginDisplayName()); 
-        deviceConnectorBean.setRemote(boBean.isRemote()); 
-        deviceConnectorBean.setPluginVersion(boBean.getPluginVersion()); 
-        deviceConnectorBean.setPluginInstanceName(boBean.getPluginInstanceName()); 
-        deviceConnectorBean.setPluginClassName(boBean.getPluginClassName()); 
-        deviceConnectorBean.setPluginBased(false); 
-
-        String connType = null; 
-        if (propertiesMap != null) { 
-            ConnectionPropertiesView view = propertiesMap.get("deviceType"); 
-            if (view != null && view.getPropertyValue() != null && !view.getPropertyValue().trim().isEmpty()) { 
-                connType = view.getPropertyValue().trim(); 
-            } 
-        } 
-        deviceConnectorBean.setConnectionType(connType != null ? connType : ""); 
-
-        setConnectionColor(deviceConnectorBean, propertiesMap); 
-        setAuthenticationUsage(deviceConnectorBean, propertiesMap); 
-        return deviceConnectorBean; 
     } 
 
     private static void populateBasicFields(ConnectionConfigurationView boBean, ConnectionUIBean connectionUIBean) { 

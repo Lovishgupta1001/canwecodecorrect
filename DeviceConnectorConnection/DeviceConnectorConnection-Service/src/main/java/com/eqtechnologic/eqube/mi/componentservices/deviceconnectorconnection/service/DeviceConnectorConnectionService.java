@@ -13,6 +13,7 @@
 package com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.service; 
 
 import com.eqtechnologic.eqube.mi.component.service.ComponentService; 
+import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorBean;
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorConnCompInitialInput; 
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorValidationResult; 
 import com.eqtechnologic.eqube.exception.BusinessException; 
@@ -35,4 +36,12 @@ public interface DeviceConnectorConnectionService
      * @return DeviceConnectorValidationResult 
      */ 
     DeviceConnectorValidationResult validateConnection(Long connId, List<String> allowedConnectionTypes); 
+
+    /** 
+     * Fetch all accessible Device Connector connections. 
+     * 
+     * @return List of DeviceConnectorBean 
+     * @throws BusinessException 
+     */ 
+    List<DeviceConnectorBean> fetchAccessibleDeviceConnectorConnections() throws BusinessException; 
 }

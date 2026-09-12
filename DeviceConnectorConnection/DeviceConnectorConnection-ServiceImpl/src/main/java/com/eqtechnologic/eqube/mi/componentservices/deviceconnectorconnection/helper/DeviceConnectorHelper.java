@@ -19,6 +19,8 @@ import com.eqtechnologic.eqube.connectionconfiguration.client.service.util.Conne
 import com.eqtechnologic.eqube.exception.BusinessException; 
 import com.eqtechnologic.eqube.logging.LogTemplate; 
 import com.eqtechnologic.eqube.logging.Logger; 
+import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorBean;
+import com.eqtechnologic.eqube.mi.ui.common.services.uibeans.ConnectionUIBean;
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorValidationResult; 
 import com.eqtechnologic.eqube.connectionconfiguration.client.service.beans.ConnectionPropertiesView; 
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.constants.DeviceConnectorConstants; 
@@ -55,6 +57,82 @@ public class DeviceConnectorHelper {
         } 
         return connectionIds; 
     } 
+
+    public static List<DeviceConnectorBean> fetchAccessibleDeviceConnectorConnections() throws BusinessException {
+        List<ConnectionConfigurationView> userConnectionCredentialsBeans = getCommonConnectionService().fetchAllAccessibleConn();
+        List<DeviceConnectorBean> connUIBeanList = new ArrayList<>();
+
+        if (userConnectionCredentialsBeans != null) {
+            for (ConnectionConfigurationView connConfigBean : userConnectionCredentialsBeans) {
+                if (connConfigBean != null && !connConfigBean.isPluginBased() && DeviceConnectorConstants.DEVICE_CONNECTOR.equalsIgnoreCase(connConfigBean.getPluginDisplayName())) {
+                    connUIBeanList.add(toDeviceConnectorBean(connConfigBean));
+                }
+            }
+        }
+
+        return connUIBeanList;
+    }
+
+    public static DeviceConnectorBean toDeviceConnectorBean(ConnectionConfigurationView boBean) throws BusinessException {
+        if (boBean == null) return null;
+
+        DeviceConnectorBean deviceConnectorBean = new DeviceConnectorBean();
+
+        populateBasicFields(boBean, deviceConnectorBean);
+        Map<String, ConnectionPropertiesView> propertiesMap = boBean.getConnectionProperties();
+        deviceConnectorBean.setPluginName(boBean.getPluginName());
+        deviceConnectorBean.setSaveCredentials(boBean.isSaveCredentials());
+        deviceConnectorBean.setXmldata(boBean.getXmldata());
+        deviceConnectorBean.setCreateModel(boBean.isCreateModel());
+        deviceConnectorBean.setPluginDisplayName(boBean.getPluginDisplayName());
+        deviceConnectorBean.setRemote(boBean.isRemote());
+        deviceConnectorBean.setPluginVersion(boBean.getPluginVersion());
+        deviceConnectorBean.setPluginInstanceName(boBean.getPluginInstanceName());
+        deviceConnectorBean.setPluginClassName(boBean.getPluginClassName());
+        deviceConnectorBean.setPluginBased(false);
+
+        String connType = null;
+        if (propertiesMap != null) {
+            ConnectionPropertiesView view = propertiesMap.get(DeviceConnectorConstants.DEVICE_TYPE);
+            if (view != null && view.getPropertyValue() != null && !view.getPropertyValue().trim().isEmpty()) {
+                connType = view.getPropertyValue().trim();
+            }
+        }
+        deviceConnectorBean.setConnectionType(connType != null ? connType : "");
+
+        setConnectionColor(deviceConnectorBean, propertiesMap);
+        setAuthenticationUsage(deviceConnectorBean, propertiesMap);
+        return deviceConnectorBean;
+    }
+
+    private static void populateBasicFields(ConnectionConfigurationView boBean, ConnectionUIBean connectionUIBean) {
+        connectionUIBean.setConnectionId(boBean.getConnectionId());
+        connectionUIBean.setConnectionName(boBean.getConnectionName());
+        connectionUIBean.setConnectionDesc(boBean.getConnectionDesc());
+        connectionUIBean.setConnectionStatus(String.valueOf(boBean.getConnectionStatus()));
+        connectionUIBean.setCreationDate(boBean.getCreationDate());
+        connectionUIBean.setCreator(boBean.getCreator());
+        connectionUIBean.setLastUpdateBy(boBean.getLastUpdateBy());
+        connectionUIBean.setLastUpdateDate(boBean.getLastUpdateDate());
+    }
+
+    private static void setConnectionColor(ConnectionUIBean connectionUIBean, Map<String, ConnectionPropertiesView> propertiesMap) {
+        if (propertiesMap != null) {
+            ConnectionPropertiesView view = propertiesMap.get(CommonConnectionConstants.CONNECTION_COLOR);
+            if (view != null && view.getPropertyValue() != null && !view.getPropertyValue().trim().isEmpty()) {
+                connectionUIBean.setConnectionColor(view.getPropertyValue());
+            }
+        }
+    }
+
+    private static void setAuthenticationUsage(ConnectionUIBean connectionUIBean, Map<String, ConnectionPropertiesView> propertiesMap) {
+        if (propertiesMap != null) {
+            ConnectionPropertiesView view = propertiesMap.get(CommonConnectionConstants.USE_CONNECTION_FOR_AUTHENTICATION);
+            if (view != null && view.getPropertyValue() != null && !view.getPropertyValue().trim().isEmpty()) {
+                connectionUIBean.setUseConnectionForAuthentication(Boolean.parseBoolean(view.getPropertyValue()));
+            }
+        }
+    }
 
     private static ConnectionConfigClientService getConnectionConfigurationClient() { 
         return ServiceRegistry.getInstance().getService(ConnectionConfigClientUtil.CONNECTION_CONFIGURATION_CLIENT_SERVICE_NAME); 

@@ -11,6 +11,9 @@
  */ 
 package com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.controller; 
 
+import com.eqtechnologic.eqube.exception.BusinessException;
+import com.eqtechnologic.eqube.logging.Loggable;
+import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorBean;
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorConnCompInitialInput; 
 import com.eqtechnologic.eqube.mi.componentservices.deviceconnectorconnection.beans.DeviceConnectorValidationResult; 
 import org.springframework.web.bind.annotation.*; 
@@ -37,6 +40,16 @@ public class DeviceConnectorRestController {
         checkMultipleOperations(operations); 
         return DeviceConnectorControllerHelper.getInstance().getDeviceConnectorConnectionService().getInitialInput(); 
     } 
+
+    @Loggable
+    @GetMapping(value = "/fetchAccessibleDeviceConnectorConnections")
+    public List<DeviceConnectorBean> fetchAccessibleDeviceConnectorConnections() throws BusinessException {
+        List<String> operations = new ArrayList<>();
+        operations.add(MIOperation.Process.LIST_PROCESS);
+        operations.add(MIOperation.Transaction.LIST_TRANSACTIONS);
+        checkMultipleOperations(operations);
+        return DeviceConnectorControllerHelper.getInstance().getDeviceConnectorConnectionService().fetchAccessibleDeviceConnectorConnections();
+    }
 
     @PostMapping(value = "/validateConnection") 
     public DeviceConnectorValidationResult validateConnection(@RequestParam("connId") Long connId, 

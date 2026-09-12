@@ -32,6 +32,7 @@ define(function (require) {
             }
             this.processModel = this.designerReqres ? this.designerReqres.request("getCurrentActiveEntityModelFromDataStore") : null;
             this.accessibleConnIds = [];
+            this.fetchConnectionsUrl = options.fetchConnectionsUrl || "componentservices/deviceconnector/fetchAccessibleDeviceConnectorConnections";
             this._resetValidationState();
 
             if (options.data) {
@@ -163,7 +164,8 @@ define(function (require) {
         _renderConnectionDropdown: function (id) {
             let globalSelf = this;
             let connectionsDetails = [];
-            let promise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleDeviceConnectorConnections", null, "json", null, true);
+            let fetchUrl = this.fetchConnectionsUrl || "componentservices/deviceconnector/fetchAccessibleDeviceConnectorConnections";
+            let promise = AjaxUtility.commonAjaxSyncRequest("GET", fetchUrl, null, "json", null, true);
             promise.done((connectionsData) => {
                 connectionsDetails = connectionsData || [];
             });
@@ -327,7 +329,8 @@ define(function (require) {
         _refreshConnection: function () {
             let globalSelf = this;
             let connectionsDetails = [];
-            let promise = AjaxUtility.commonAjaxSyncRequest("GET", "services/fetchAccessibleDeviceConnectorConnections", null, "json", null, true);
+            let fetchUrl = this.fetchConnectionsUrl || "componentservices/deviceconnector/fetchAccessibleDeviceConnectorConnections";
+            let promise = AjaxUtility.commonAjaxSyncRequest("GET", fetchUrl, null, "json", null, true);
             promise.done(function (connectionsData) {
                 connectionsDetails = connectionsData || [];
             });
