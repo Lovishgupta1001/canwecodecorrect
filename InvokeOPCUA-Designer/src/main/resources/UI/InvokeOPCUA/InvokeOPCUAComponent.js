@@ -11,8 +11,6 @@ define(function (require) {
         nls = require("i18n!./nls/InvokeOPCUAComponentNLS"),
         Constants = require("./js/constants"),
         ExpressionBuilderUtility = require("Components/ExpressionBuilderUtility/ExpressionBuilderUtility"),
-        DeviceConnectorConnComponent = require("Components/DeviceConnectorConnComponent/DeviceConnectorConnComponent"),
-        DeviceConnConstants = require("Components/DeviceConnectorConnComponent/constants/Constants"),
         DataChangeGridManager = require("./js/DataChangeGridManager"),
         CallMethodGridManager = require("./js/CallMethodGridManager"),
         AddressSpaceBrowser = require("./js/AddressSpaceBrowser");
@@ -263,36 +261,26 @@ define(function (require) {
                 data: connData
             };
 
-            var deviceConnPromise;
-            if (window.MIUIComponent?.DeviceConnectorConnComponent) {
-                deviceConnPromise = window.MIUIComponent.DeviceConnectorConnComponent(connOptions);
-            } else {
-                var deferred = $.Deferred();
-                var comp = new DeviceConnectorConnComponent(connOptions);
-                comp.render();
-                deferred.resolve(comp);
-                deviceConnPromise = deferred.promise();
-            }
-
-            deviceConnPromise?.done?.(function (comp) {
+            var onComponentReady = function (comp) {
+                if (!comp) return;
                 globalSelf.deviceConnComp = comp;
                 globalSelf.connectionComboBox = comp.connectionComboBox;
 
                 globalSelf.listenTo(
                     globalSelf.deviceConnComp,
-                    DeviceConnConstants.EVENTS.CHANGE_CONNECTION_VARIABLE,
+                    Constants.EVENTS.CHANGE_CONNECTION_VARIABLE,
                     globalSelf._onConnectionChanged.bind(globalSelf)
                 );
 
                 globalSelf.listenTo(
                     globalSelf.deviceConnComp,
-                    DeviceConnConstants.EVENTS.REFRESH_CONNECTION,
+                    Constants.EVENTS.REFRESH_CONNECTION,
                     globalSelf._onConnectionRefreshed.bind(globalSelf)
                 );
 
                 globalSelf.listenTo(
                     globalSelf.deviceConnComp,
-                    DeviceConnConstants.EVENTS.INVALID_CONNECTION_SELECTED,
+                    Constants.EVENTS.INVALID_CONNECTION_SELECTED,
                     globalSelf._onConnectionInvalid.bind(globalSelf)
                 );
 
@@ -300,6 +288,40 @@ define(function (require) {
                 if (selectedConn) {
                     globalSelf._onConnectionChanged(comp.getConnectionData?.());
                 }
+            };
+
+            var miuiFactory = (typeof MIUIComponent !== "undefined" && MIUIComponent.DeviceConnectorConnComponent)
+                || (typeof window !== "undefined" && window.MIUIComponent?.DeviceConnectorConnComponent);
+            if (typeof miuiFactory === "function") {
+                var promise = miuiFactory(connOptions);
+                promise?.done?.(onComponentReady);
+                return;
+            }
+
+            var GlobalConstructor = typeof window !== "undefined" ? window.DeviceConnectorConnComponent : null;
+            if (typeof GlobalConstructor === "function") {
+                var comp = new GlobalConstructor(connOptions);
+                comp.render?.();
+                onComponentReady(comp);
+                return;
+            }
+
+            var targetModule = "Components/DeviceConnectorConnComponent/DeviceConnectorConnComponent";
+            var fallbackModule = "Components/Activities/DeviceConnectorConnComponent/DeviceConnectorConnComponent";
+
+            var req = typeof window !== "undefined" && window.require ? window.require : require;
+            req([targetModule], function (Comp) {
+                var comp = new Comp(connOptions);
+                comp.render?.();
+                onComponentReady(comp);
+            }, function () {
+                req([fallbackModule], function (Comp) {
+                    var comp = new Comp(connOptions);
+                    comp.render?.();
+                    onComponentReady(comp);
+                }, function (err) {
+                    console.error("Failed to load DeviceConnectorConnComponent", err);
+                });
             });
         },
 
