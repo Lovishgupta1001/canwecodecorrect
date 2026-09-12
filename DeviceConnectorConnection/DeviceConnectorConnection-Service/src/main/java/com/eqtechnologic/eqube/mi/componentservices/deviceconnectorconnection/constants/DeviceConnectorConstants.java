@@ -28,6 +28,5 @@ public class DeviceConnectorConstants {
     public static final String CONNECTION_NAME = "connectionName"; 
     public static final String CONNECTION_TYPE = "connectionType"; 
     public static final String DEVICE_TYPE = "deviceType"; 
-    public static final String TYPE_OPCUA = "OPCUA"; 
     public static final String DEVICE_CONNECTOR = "Device Connector"; 
 }
